@@ -1,0 +1,71 @@
+! uMatrix: Ruleset recipes 1.0
+! Title: uMatrix Recipes
+! Maintainer: themagicteeth
+!
+! Assumes the following rules in place:
+!
+! https-strict: * true
+! no-workers: * true
+! noscript-spoof: * true
+! referrer-spoof: * true
+! * * * block
+! * 1st-party css allow
+! * 1st-party image allow
+!
+! Lines starting with character "!" are ignored.
+! Character "_" is an alias for "currently selected scope".
+! An empty line MUST be used to separate distinct ruleset recipes.
+
+reCAPTCHA as 3rd party
+ * www.google.com
+ _ www.google.com css allow
+ _ www.google.com frame allow
+ _ www.google.com image allow
+ _ www.google.com script allow
+ _ www.google.com xhr allow
+ _ www.gstatic.com css allow
+ _ www.gstatic.com image allow
+ _ www.gstatic.com script allow
+
+reCAPTCHA as 3rd party
+ * recaptcha.net
+ _ recaptcha.net css allow
+ _ recaptcha.net frame allow
+ _ recaptcha.net image allow
+ _ recaptcha.net script allow
+ _ recaptcha.net xhr allow
+ _ www.gstatic.com css allow
+ _ www.gstatic.com image allow
+ _ www.gstatic.com script allow
+
+paypal as 3rd party
+ * www.paypal.com
+ _ www.paypal.com css allow
+ _ www.paypal.com frame allow
+ _ www.paypal.com script allow
+ _ www.paypalobjects.com script allow
+
+streamsb new domain
+ * ssl.p.jwpcdn.com
+ _ akamai-cdn-content.com xhr allow
+ _ akamai-video-content.com xhr allow
+ _ cdnjs.cloudflare.com css allow
+ _ cdnjs.cloudflare.com script allow
+ _ ssl.p.jwpcdn.com script allow
+
+disqus as 3rd party
+ * disqus.com
+ _ c.disquscdn.com css allow
+ _ c.disquscdn.com image allow
+ _ c.disquscdn.com script allow
+ _ disqus.com css allow
+ _ disqus.com frame allow
+ _ disqus.com script allow
+
+youtube as 3rd party
+ * youtube.com
+ _ googlevideo.com xhr allow
+ _ youtube.com css allow
+ _ youtube.com frame allow
+ _ youtube.com script allow
+ _ youtube.com xhr allow

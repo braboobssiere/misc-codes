@@ -18,6 +18,7 @@
 
 reCAPTCHA as 3rd party
  * www.google.com
+ _ 1st-party script allow
  _ www.google.com css allow
  _ www.google.com frame allow
  _ www.google.com image allow
@@ -29,6 +30,7 @@ reCAPTCHA as 3rd party
 
 reCAPTCHA as 3rd party
  * recaptcha.net
+ _ 1st-party script allow
  _ recaptcha.net css allow
  _ recaptcha.net frame allow
  _ recaptcha.net image allow
@@ -47,14 +49,23 @@ paypal as 3rd party
 
 streamsb new domain
  * ssl.p.jwpcdn.com
+ _ 1st-party script allow
  _ akamai-cdn-content.com xhr allow
  _ akamai-video-content.com xhr allow
  _ cdnjs.cloudflare.com css allow
  _ cdnjs.cloudflare.com script allow
  _ ssl.p.jwpcdn.com script allow
 
+streamwish new domain
+ * streamwish.com
+ _ 1st-party script allow
+ _ streamwish.com script allow
+ _ sw-cdn-images.com image allow
+ _ sw-cdnstream.com xhr allow
+
 disqus as 3rd party
  * disqus.com
+ _ 1st-party script allow
  _ c.disquscdn.com css allow
  _ c.disquscdn.com image allow
  _ c.disquscdn.com script allow

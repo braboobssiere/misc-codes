@@ -58,6 +58,7 @@ streamsb new domain
 
 streamwish new domain
  * streamwish.com
+ _ 1st-party cookie allow
  _ 1st-party script allow
  _ streamwish.com script allow
  _ sw-cdn-images.com image allow

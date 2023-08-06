@@ -1,6 +1,5 @@
 ! uMatrix: Ruleset recipes 1.0
 ! Title: uMatrix Recipes
-! Maintainer: themagicteeth
 !
 ! Assumes the following rules in place:
 !

@@ -49,6 +49,7 @@ paypal as 3rd party
 
 streamsb new domain
  * ssl.p.jwpcdn.com
+ no-workers: _ false
  _ 1st-party script allow
  _ akamai-cdn-content.com xhr allow
  _ akamai-video-content.com xhr allow
@@ -58,6 +59,7 @@ streamsb new domain
 
 streamwish new domain
  * streamwish.com
+ no-workers: _ false
  _ 1st-party cookie allow
  _ 1st-party script allow
  _ streamwish.com script allow

@@ -82,3 +82,12 @@ youtube as 3rd party
  _ youtube.com frame allow
  _ youtube.com script allow
  _ youtube.com xhr allow
+
+youtube embed indivious
+ * youtube.com
+ _ googlevideo.com media allow
+ _ vid.puffyan.us css allow
+ _ vid.puffyan.us frame allow
+ _ vid.puffyan.us image allow
+ _ vid.puffyan.us media allow
+ _ youtube.com frame allow

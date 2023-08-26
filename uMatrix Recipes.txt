@@ -91,3 +91,13 @@ youtube embed indivious
  _ vid.puffyan.us image allow
  _ vid.puffyan.us media allow
  _ youtube.com frame allow
+
+youtube embed indivious
+ * youtube-nocookie.com
+ _ googlevideo.com media allow
+ _ vid.puffyan.us css allow
+ _ vid.puffyan.us frame allow
+ _ vid.puffyan.us image allow
+ _ vid.puffyan.us media allow
+ _ youtube-nocookie.com frame allow
+

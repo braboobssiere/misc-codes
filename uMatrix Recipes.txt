@@ -101,3 +101,10 @@ youtube embed indivious
  _ vid.puffyan.us media allow
  _ youtube-nocookie.com frame allow
 
+vidguard video
+* guardstorage.net
+ _ guardstorage.net media allow
+ _ i.guardstorage.net image allow
+ _ 1st-party cookie allow
+ _ 1st-party frame allow
+ _ 1st-party script allow

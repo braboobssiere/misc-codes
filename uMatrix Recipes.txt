@@ -39,12 +39,12 @@ reCAPTCHA as 3rd party
  _ www.gstatic.com image allow
  _ www.gstatic.com script allow
 
-paypal as 3rd party
- * www.paypal.com
- _ www.paypal.com css allow
- _ www.paypal.com frame allow
- _ www.paypal.com script allow
- _ www.paypalobjects.com script allow
+! paypal as 3rd party
+! * www.paypal.com
+! _ www.paypal.com css allow
+! _ www.paypal.com frame allow
+! _ www.paypal.com script allow
+! _ www.paypalobjects.com script allow
 
 streamsb new domain
  * ssl.p.jwpcdn.com
@@ -83,23 +83,23 @@ youtube as 3rd party
  _ youtube.com script allow
  _ youtube.com xhr allow
 
-youtube embed indivious
- * youtube.com
- _ googlevideo.com media allow
- _ vid.puffyan.us css allow
- _ vid.puffyan.us frame allow
- _ vid.puffyan.us image allow
- _ vid.puffyan.us media allow
- _ youtube.com frame allow
+! youtube embed indivious
+! * youtube.com
+! _ googlevideo.com media allow
+! _ vid.puffyan.us css allow
+! _ vid.puffyan.us frame allow
+! _ vid.puffyan.us image allow
+! _ vid.puffyan.us media allow
+! _ youtube.com frame allow
 
-youtube embed indivious
- * youtube-nocookie.com
- _ googlevideo.com media allow
- _ vid.puffyan.us css allow
- _ vid.puffyan.us frame allow
- _ vid.puffyan.us image allow
- _ vid.puffyan.us media allow
- _ youtube-nocookie.com frame allow
+! youtube embed indivious
+! * youtube-nocookie.com
+! _ googlevideo.com media allow
+! _ vid.puffyan.us css allow
+! _ vid.puffyan.us frame allow
+! _ vid.puffyan.us image allow
+! _ vid.puffyan.us media allow
+! _ youtube-nocookie.com frame allow
 
 vidguard video
 * guardstorage.net

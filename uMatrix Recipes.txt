@@ -46,6 +46,15 @@ reCAPTCHA as 3rd party
 ! _ www.paypal.com script allow
 ! _ www.paypalobjects.com script allow
 
+stripe as 3rd party
+ * stripe.com
+ _ js.stripe.com css allow
+ _ js.stripe.com frame allow
+ _ js.stripe.com script allow
+ _ stripe.com xhr allow
+ _ stripe.network frame allow
+ _ stripe.network script allow
+
 streamwish new domain
  * streamwish.com
  no-workers: _ false

@@ -39,6 +39,18 @@ reCAPTCHA as 3rd party
  _ www.gstatic.com image allow
  _ www.gstatic.com script allow
 
+cloudflare captcha
+* challenges.cloudflare.com
+ no-workers: _ false
+ _ 1st-party cookie allow
+ _ 1st-party script allow
+ _ 1st-party xhr allow
+ _ challenges.cloudflare.com css allow
+ _ challenges.cloudflare.com frame allow
+ _ challenges.cloudflare.com image allow
+ _ challenges.cloudflare.com script allow
+ _ challenges.cloudflare.com xhr allow
+
 ! paypal as 3rd party
 ! * www.paypal.com
 ! _ www.paypal.com css allow

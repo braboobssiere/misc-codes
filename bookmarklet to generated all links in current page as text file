@@ -21,6 +21,5 @@ javascript:(function() {
     link.click();
     document.body.removeChild(link);
     
-    alert(`Link text and address, including source URL, copied and saved as ${fileName}`);
 })()
 ;

@@ -93,6 +93,7 @@ youtube as 3rd party
  _ youtube.com frame allow
  _ youtube.com script allow
  _ youtube.com xhr allow
+ _ i.ytimg.com image allow
 
 ! youtube embed indivious
 ! * youtube.com

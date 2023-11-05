@@ -79,9 +79,9 @@ streamwish new domain
 disqus as 3rd party
  * disqus.com
  _ 1st-party script allow
- _ c.disquscdn.com css allow
- _ c.disquscdn.com image allow
- _ c.disquscdn.com script allow
+ _ disquscdn.com css allow
+ _ disquscdn.com image allow
+ _ disquscdn.com script allow
  _ disqus.com css allow
  _ disqus.com frame allow
  _ disqus.com script allow

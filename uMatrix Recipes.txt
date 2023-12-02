@@ -86,6 +86,14 @@ disqus as 3rd party
  _ disqus.com frame allow
  _ disqus.com script allow
 
+discouse as 3rd party
+ * discourse-cdn.com
+ _ 1st-party script allow
+ _ 1st-party xhr allow
+ _ discourse-cdn.com css allow
+ _ discourse-cdn.com image allow
+ _ discourse-cdn.com script allow
+
 youtube as 3rd party
  * youtube.com
  _ googlevideo.com xhr allow

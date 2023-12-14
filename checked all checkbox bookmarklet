@@ -1,7 +1,1 @@
-javascript:(function(){
-    var checkboxes = document.querySelectorAll("input[type='checkbox']:not([checked='checked'])");
-    for(var i = 0; i < checkboxes.length; i++) {
-        checkboxes[i].checked = true;
-        checkboxes[i].setAttribute("aria-checked","true");
-    }
-})();
+javascript:(function(){var a=document.querySelectorAll("input[type='checkbox']:not([checked='checked'])");for(var b=0;b<a.length;b++){a[b].checked=!0,a[b].setAttribute("aria-checked","true")}})();

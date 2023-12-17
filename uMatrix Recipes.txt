@@ -57,6 +57,7 @@ cloudflare captcha
  _ www.paypal.com css allow
  _ www.paypal.com frame allow
  _ www.paypal.com script allow
+ _ www.paypal.com xhr allow
  _ www.paypalobjects.com script allow
 
 stripe as 3rd party

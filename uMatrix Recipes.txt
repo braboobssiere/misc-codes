@@ -52,12 +52,12 @@ cloudflare captcha
  _ challenges.cloudflare.com script allow
  _ challenges.cloudflare.com xhr allow
 
-! paypal as 3rd party
-! * www.paypal.com
-! _ www.paypal.com css allow
-! _ www.paypal.com frame allow
-! _ www.paypal.com script allow
-! _ www.paypalobjects.com script allow
+ paypal as 3rd party
+ * www.paypal.com
+ _ www.paypal.com css allow
+ _ www.paypal.com frame allow
+ _ www.paypal.com script allow
+ _ www.paypalobjects.com script allow
 
 stripe as 3rd party
  * stripe.com

@@ -35,7 +35,7 @@ jobs:
           git add -A
           
           # Commit the changes
-          git commit -m "Initial commit with cleaned history"
+          git commit -m "Clear history"
           
           # Delete the old branch (either master or main)
           git branch -D ${{ env.CURRENT_BRANCH }}

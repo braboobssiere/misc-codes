@@ -17,20 +17,14 @@
     <button id="previewTab" onclick="showTab('preview')" class="tab-button">Preview</button>
     </div>
 
-    <!-- Button Container -->
-    <div class="button-container">
-    <button id="importButton" class="small-button">Import</button>
-    <button id="exportButton" class="small-button">Export</button>
-    </div>
-    
     <!-- Editor Tab -->
     <div id="editor" class="tab-content">
         <textarea id="markdownInput" placeholder="Enter your Markdown content here..."></textarea>
         <input type="password" id="passwordInput" placeholder="Enter a strong password" />
         
         <div class="button-container">
-            <button id="importButton">Import from Text File</button>
-            <button id="exportButton">Export Encrypted Data</button>
+            <button id="importButton">Import</button>
+            <button id="exportButton">Export</button>
         </div>
         
         <input type="file" id="fileInput" style="display: none;" accept=".txt" />

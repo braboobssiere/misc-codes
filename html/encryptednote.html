@@ -21,8 +21,6 @@
     <div id="editor" class="tab-content">
         <textarea id="markdownInput" placeholder="Enter your Markdown content here..."></textarea>
         <input type="password" id="passwordInput" placeholder="Enter a strong password" />
-        <button id="encryptButton">Encrypt</button>
-        <button id="decryptButton">Decrypt</button>
         
         <div class="button-container">
             <button id="importButton">Import from Text File</button>
@@ -166,37 +164,6 @@
         const padding = padded.charCodeAt(padded.length - 1);
         return padded.slice(0, padded.length - padding);
     }
-
-    document.getElementById("encryptButton").addEventListener("click", async () => {
-        const markdownInput = document.getElementById("markdownInput").value;
-        const passwordInput = document.getElementById("passwordInput").value;
-
-        if (!isStrongPassword(passwordInput)) {
-            document.getElementById("output").value = "Password does not meet the strength requirements:\n" +
-                                                      "- At least 16 characters long\n" +
-                                                      "- At least 3 of the following:\n" +
-                                                      "  - Uppercase letters\n" +
-                                                      "  - Lowercase letters\n" +
-                                                      "  - Numbers\n" +
-                                                      "  - Special characters (except space)";
-            return;
-        }
-
-        const encryptedData = await encrypt(markdownInput, passwordInput);
-        document.getElementById("output").value = JSON.stringify(encryptedData);
-    });
-
-    document.getElementById("decryptButton").addEventListener("click", async () => {
-        const encryptedData = JSON.parse(document.getElementById("output").value);
-        const passwordInput = document.getElementById("passwordInput").value;
-
-        try {
-            const decryptedText = await decrypt(encryptedData, passwordInput);
-            document.getElementById("output").value = decryptedText;
-        } catch (error) {
-            document.getElementById("output").value = "Decryption failed. Please check your password and try again.";
-        }
-    });
 
     document.getElementById("exportButton").addEventListener("click", async () => {
         const outputValue = document.getElementById("output").value;

@@ -11,6 +11,16 @@
         <h1>Markdown Encryption Tool</h1>
         <textarea id="markdownInput" placeholder="Enter your Markdown content here..."></textarea>
         <input type="password" id="passwordInput" placeholder="Enter a strong password" />
+        <div id="passwordRequirements">
+            <p>Password Requirements:</p>
+            <ul>
+                <li class="requirement" id="lengthRequirement">At least 16 characters long</li>
+                <li class="requirement" id="uppercaseRequirement">At least 1 uppercase letter</li>
+                <li class="requirement" id="lowercaseRequirement">At least 1 lowercase letter</li>
+                <li class="requirement" id="numberRequirement">At least 1 number</li>
+                <li class="requirement" id="specialCharRequirement">At least 1 special character (e.g., !@#$%^&*()_+-=;:'"\\|,.<>/?~`•^°)</li>
+            </ul>
+        </div>
         <button id="encryptButton">Encrypt</button>
         <button id="decryptButton">Decrypt</button>
         <button id="importButton">Import from Text File</button>
@@ -120,14 +130,9 @@
             const markdownInput = document.getElementById("markdownInput").value;
             const passwordInput = document.getElementById("passwordInput").value;
 
-            if (!isStrongPassword(passwordInput)) {
-                alert("Password does not meet the strength requirements:\n" +
-                      "- At least 16 characters long\n" +
-                      "- At least 3 of the following:\n" +
-                      "  - Uppercase letters\n" +
-                      "  - Lowercase letters\n" +
-                      "  - Numbers\n" +
-                      "  - Special characters (except space)");
+            const passwordValidationMessages = isStrongPassword(passwordInput);
+            if (passwordValidationMessages.length > 0) {
+                alert("Password does not meet the strength requirements:\n" + passwordValidationMessages.join("\n"));
                 return;
             }
 
@@ -231,15 +236,13 @@
                       "Please use only:\n" +
                       "- Letters (A-Z, a-z)\n" +
                       "- Numbers (0-9)\n" +
-                      "  - Special characters (except space)");
+                      "- Special characters (e.g., !@#$%^&*()_+-=;:'\"\\|,.<>/?~`•^°)\n" +
+                      "Spaces are not allowed.");
                 return;
             }
 
-            // Check if the password is strong
-            if (isStrongPassword(passwordInput)) {
-                // Manually trigger the input event for markdownInput
-                document.getElementById("markdownInput").dispatchEvent(new Event('input'));
-            }
+            // Check password strength and update requirements
+            updatePasswordRequirements(passwordInput);
         });
 
         document.getElementById("markdownInput").addEventListener("input", async () => {
@@ -247,7 +250,8 @@
             const passwordInput = document.getElementById("passwordInput").value;
 
             // Check if the password is strong
-            if (!isStrongPassword(passwordInput)) {
+            const passwordValidationMessages = isStrongPassword(passwordInput);
+            if (passwordValidationMessages.length > 0) {
                 document.getElementById("output").value = "Please enter a valid password.";
                 return;
             }
@@ -272,9 +276,14 @@
         });
 
         function isStrongPassword(password) {
+            const messages = [];
+
             // Check for minimum length
             if (password.length < 16) {
-                return false;
+                messages.push("length");
+                document.getElementById("lengthRequirement").classList.add("invalid");
+            } else {
+                document.getElementById("lengthRequirement").classList.remove("invalid");
             }
 
             // Initialize counters for character types
@@ -302,8 +311,29 @@
             // Count how many character types are present
             const characterTypesCount = [hasUppercase, hasLowercase, hasNumber, hasSpecialChar].filter(Boolean).length;
 
-            // Return true if at least 3 character types are present
-            return characterTypesCount >= 3;
+            // Check for at least 3 character types
+            if (characterTypesCount < 3) {
+                messages.push("character types");
+                document.getElementById("uppercaseRequirement").classList.toggle("invalid", !hasUppercase);
+                document.getElementById("lowercaseRequirement").classList.toggle("invalid", !hasLowercase);
+                document.getElementById("numberRequirement").classList.toggle("invalid", !hasNumber);
+                document.getElementById("specialCharRequirement").classList.toggle("invalid", !hasSpecialChar);
+            } else {
+                document.getElementById("uppercaseRequirement").classList.remove("invalid");
+                document.getElementById("lowercaseRequirement").classList.remove("invalid");
+                document.getElementById("numberRequirement").classList.remove("invalid");
+                document.getElementById("specialCharRequirement").classList.remove("invalid");
+            }
+
+            return messages;
+        }
+
+        function updatePasswordRequirements(password) {
+            // Reset all requirements to valid
+            document.querySelectorAll('.requirement').forEach(req => req.classList.remove('invalid'));
+
+            // Check password strength
+            isStrongPassword(password);
         }
     </script>
 </body>

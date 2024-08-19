@@ -69,11 +69,3 @@ button#encryptButton,
 button#decryptButton {
     display: none; /* Hide the Encrypt and Decrypt buttons */
 }
-
-/* Password strength requirements */
-.requirement {
-    color: green;
-}
-.requirement.invalid {
-    color: red;
-}

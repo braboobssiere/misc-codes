@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Markdown Encryption</title>
     <link rel="stylesheet" href="../css/encryptednote-styles.css">
-    <script src="https://cdn.jsdelivr.net/npm/marked/lib/marked.umd.min.js"></script> <!-- Include marked.js -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script> <!-- Include marked.js -->
 </head>
 <body>
 <div class="container">
@@ -13,8 +13,8 @@
     
     <!-- Tab Navigation -->
     <div class="tab-container">
-    <button id="editorTab" onclick="showTab('editor')" class="tab-button active">Editor</button>
-    <button id="previewTab" onclick="showTab('preview')" class="tab-button">Preview</button>
+        <button id="editorTab" onclick="showTab('editor')" class="tab-button active">Editor</button>
+        <button id="previewTab" onclick="showTab('preview')" class="tab-button">Preview</button>
     </div>
 
     <!-- Editor Tab -->
@@ -39,28 +39,28 @@
 
 <script>
     // Function to show the selected tab
-function showTab(tab) {
-    const editorTab = document.getElementById("editor");
-    const previewTab = document.getElementById("preview");
-    const outputTextarea = document.getElementById("output");
+    function showTab(tab) {
+        const editorTab = document.getElementById("editor");
+        const previewTab = document.getElementById("preview");
+        const outputTextarea = document.getElementById("output");
 
-    if (tab === 'editor') {
-        editorTab.style.display = 'block';
-        previewTab.style.display = 'none';
-        outputTextarea.style.display = 'block'; // Show the output textarea
-    } else {
-        editorTab.style.display = 'none';
-        previewTab.style.display = 'block';
-        outputTextarea.style.display = 'none'; // Hide the output textarea in preview
-        renderMarkdown(); // Render Markdown when preview tab is shown
+        if (tab === 'editor') {
+            editorTab.style.display = 'block';
+            previewTab.style.display = 'none';
+            outputTextarea.style.display = 'block'; // Show the output textarea
+        } else {
+            editorTab.style.display = 'none';
+            previewTab.style.display = 'block';
+            outputTextarea.style.display = 'none'; // Hide the output textarea in preview
+            renderMarkdown(); // Render Markdown when preview tab is shown
+        }
     }
-}
 
     // Function to render Markdown to HTML
     function renderMarkdown() {
         const markdownInput = document.getElementById("markdownInput").value;
         const renderedOutput = document.getElementById("renderedOutput");
-        renderedOutput.innerHTML = marked(markdownInput); // Convert Markdown to HTML
+        renderedOutput.innerHTML = marked.parse(markdownInput); // Convert Markdown to HTML using new API
     }
 
     // Add event listener to update preview on input change

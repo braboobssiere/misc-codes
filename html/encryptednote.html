@@ -121,13 +121,13 @@
             const passwordInput = document.getElementById("passwordInput").value;
 
             if (!isStrongPassword(passwordInput)) {
-                alert("Password does not meet the strength requirements:\n" +
-                      "- At least 16 characters long\n" +
-                      "- At least 3 of the following:\n" +
-                      "  - Uppercase letters\n" +
-                      "  - Lowercase letters\n" +
-                      "  - Numbers\n" +
-                      "  - Special characters (except space)");
+                document.getElementById("output").value = "Password does not meet the strength requirements:\n" +
+                                                          "- At least 16 characters long\n" +
+                                                          "- At least 3 of the following:\n" +
+                                                          "  - Uppercase letters\n" +
+                                                          "  - Lowercase letters\n" +
+                                                          "  - Numbers\n" +
+                                                          "  - Special characters (except space)";
                 return;
             }
 
@@ -143,7 +143,7 @@
                 const decryptedText = await decrypt(encryptedData, passwordInput);
                 document.getElementById("output").value = decryptedText;
             } catch (error) {
-                alert("Decryption failed. Please check your password and try again.");
+                document.getElementById("output").value = "Decryption failed. Please check your password and try again.";
             }
         });
 

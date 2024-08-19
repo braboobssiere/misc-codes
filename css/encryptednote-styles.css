@@ -63,3 +63,9 @@ button:hover {
     font-family: monospace; /* Use monospace font for better readability */
     overflow-y: auto; /* Allow scrolling if content overflows */
 }
+
+/* Hide the Encrypt and Decrypt buttons */
+button#encryptButton,
+button#decryptButton {
+    display: none; /* Hide the Encrypt and Decrypt buttons */
+}

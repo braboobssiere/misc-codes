@@ -12,9 +12,15 @@
     <h1>Markdown Encryption Tool</h1>
     
     <!-- Tab Navigation -->
-    <div>
-        <button id="editorTab" onclick="showTab('editor')">Editor</button>
-        <button id="previewTab" onclick="showTab('preview')">Preview</button>
+    <div class="tab-container">
+    <button id="editorTab" onclick="showTab('editor')" class="tab-button active">Editor</button>
+    <button id="previewTab" onclick="showTab('preview')" class="tab-button">Preview</button>
+    </div>
+
+    <!-- Button Container -->
+    <div class="button-container">
+    <button id="importButton" class="small-button">Import</button>
+    <button id="exportButton" class="small-button">Export</button>
     </div>
     
     <!-- Editor Tab -->

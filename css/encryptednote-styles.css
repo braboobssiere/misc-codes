@@ -50,6 +50,12 @@ button {
     transition: background-color 0.3s;
 }
 
+.button-container {
+    display: flex; /* Use flexbox for layout */
+    justify-content: space-between; /* Space between buttons */
+    margin-top: 10px; /* Space above the button container */
+}
+
 button:hover {
     background-color: #218838;
 }

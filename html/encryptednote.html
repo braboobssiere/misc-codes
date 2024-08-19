@@ -5,6 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Markdown Encryption</title>
     <link rel="stylesheet" href="../css/encryptednote-styles.css">
+    <style>
+        .requirement {
+            color: green;
+        }
+        .requirement.invalid {
+            color: red;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
@@ -132,7 +140,7 @@
 
             const passwordValidationMessages = isStrongPassword(passwordInput);
             if (passwordValidationMessages.length > 0) {
-                alert("Password does not meet the strength requirements:\n" + passwordValidationMessages.join("\n"));
+                document.getElementById("output").value = "Password does not meet the following requirements:\n" + passwordValidationMessages.join("\n");
                 return;
             }
 
@@ -148,7 +156,7 @@
                 const decryptedText = await decrypt(encryptedData, passwordInput);
                 document.getElementById("output").value = decryptedText;
             } catch (error) {
-                alert("Decryption failed. Please check your password and try again.");
+                document.getElementById("output").value = "Decryption failed. Please check your password.";
             }
         });
 
@@ -232,12 +240,12 @@
             // Check for invalid characters
             const invalidChars = isValidPasswordCharacters(passwordInput);
             if (invalidChars.length > 0) {
-                alert("Invalid characters detected in password: " + invalidChars.join(", ") + "\n" +
-                      "Please use only:\n" +
-                      "- Letters (A-Z, a-z)\n" +
-                      "- Numbers (0-9)\n" +
-                      "- Special characters (e.g., !@#$%^&*()_+-=;:'\"\\|,.<>/?~`•^°)\n" +
-                      "Spaces are not allowed.");
+                document.getElementById("output").value = "Invalid characters detected in password: " + invalidChars.join(", ") + "\n" +
+                    "Please use only:\n" +
+                    "- Letters (A-Z, a-z)\n" +
+                    "- Numbers (0-9)\n" +
+                    "- Special characters (e.g., !@#$%^&*()_+-=;:'\"\\|,.<>/?~`•^°)\n" +
+                    "Spaces are not allowed.";
                 return;
             }
 
@@ -245,42 +253,27 @@
             updatePasswordRequirements(passwordInput);
         });
 
-        document.getElementById("markdownInput").addEventListener("input", async () => {
-            const markdownInput = document.getElementById("markdownInput").value;
-            const passwordInput = document.getElementById("passwordInput").value;
+        function updatePasswordRequirements(password) {
+            // Reset all requirements to valid
+            document.querySelectorAll('.requirement').forEach(req => req.classList.remove('invalid'));
 
-            // Check if the password is strong
-            const passwordValidationMessages = isStrongPassword(passwordInput);
-            if (passwordValidationMessages.length > 0) {
-                document.getElementById("output").value = "Please enter a valid password.";
-                return;
-            }
+            // Check password strength
+            const messages = isStrongPassword(password);
 
-            // Check if the input is valid JSON (encrypted data)
-            try {
-                const encryptedData = JSON.parse(markdownInput);
-                if (encryptedData.salt && encryptedData.iv && encryptedData.ciphertext) {
-                    // Input is encrypted, attempt to decrypt
-                    try {
-                        const decryptedText = await decrypt(encryptedData, passwordInput);
-                        document.getElementById("output").value = decryptedText;
-                    } catch (error) {
-                        document.getElementById("output").value = "Decryption failed. Please check your password.";
-                    }
-                }
-            } catch (error) {
-                // Input is not encrypted, encrypt it
-                const encryptedData = await encrypt(markdownInput, passwordInput);
-                document.getElementById("output").value = JSON.stringify(encryptedData);
+            // If there are messages, show them in the output box
+            if (messages.length > 0) {
+                document.getElementById("output").value = "Password does not meet the following requirements:\n" + messages.join("\n");
+            } else {
+                document.getElementById("output").value = ""; // Clear output if all requirements are met
             }
-        });
+        }
 
         function isStrongPassword(password) {
             const messages = [];
 
             // Check for minimum length
             if (password.length < 16) {
-                messages.push("length");
+                messages.push("At least 16 characters long");
                 document.getElementById("lengthRequirement").classList.add("invalid");
             } else {
                 document.getElementById("lengthRequirement").classList.remove("invalid");
@@ -313,11 +306,22 @@
 
             // Check for at least 3 character types
             if (characterTypesCount < 3) {
-                messages.push("character types");
-                document.getElementById("uppercaseRequirement").classList.toggle("invalid", !hasUppercase);
-                document.getElementById("lowercaseRequirement").classList.toggle("invalid", !hasLowercase);
-                document.getElementById("numberRequirement").classList.toggle("invalid", !hasNumber);
-                document.getElementById("specialCharRequirement").classList.toggle("invalid", !hasSpecialChar);
+                if (!hasUppercase) {
+                    messages.push("At least 1 uppercase letter");
+                    document.getElementById("uppercaseRequirement").classList.add("invalid");
+                }
+                if (!hasLowercase) {
+                    messages.push("At least 1 lowercase letter");
+                    document.getElementById("lowercaseRequirement").classList.add("invalid");
+                }
+                if (!hasNumber) {
+                    messages.push("At least 1 number");
+                    document.getElementById("numberRequirement").classList.add("invalid");
+                }
+                if (!hasSpecialChar) {
+                    messages.push("At least 1 special character (e.g., !@#$%^&*()_+-=;:'\"\\|,.<>/?~`•^°)");
+                    document.getElementById("specialCharRequirement").classList.add("invalid");
+                }
             } else {
                 document.getElementById("uppercaseRequirement").classList.remove("invalid");
                 document.getElementById("lowercaseRequirement").classList.remove("invalid");
@@ -326,14 +330,6 @@
             }
 
             return messages;
-        }
-
-        function updatePasswordRequirements(password) {
-            // Reset all requirements to valid
-            document.querySelectorAll('.requirement').forEach(req => req.classList.remove('invalid'));
-
-            // Check password strength
-            isStrongPassword(password);
         }
     </script>
 </body>

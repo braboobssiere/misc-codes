@@ -230,7 +230,14 @@
 
             // Check if the password is strong
             if (!isStrongPassword(passwordInput)) {
-                document.getElementById("output").value = "Please enter a valid password.";
+                document.getElementById("output").value = "Please enter a valid password.\n" +
+                                                          "Password must meet the following requirements:\n" +
+                                                          "- At least 16 characters long\n" +
+                                                          "- At least 3 of the following:\n" +
+                                                          "  - Uppercase letters\n" +
+                                                          "  - Lowercase letters\n" +
+                                                          "  - Numbers\n" +
+                                                          "  - Special characters";
                 return;
             }
 
@@ -266,7 +273,7 @@
             let hasSpecialChar = false;
 
             // Define the regex for special characters
-            const specialCharRegex = /[!@#$%^&*()_+\-=${};':"\\|,.<>\/?~`•^°]/;
+            const specialCharRegex = /[!@#$%^&*()_+\-=$;':"\\|,.<>\/?~` ]/;
 
             // Check each character in the password
             for (let char of password) {

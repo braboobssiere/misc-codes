@@ -39,19 +39,22 @@
 
 <script>
     // Function to show the selected tab
-    function showTab(tab) {
-        const editorTab = document.getElementById("editor");
-        const previewTab = document.getElementById("preview");
-        
-        if (tab === 'editor') {
-            editorTab.style.display = 'block';
-            previewTab.style.display = 'none';
-        } else {
-            editorTab.style.display = 'none';
-            previewTab.style.display = 'block';
-            renderMarkdown(); // Render Markdown when preview tab is shown
-        }
+function showTab(tab) {
+    const editorTab = document.getElementById("editor");
+    const previewTab = document.getElementById("preview");
+    const outputTextarea = document.getElementById("output");
+
+    if (tab === 'editor') {
+        editorTab.style.display = 'block';
+        previewTab.style.display = 'none';
+        outputTextarea.style.display = 'block'; // Show the output textarea
+    } else {
+        editorTab.style.display = 'none';
+        previewTab.style.display = 'block';
+        outputTextarea.style.display = 'none'; // Hide the output textarea in preview
+        renderMarkdown(); // Render Markdown when preview tab is shown
     }
+}
 
     // Function to render Markdown to HTML
     function renderMarkdown() {

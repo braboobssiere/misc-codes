@@ -214,8 +214,26 @@
             }
         });
 
+        function isValidPasswordCharacters(password) {
+            // Define the regex for allowed characters (letters, numbers, and special characters)
+            const allowedCharsRegex = /^[A-Za-z0-9!@#$%^&*()_+\-=${};':"\\|,.<>\/?~`•^°]*$/;
+            const invalidChars = [...password].filter(char => !allowedCharsRegex.test(char));
+            return invalidChars;
+        }
+
         document.getElementById("passwordInput").addEventListener("input", () => {
             const passwordInput = document.getElementById("passwordInput").value;
+
+            // Check for invalid characters
+            const invalidChars = isValidPasswordCharacters(passwordInput);
+            if (invalidChars.length > 0) {
+                alert("Invalid characters detected in password: " + invalidChars.join(", ") + "\n" +
+                      "Please use only:\n" +
+                      "- Letters (A-Z, a-z)\n" +
+                      "- Numbers (0-9)\n" +
+                      "  - Special characters (except space)");
+                return;
+            }
 
             // Check if the password is strong
             if (isStrongPassword(passwordInput)) {

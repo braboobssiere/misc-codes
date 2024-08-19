@@ -84,12 +84,12 @@ input[type="password"] {
 }
 
 #output {
-    height: 150px;
+    height: auto;
     background-color: #f9f9f9;
     border: 1px solid #ccc;
     border-radius: 4px;
     padding: 10px;
     font-family: monospace;
     overflow-y: auto;
-    resize: vertical;
+    display: none;
 }

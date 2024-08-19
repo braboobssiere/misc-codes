@@ -5,23 +5,34 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Markdown Encryption</title>
     <link rel="stylesheet" href="../css/encryptednote-styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        .button-container {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+        }
+    </style>
 </head>
 <body>
-<div class="container">
-    <h1>Markdown Encryption Tool</h1>
-    <textarea id="markdownInput" placeholder="Enter your Markdown content here..."></textarea>
-    <input type="password" id="passwordInput" placeholder="Enter a strong password" />
-    <button id="encryptButton">Encrypt</button>
-    <button id="decryptButton">Decrypt</button>
-    
-    <div class="button-container">
-        <button id="importButton">Import from Text File</button>
-        <button id="exportButton">Export Encrypted Data</button>
+    <div class="container">
+        <h1>Markdown Encryption Tool</h1>
+        <textarea id="markdownInput" placeholder="Enter your Markdown content here..."></textarea>
+        <input type="password" id="passwordInput" placeholder="Enter a strong password" />
+        <button id="encryptButton">Encrypt</button>
+        <button id="decryptButton">Decrypt</button>
+        
+        <div class="button-container">
+            <button id="importButton">Import from Text File</button>
+            <button id="exportButton">Export Encrypted Data</button>
+        </div>
+        
+        <input type="file" id="fileInput" style="display: none;" accept=".txt" />
+        <textarea id="output" placeholder="Output will appear here..." readonly></textarea>
+        
+        <h2>Preview</h2>
+        <div id="preview" style="border: 1px solid #ccc; padding: 10px; background-color: #f9f9f9;"></div>
     </div>
-    
-    <input type="file" id="fileInput" style="display: none;" accept=".txt" />
-    <textarea id="output" placeholder="Output will appear here..." readonly></textarea>
-</div>
     <script>
         async function deriveKey(password, salt) {
             const enc = new TextEncoder();
@@ -231,6 +242,9 @@
         document.getElementById("markdownInput").addEventListener("input", async () => {
             const markdownInput = document.getElementById("markdownInput").value;
             const passwordInput = document.getElementById("passwordInput").value;
+
+            // Update the preview pane
+            document.getElementById("preview").innerHTML = marked(markdownInput);
 
             // Check if the password is strong
             if (!isStrongPassword(passwordInput)) {

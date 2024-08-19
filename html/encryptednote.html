@@ -3,31 +3,73 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Markdown Encryption Tool</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/2.1.3/marked.min.js"></script>
+    <title>Markdown Encryption</title>
     <link rel="stylesheet" href="../css/encryptednote-styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/2.1.3/marked.min.js"></script> <!-- Include marked.js -->
 </head>
 <body>
 <div class="container">
     <h1>Markdown Encryption Tool</h1>
-    <div class="tab-container">
-        <button id="editorTab" class="active">Editor</button>
-        <button id="previewTab">Preview</button>
-    </div>
-    <textarea id="markdownInput" placeholder="Enter your Markdown content here..."></textarea>
-    <input type="password" id="passwordInput" placeholder="Enter a strong password" />
-    <button id="encryptButton">Encrypt</button>
-    <button id="decryptButton">Decrypt</button>
     
-    <div class="button-container">
-        <button id="importButton">Import from Text File</button>
-        <button id="exportButton">Export Encrypted Data</button>
+    <!-- Tab Navigation -->
+    <div>
+        <button id="editorTab" onclick="showTab('editor')">Editor</button>
+        <button id="previewTab" onclick="showTab('preview')">Preview</button>
     </div>
     
-    <input type="file" id="fileInput" style="display: none;" accept=".txt" />
-    <div id="output" placeholder="Output will appear here..."></div>
+    <!-- Editor Tab -->
+    <div id="editor" class="tab-content">
+        <textarea id="markdownInput" placeholder="Enter your Markdown content here..."></textarea>
+        <input type="password" id="passwordInput" placeholder="Enter a strong password" />
+        <button id="encryptButton">Encrypt</button>
+        <button id="decryptButton">Decrypt</button>
+        
+        <div class="button-container">
+            <button id="importButton">Import from Text File</button>
+            <button id="exportButton">Export Encrypted Data</button>
+        </div>
+        
+        <input type="file" id="fileInput" style="display: none;" accept=".txt" />
+        <textarea id="output" placeholder="Output will appear here..." readonly></textarea>
+    </div>
+    
+    <!-- Preview Tab -->
+    <div id="preview" class="tab-content" style="display: none;">
+        <div id="renderedOutput" style="border: 1px solid #ccc; padding: 10px; background-color: #f9f9f9;"></div>
+    </div>
 </div>
+
 <script>
+    // Function to show the selected tab
+    function showTab(tab) {
+        const editorTab = document.getElementById("editor");
+        const previewTab = document.getElementById("preview");
+        
+        if (tab === 'editor') {
+            editorTab.style.display = 'block';
+            previewTab.style.display = 'none';
+        } else {
+            editorTab.style.display = 'none';
+            previewTab.style.display = 'block';
+            renderMarkdown(); // Render Markdown when preview tab is shown
+        }
+    }
+
+    // Function to render Markdown to HTML
+    function renderMarkdown() {
+        const markdownInput = document.getElementById("markdownInput").value;
+        const renderedOutput = document.getElementById("renderedOutput");
+        renderedOutput.innerHTML = marked(markdownInput); // Convert Markdown to HTML
+    }
+
+    // Add event listener to update preview on input change
+    document.getElementById("markdownInput").addEventListener("input", () => {
+        if (document.getElementById("preview").style.display === 'block') {
+            renderMarkdown(); // Update preview if in preview tab
+        }
+    });
+
+    // Existing JavaScript code for encryption, decryption, and other functionalities...
     async function deriveKey(password, salt) {
         const enc = new TextEncoder();
         const keyMaterial = await window.crypto.subtle.importKey(
@@ -91,14 +133,14 @@
         return {
             salt: Array.from(salt),
             iv: Array.from(iv),
-            ciphertext: arrayBufferToBase64(ciphertext)
+            ciphertext: arrayBufferToBase64(ciphertext) // Convert to Base64 directly
         };
     }
 
     async function decrypt(encryptedData, password) {
         const salt = new Uint8Array(encryptedData.salt);
         const iv = new Uint8Array(encryptedData.iv);
-        const ciphertext = base64ToArrayBuffer(encryptedData.ciphertext);
+        const ciphertext = base64ToArrayBuffer(encryptedData.ciphertext); // Convert from Base64
         const key = await deriveKey(password, salt);
 
         const decrypted = await window.crypto.subtle.decrypt(
@@ -130,57 +172,74 @@
         const passwordInput = document.getElementById("passwordInput").value;
 
         if (!isStrongPassword(passwordInput)) {
-            document.getElementById("output").innerHTML = "Password does not meet the strength requirements:<br>" +
-                                                          "- At least 16 characters long<br>" +
-                                                          "- At least 3 of the following:<br>" +
-                                                          "  - Uppercase letters<br>" +
-                                                          "  - Lowercase letters<br>" +
-                                                          "  - Numbers<br>" +
-                                                          "  - Special characters (except space)";
+            document.getElementById("output").value = "Password does not meet the strength requirements:\n" +
+                                                      "- At least 16 characters long\n" +
+                                                      "- At least 3 of the following:\n" +
+                                                      "  - Uppercase letters\n" +
+                                                      "  - Lowercase letters\n" +
+                                                      "  - Numbers\n" +
+                                                      "  - Special characters (except space)";
             return;
         }
 
         const encryptedData = await encrypt(markdownInput, passwordInput);
-        document.getElementById("output").innerHTML = JSON.stringify(encryptedData);
+        document.getElementById("output").value = JSON.stringify(encryptedData);
     });
 
     document.getElementById("decryptButton").addEventListener("click", async () => {
-        const encryptedData = JSON.parse(document.getElementById("output").innerHTML);
+        const encryptedData = JSON.parse(document.getElementById("output").value);
         const passwordInput = document.getElementById("passwordInput").value;
 
         try {
             const decryptedText = await decrypt(encryptedData, passwordInput);
-            document.getElementById("output").innerHTML = decryptedText;
+            document.getElementById("output").value = decryptedText;
         } catch (error) {
-            document.getElementById("output").innerHTML = "Decryption failed. Please check your password and try again.";
+            document.getElementById("output").value = "Decryption failed. Please check your password and try again.";
         }
     });
 
     document.getElementById("exportButton").addEventListener("click", async () => {
-        const outputValue = document.getElementById("output").innerHTML;
+        const outputValue = document.getElementById("output").value;
         const passwordInput = document.getElementById("passwordInput").value;
         let dataToExport;
 
+        // Check if the output is encrypted data
         try {
             const encryptedData = JSON.parse(outputValue);
             if (encryptedData.salt && encryptedData.iv && encryptedData.ciphertext) {
+                // Output is encrypted data
                 dataToExport = outputValue;
             } else {
                 throw new Error("Not encrypted data");
             }
         } catch (error) {
+            // Output is not encrypted, check if input is encrypted
             const markdownInput = document.getElementById("markdownInput").value;
-            dataToExport = JSON.stringify(await encrypt(markdownInput, passwordInput));
+            try {
+                const inputEncryptedData = JSON.parse(markdownInput);
+                if (inputEncryptedData.salt && inputEncryptedData.iv && inputEncryptedData.ciphertext) {
+                    // Input is encrypted data
+                    dataToExport = JSON.stringify(inputEncryptedData);
+                } else {
+                    // Neither output nor input is encrypted, encrypt the input
+                    dataToExport = JSON.stringify(await encrypt(markdownInput, passwordInput));
+                }
+            } catch (error) {
+                // If input is not valid JSON, encrypt the input
+                dataToExport = JSON.stringify(await encrypt(markdownInput, passwordInput));
+            }
         }
 
-        const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+        // Create a timestamp for the file name
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-'); // Replace colons and dots for valid filename
         const fileName = `encrypted_data_${timestamp}.txt`;
 
+        // Create a blob and download the data
         const blob = new Blob([dataToExport], { type: "text/plain" });
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
-        a.download = fileName;
+        a.download = fileName; // Use the timestamped file name
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
@@ -188,25 +247,30 @@
     });
 
     document.getElementById("importButton").addEventListener("click", () => {
-        document.getElementById("fileInput").click();
+        document.getElementById("fileInput").click(); // Trigger the file input click
     });
 
     document.getElementById("fileInput").addEventListener("change", (event) => {
-        const file = event.target.files[0];
+        const file = event.target.files[0]; // Get the selected file
         if (file) {
             const reader = new FileReader();
             reader.onload = (e) => {
-                const content = e.target.result;
-                document.getElementById("markdownInput").value = content;
+                const content = e.target.result; // Get the file content
+                document.getElementById("markdownInput").value = content; // Set the content to the textarea
+                
+                // Manually trigger the input event to process the content
                 document.getElementById("markdownInput").dispatchEvent(new Event('input'));
             };
-            reader.readAsText(file);
+            reader.readAsText(file); // Read the file as text
         }
     });
 
     document.getElementById("passwordInput").addEventListener("input", () => {
         const passwordInput = document.getElementById("passwordInput").value;
+
+        // Check if the password is strong
         if (isStrongPassword(passwordInput)) {
+            // Manually trigger the input event for markdownInput
             document.getElementById("markdownInput").dispatchEvent(new Event('input'));
         }
     });
@@ -215,42 +279,54 @@
         const markdownInput = document.getElementById("markdownInput").value;
         const passwordInput = document.getElementById("passwordInput").value;
 
+        // Check if the password is strong
         if (!isStrongPassword(passwordInput)) {
-            document.getElementById("output").innerHTML = "Please enter a valid password.<br>" +
-                                                          "Password must meet the following requirements:<br>" +
-                                                          "- At least 16 characters long<br>" +
-                                                          "- At least 3 of the following:<br>" +
-                                                          "  - Uppercase letters<br>" +
-                                                          "  - Lowercase letters<br>" +
-                                                          "  - Numbers<br>" +
-                                                          "  - Special characters";
+            document.getElementById("output").value = "Please enter a valid password.\n" +
+                                                      "Password must meet the following requirements:\n" +
+                                                      "- At least 16 characters long\n" +
+                                                      "- At least 3 of the following:\n" +
+                                                      "  - Uppercase letters\n" +
+                                                      "  - Lowercase letters\n" +
+                                                      "  - Numbers\n" +
+                                                      "  - Special characters";
             return;
         }
 
+        // Check if the input is valid JSON (encrypted data)
         try {
             const encryptedData = JSON.parse(markdownInput);
             if (encryptedData.salt && encryptedData.iv && encryptedData.ciphertext) {
-                const decryptedText = await decrypt(encryptedData, passwordInput);
-                document.getElementById("output").innerHTML = decryptedText;
+                // Input is encrypted, attempt to decrypt
+                try {
+                    const decryptedText = await decrypt(encryptedData, passwordInput);
+                    document.getElementById("output").value = decryptedText;
+                } catch (error) {
+                    document.getElementById("output").value = "Decryption failed. Please check your password.";
+                }
             }
         } catch (error) {
+            // Input is not encrypted, encrypt it
             const encryptedData = await encrypt(markdownInput, passwordInput);
-            document.getElementById("output").innerHTML = JSON.stringify(encryptedData);
+            document.getElementById("output").value = JSON.stringify(encryptedData);
         }
     });
 
     function isStrongPassword(password) {
+        // Check for minimum length
         if (password.length < 16) {
             return false;
         }
 
+        // Initialize counters for character types
         let hasUppercase = false;
         let hasLowercase = false;
         let hasNumber = false;
         let hasSpecialChar = false;
 
+        // Define the regex for special characters
         const specialCharRegex = /[!@#$%^&*()_+\-=$;':"\\|,.<>\/?~` ]/;
 
+        // Check each character in the password
         for (let char of password) {
             if (/[A-Z]/.test(char)) {
                 hasUppercase = true;
@@ -263,28 +339,15 @@
             }
         }
 
+        // Count how many character types are present
         const characterTypesCount = [hasUppercase, hasLowercase, hasNumber, hasSpecialChar].filter(Boolean).length;
 
+        // Return true if at least 3 character types are present
         return characterTypesCount >= 3;
     }
 
-    // Tab switching functionality
-    document.getElementById("editorTab").addEventListener("click", () => {
-        document.getElementById("markdownInput").style.display = "block";
-        document.getElementById("output").style.display = "none";
-        document.getElementById("editorTab").classList.add("active");
-        document.getElementById("previewTab").classList.remove("active");
-    });
-
-    document.getElementById("previewTab").addEventListener("click", () => {
-        const markdownInput = document.getElementById("markdownInput").value;
-        const htmlOutput = marked(markdownInput);
-        document.getElementById("output").innerHTML = htmlOutput;
-        document.getElementById("markdownInput").style.display = "none";
-        document.getElementById("output").style.display = "block";
-        document.getElementById("previewTab").classList.add("active");
-        document.getElementById("editorTab").classList.remove("active");
-    });
+    // Initialize to show the editor tab by default
+    showTab('editor');
 </script>
 </body>
 </html>

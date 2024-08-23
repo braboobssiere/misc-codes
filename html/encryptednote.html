@@ -4,148 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Markdown Encryption</title>
+    <link rel="stylesheet" href="../css/encryptednote-styles.css">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script> <!-- Include marked.js -->
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            margin: 0;
-            padding: 20px;
-        }
-
-        .container {
-            max-width: 600px;
-            margin: auto;
-            background: white;
-            padding: 20px;
-            border-radius: 5px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
-
-        h1 {
-            text-align: center;
-            color: #333;
-        }
-
-        textarea {
-            width: 100%;
-            height: 150px;
-            margin-bottom: 10px;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            font-family: monospace;
-            resize: vertical;
-        }
-
-        input[type="password"],
-        input[type="text"] {
-            width: 100%;
-            padding: 10px;
-            margin-bottom: 10px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
-
-        .tab-container {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 10px;
-        }
-
-        .tab-button {
-            flex: 1;
-            padding: 10px;
-            border: none;
-            background-color: #f4f4f4;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-
-        .tab-button.active {
-            background-color: #28a745;
-            color: white;
-        }
-
-        .tab-button:hover {
-            background-color: #218838;
-        }
-
-        .button-container {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 10px;
-        }
-
-        .small-button {
-            width: 48%;
-            padding: 8px; /* Smaller padding */
-            border: none;
-            border-radius: 4px;
-            background-color: #f0f0f0; /* Similar to GitHub's button color */
-            color: #333; /* Dark text color */
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-
-        .small-button:hover {
-            background-color: #e0e0e0; /* Slightly darker on hover */
-        }
-
-        #output {
-            height: auto;
-            background-color: #f9f9f9;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            padding: 10px;
-            font-family: monospace;
-            overflow-y: auto;
-            display: none;
-        }
-
-        .collapsible {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            cursor: pointer;
-            background-color: #f4f4f4;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            margin-bottom: 10px;
-        }
-
-        .collapsible-content {
-            display: none;
-            flex-direction: column;
-        }
-
-        .collapsible-content input[type="checkbox"] {
-            margin-top: 10px;
-        }
-    </style>
 </head>
 <body>
 <div class="container">
     <h1>Markdown Encryption Tool</h1>
     
-    <!-- Collapsible Section -->
-    <div class="collapsible" onclick="toggleCollapsible()">
-        <span>Options</span>
-        <span>&#9776;</span> <!-- Hamburger icon -->
-    </div>
-    <div class="collapsible-content" id="collapsibleContent">
-        <input type="text" id="titleInput" placeholder="Title" />
-        <input type="password" id="passwordInput" placeholder="Enter a strong password" />
-        <div class="button-container">
-            <button id="importButton" class="small-button">Import</button>
-            <button id="exportButton" class="small-button">Export</button>
-        </div>
-        <label>
-            <input type="checkbox" id="showEncryptedText"> Show Encrypted Text in Preview
-        </label>
-    </div>
-
     <!-- Tab Navigation -->
     <div class="tab-container">
         <button id="editorTab" onclick="showTab('editor')" class="tab-button active">Editor</button>
@@ -155,6 +20,14 @@
     <!-- Editor Tab -->
     <div id="editor" class="tab-content">
         <textarea id="markdownInput" placeholder="Enter your Markdown content here..."></textarea>
+        <input type="password" id="passwordInput" placeholder="Enter a strong password" />
+        
+        <div class="button-container">
+            <button id="importButton">Import</button>
+            <button id="exportButton">Export</button>
+        </div>
+        
+        <input type="file" id="fileInput" style="display: none;" accept=".txt" />
         <textarea id="output" placeholder="Output will appear here..." readonly></textarea>
     </div>
     
@@ -165,12 +38,6 @@
 </div>
 
 <script>
-    // Function to toggle the collapsible section
-    function toggleCollapsible() {
-        const content = document.getElementById("collapsibleContent");
-        content.style.display = content.style.display === "flex" ? "none" : "flex";
-    }
-
     // Function to show the selected tab
     function showTab(tab) {
         const editorTab = document.getElementById("editor");
@@ -193,14 +60,7 @@
     function renderMarkdown() {
         const markdownInput = document.getElementById("markdownInput").value;
         const renderedOutput = document.getElementById("renderedOutput");
-        const showEncryptedText = document.getElementById("showEncryptedText").checked;
-
-        if (showEncryptedText) {
-            // Show encrypted text if checkbox is checked
-            renderedOutput.innerHTML = markdownInput; // Assuming markdownInput contains encrypted text
-        } else {
-            renderedOutput.innerHTML = marked.parse(markdownInput); // Convert Markdown to HTML using new API
-        }
+        renderedOutput.innerHTML = marked.parse(markdownInput); // Convert Markdown to HTML using new API
     }
 
     // Add event listener to update preview on input change

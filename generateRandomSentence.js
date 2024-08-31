@@ -21,6 +21,27 @@ const words = [
     ['dragon', 'troll', 'goblin', 'griffin', 'basilisk', 'hydra', 'chimera', 'harpy', 'wraith', 'kraken']
 ];
 
+const words = [
+    // Adjective
+    ['delicious', 'spicy', 'sweet', 'savory', 'refreshing', 'hearty', 'tasty', 'zesty', 'creamy', 'crunchy'],
+    // Noun (Food Item)
+    ['sushi', 'pizza', 'pasta', 'tacos', 'salad', 'burger', 'cake', 'ice cream', 'curry', 'sandwich'],
+    // Verb (Action)
+    ['cooked', 'baked', 'grilled', 'prepared', 'savored', 'tasted', 'mixed', 'chopped', 'served', 'enjoyed'],
+    // Preposition
+    ['in', 'at', 'on', 'with', 'during', 'while', 'for', 'about', 'through', 'between'],
+    // Noun (Place - Setting)
+    ['the kitchen', 'a restaurant', 'a café', 'the garden', 'a barbecue', 'a food truck', 'a bakery', 'the dining room', 'the patio', 'the picnic table'],
+    // Preposition
+    ['as', 'when', 'since', 'until', 'before', 'after', 'alongside', 'during the time', 'throughout', 'in the course of'],
+    // Verb (Action)
+    ['trying', 'exploring', 'learning', 'creating', 'experimenting', 'sharing', 'enjoying', 'discovering', 'documenting', 'photographing'],
+    // Adjective
+    ['new', 'exciting', 'traditional', 'unique', 'classic', 'healthy', 'gourmet', 'simple', 'quick', 'homemade'],
+    // Noun (Food Challenge)
+    ['recipes', 'dishes', 'flavors', 'ingredients', 'cuisines', 'meals', 'snacks', 'treats', 'drinks', 'desserts']
+];
+
 function generateRandomSentence() {
     let sentence = "";
     for (let i = 0; i < words.length; i++) {

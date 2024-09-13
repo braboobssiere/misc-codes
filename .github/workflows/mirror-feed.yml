@@ -1,0 +1,30 @@
+name: Mirror Space Monster Feedless Feed
+
+on:
+  schedule:
+    - cron: '0 * * * *'  # This runs the action every hour
+  workflow_dispatch:  # Allows manual triggering of the workflow
+
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Create feeds directory
+        run: |
+          mkdir -p feeds
+
+      - name: Fetch feed
+        run: |
+          curl -s "https://api.feedless.org/f/ca6c1fe7-a4a5-4d3d-a938-6792c656c148/atom?skey=z0iCz1mZ68" -o feeds/space_monster.atom
+
+      - name: Commit and push changes
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add feeds/space_monster.atom
+          git commit -m "Update feed" || echo "No changes to commit"
+          git push

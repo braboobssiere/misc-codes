@@ -5,6 +5,9 @@ on:
     - cron: '0 * * * *'  # This runs the action every hour
   workflow_dispatch:  # Allows manual triggering of the workflow
 
+permissions:
+  contents: write  # Allow write access to the repository contents
+
 jobs:
   mirror:
     runs-on: ubuntu-latest

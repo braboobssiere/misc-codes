@@ -21,6 +21,7 @@
     <script>
         async function fetchCardIDs(cardNames) {
             const requestURL = "https://db.ygoprodeck.com/api/v7/cardinfo.php?name=" + cardNames.join('|');
+            console.log("Fetching card IDs from:", requestURL); // Debugging line
             try {
                 const response = await fetch(requestURL);
                 if (!response.ok) {
@@ -89,10 +90,12 @@
 
         document.getElementById('deck-form').onsubmit = async function(event) {
             event.preventDefault();
-            alert("Form submitted!"); // For testing
             const deckList = event.target.deck_list.value;
 
             const { cards, cardNames } = convertDeckList(deckList);
+            console.log("Converted deck list:", cards); // Debugging line
+            console.log("Card names to fetch:", cardNames); // Debugging line
+
             const cardData = await fetchCardIDs(cardNames);
 
             // Map card names to their IDs

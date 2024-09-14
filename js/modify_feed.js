@@ -22,7 +22,7 @@ fs.readFile(feedFilePath, 'utf8', (err, data) => {
     if (result.feed && result.feed.link) {
       result.feed.link = result.feed.link.map(link => {
         if (link.$.rel === 'self') {
-          link.$.href = 'https://example.com/examplelocation.atom';
+          link.$.href = 'https://raw.githubusercontent.com/braboobssiere/misc-codes/main/feeds/space_monster.atom';
         }
         return link;
       });

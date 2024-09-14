@@ -29,16 +29,23 @@ fs.readFile(feedFilePath, 'utf8', (err, data) => {
     }
 
     // 2. Remove <subtitle> element only if it's empty
-    if (result.feed && result.feed.subtitle && result.feed.subtitle === '') {
+    if (result.feed && result.feed.subtitle === '') {
       delete result.feed.subtitle;
     }
 
     // 3. Update <author> for each entry
     if (result.feed.entry) {
       result.feed.entry = result.feed.entry.map(entry => {
-        if (!entry.author || (entry.author.name && entry.author.name === '')) {
+        // Update <author> if <name> is empty
+        if (entry.author) {
+          if (!entry.author.name || entry.author.name === '') {
+            entry.author.name = 'feedless.org';
+          }
+        } else {
+          // Add <author> if missing
           entry.author = { name: 'feedless.org' };
         }
+
         return entry;
       });
     }

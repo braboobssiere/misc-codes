@@ -41,5 +41,4 @@ jobs:
           git config --local user.name "GitHub Action"          
           git add feeds/space_monster.atom          
           git commit -m "Update feed" || echo "No changes to commit"          
-          git
-          push
+          git push

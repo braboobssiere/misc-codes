@@ -28,27 +28,22 @@ fs.readFile(feedFilePath, 'utf8', (err, data) => {
       });
     }
 
-    // 2. Remove all <subtitle> elements
-    delete result.feed.subtitle;
-
-    // 3. Add a global <author> with name 'feedless.org' if none exists
-    if (!result.feed.author) {
-      result.feed.author = {
-        name: 'feedless.org'
-      };
+    // 2. Remove <subtitle> element only if it's empty
+    if (result.feed && result.feed.subtitle && result.feed.subtitle === '') {
+      delete result.feed.subtitle;
     }
 
-    // 4. Remove <author> element from entries if it only contains <name />
+    // 3. Update <author> for each entry
     if (result.feed.entry) {
       result.feed.entry = result.feed.entry.map(entry => {
-        if (entry.author && entry.author.name === '') {
-          delete entry.author;  // Completely remove <author> if <name /> is empty
+        if (!entry.author || (entry.author.name && entry.author.name === '')) {
+          entry.author = { name: 'feedless.org' };
         }
         return entry;
       });
     }
 
-    // 5. Change <link> format of each entry
+    // 4. Change <link> format of each entry
     if (result.feed.entry) {
       result.feed.entry = result.feed.entry.map(entry => {
         if (entry.link) {
@@ -60,7 +55,7 @@ fs.readFile(feedFilePath, 'utf8', (err, data) => {
       });
     }
 
-    // 6. Change <id> to use the existing UUID from the URL (last 36 characters)
+    // 5. Change <id> to use the existing UUID from the URL (last 36 characters)
     if (result.feed.entry) {
       result.feed.entry = result.feed.entry.map(entry => {
         const idUrl = entry.id;

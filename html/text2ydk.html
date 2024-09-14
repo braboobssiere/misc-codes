@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TCGPlayer to YDK Converter</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        textarea { width: 100%; height: 300px; }
+        button { margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <h1>TCGPlayer to YDK Converter</h1>
+    <form id="deck-form">
+        <textarea name="deck_list" placeholder="Paste your deck list here..."></textarea>
+        <button type="submit">Convert to YDK</button>
+    </form>
+    <div id="result"></div>
+
+    <script>
+        async function fetchCardIDs(cardNames) {
+            const requestURL = "https://db.ygoprodeck.com/api/v7/cardinfo.php?name=" + cardNames.join('|');
+            const response = await fetch(requestURL);
+            const data = await response.json();
+            return data.data;
+        }
+
+        function convertDeckList(deckList) {
+            const lines = deckList.split('\n');
+            const cards = [];
+            const cardNames = [];
+
+            for (const line of lines) {
+                const trimmedLine = line.trim();
+                if (!trimmedLine) continue;
+
+                let qty = 1;
+                let name = trimmedLine;
+
+                if (line.includes(" x")) {
+                    [name, qty] = line.split(" x");
+                    qty = parseInt(qty, 10);
+                } else if (line[0].match(/\d/)) {
+                    [qty, name] = line.split(" ", 1);
+                    qty = parseInt(qty, 10);
+                }
+
+                cards.push({ name: name.trim(), qty });
+                cardNames.push(name.trim());
+            }
+
+            return { cards, cardNames };
+        }
+
+        function createYDKFile(cards) {
+            const ydkSections = {
+                "#main": [],
+                "#extra": [],
+                "!side": []
+            };
+
+            for (const card of cards) {
+                if (card.id !== -1) {
+                    ydkSections["#main"].push(card.name);
+                }
+            }
+
+            let ydkContent = '';
+            for (const section in ydkSections) {
+                ydkContent += `${section}\n`;
+                for (const card of ydkSections[section]) {
+                    ydkContent += `${card}\n`;
+                }
+                ydkContent += '\n';
+            }
+
+            return new Blob([ydkContent], { type: 'text/plain' });
+        }
+
+        document.getElementById('deck-form').onsubmit = async function(event) {
+            event.preventDefault();
+            const deckList = event.target.deck_list.value;
+
+            const { cards, cardNames } = convertDeckList(deckList);
+            const cardData = await fetchCardIDs(cardNames);
+
+            // Map card names to their IDs
+            cards.forEach(card => {
+                const foundCard = cardData.find(c => c.name.toLowerCase() === card.name.toLowerCase());
+                card.id = foundCard ? foundCard.id : -1; // Assign ID or -1 if not found
+            });
+
+            const ydkBlob = createYDKFile(cards);
+            const url = window.URL.createObjectURL(ydkBlob);
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = url;
+            a.download = 'deck.ydk';
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+        };
+    </script>
+</body>
+</html>

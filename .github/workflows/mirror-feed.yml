@@ -1,44 +1,50 @@
 name: Mirror Feedless Feed
-on:  
-  schedule:  
-    - cron: '0 * * * *'  
+
+on:
+  schedule:
+    - cron: '0 * * * *'
   workflow_dispatch:  # Allows manual triggering
 
-permissions:  
-  contents: write  
+permissions:
+  contents: write
 
-jobs:  
-  mirror:    
-    runs-on: ubuntu-latest    
-    steps:      
-      - name: Checkout repository        
-        uses: actions/checkout@v4      
-      - name: Set up Node.js        
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '16'
-      
+
       - name: Install dependencies
         run: |
           npm install xml2js
 
-      - name: Create feeds directory        
-        run: |          
+      - name: Create feeds directory
+        run: |
           mkdir -p feeds
-      
-      - name: Fetch feed        
-        run: |          
+
+      - name: Fetch feed
+        run: |
           curl -s "https://api.feedless.org/f/ca6c1fe7-a4a5-4d3d-a938-6792c656c148/atom?skey=z0iCz1mZ68" -o feeds/space_monster.atom
 
-      # Run the modification script
+      - name: Set environment variables
+        run: |
+          echo "FEED_FILE_PATH=feeds/space_monster.atom" >> $GITHUB_ENV
+          echo "FEED_SELF_LINK=https://raw.githubusercontent.com/braboobssiere/misc-codes/main/feeds/space_monster.atom" >> $GITHUB_ENV
+          
       - name: Modify feed content
         run: |
           node js/modify_feed.js
 
-      - name: Commit and push changes        
-        run: |          
-          git config --local user.email "action@github.com"          
-          git config --local user.name "GitHub Action"          
-          git add feeds/space_monster.atom          
-          git commit -m "Update feed" || echo "No changes to commit"          
+      - name: Commit and push changes
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add feeds/space_monster.atom
+          git commit -m "Update feed" || echo "No changes to commit"
           git push

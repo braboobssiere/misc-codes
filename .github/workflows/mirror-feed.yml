@@ -1,33 +1,44 @@
 name: Mirror Feedless Feed
-
-on:
-  schedule:
+on:  
+  schedule:  
     - cron: '0 * * * *'  
   workflow_dispatch:  # Allows manual triggering
 
-permissions:
+permissions:  
   contents: write  
 
-jobs:
-  mirror:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Create feeds directory
+jobs:  
+  mirror:    
+    runs-on: ubuntu-latest    
+    steps:      
+      - name: Checkout repository        
+        uses: actions/checkout@v4      
+      - name: Set up Node.js        
+        uses: actions/setup-node@v4
+        with:
+          node-version: '16'
+      
+      - name: Install dependencies
         run: |
+          npm install xml2js
+
+      - name: Create feeds directory        
+        run: |          
           mkdir -p feeds
-
-      - name: Fetch feed
-        run: |
+      
+      - name: Fetch feed        
+        run: |          
           curl -s "https://api.feedless.org/f/ca6c1fe7-a4a5-4d3d-a938-6792c656c148/atom?skey=z0iCz1mZ68" -o feeds/space_monster.atom
 
-      - name: Commit and push changes
+      # Run the modification script
+      - name: Modify feed content
         run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git add feeds/space_monster.atom
-          git commit -m "Update feed" || echo "No changes to commit"
+          node js/modify_feed.js
+
+      - name: Commit and push changes        
+        run: |          
+          git config --local user.email "action@github.com"          
+          git config --local user.name "GitHub Action"          
+          git add feeds/space_monster.atom          
+          git commit -m "Update feed" || echo "No changes to commit"          
           git push

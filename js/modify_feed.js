@@ -1,8 +1,13 @@
 const fs = require('fs');
 const xml2js = require('xml2js');
 
-// Define the file path
-const feedFilePath = 'feeds/space_monster.atom';
+// Read the XML file path from environment variable
+const feedFilePath = process.env.FEED_FILE_PATH;
+
+if (!feedFilePath) {
+  console.error('FEED_FILE_PATH environment variable is not set.');
+  process.exit(1);
+}
 
 // Read the XML file
 fs.readFile(feedFilePath, 'utf8', (err, data) => {
@@ -22,7 +27,7 @@ fs.readFile(feedFilePath, 'utf8', (err, data) => {
     if (result.feed && result.feed.link) {
       result.feed.link = result.feed.link.map(link => {
         if (link.$.rel === 'self') {
-          link.$.href = 'https://raw.githubusercontent.com/braboobssiere/misc-codes/main/feeds/space_monster.atom';
+          link.$.href = process.env.FEED_SELF_LINK;
         }
         return link;
       });

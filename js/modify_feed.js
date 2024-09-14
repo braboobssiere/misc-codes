@@ -28,19 +28,27 @@ fs.readFile(feedFilePath, 'utf8', (err, data) => {
       });
     }
 
-    // 2. Remove all <subtitle> and <name> elements
+    // 2. Remove all <subtitle> elements
     delete result.feed.subtitle;
-    
+
+    // 3. Add a global <author> with name 'feedless.org' if none exists
+    if (!result.feed.author) {
+      result.feed.author = {
+        name: 'feedless.org'
+      };
+    }
+
+    // 4. Remove <author> element from entries if it only contains <name />
     if (result.feed.entry) {
       result.feed.entry = result.feed.entry.map(entry => {
-        if (entry.author && entry.author.name) {
-          delete entry.author.name;
+        if (entry.author && entry.author.name === '') {
+          delete entry.author;  // Completely remove <author> if <name /> is empty
         }
         return entry;
       });
     }
 
-    // 3. Change <link> format of each entry
+    // 5. Change <link> format of each entry
     if (result.feed.entry) {
       result.feed.entry = result.feed.entry.map(entry => {
         if (entry.link) {
@@ -52,7 +60,7 @@ fs.readFile(feedFilePath, 'utf8', (err, data) => {
       });
     }
 
-    // 4. Change <id> to use the existing UUID from the URL (last 36 characters)
+    // 6. Change <id> to use the existing UUID from the URL (last 36 characters)
     if (result.feed.entry) {
       result.feed.entry = result.feed.entry.map(entry => {
         const idUrl = entry.id;
@@ -74,6 +82,5 @@ fs.readFile(feedFilePath, 'utf8', (err, data) => {
       }
       console.log('Feed modified successfully.');
     });
-
-});
+  });
 });

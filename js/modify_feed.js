@@ -66,10 +66,19 @@ fs.readFile(feedFilePath, 'utf8', (err, data) => {
     if (result.feed.entry) {
       result.feed.entry = result.feed.entry.map(entry => {
         const idUrl = entry.id;
-        const uuid = idUrl.slice(-36); // Extract last 36 characters
-        entry.id = `urn:uuid:${uuid}`;
+        if (idUrl) {
+          const uuid = idUrl.slice(-36); // Extract last 36 characters
+          entry.id = `urn:uuid:${uuid}`;
+        }
         return entry;
       });
+    }
+
+    // 6. Replace global <id> with UUID
+    if (result.feed.id) {
+      const globalIdUrl = result.feed.id;
+      const globalUuid = globalIdUrl.slice(-36); // Extract last 36 characters
+      result.feed.id = `urn:uuid:${globalUuid}`;
     }
 
     // Convert the modified object back to XML

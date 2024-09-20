@@ -165,8 +165,14 @@
         function createDownloadLink(content) {
             const blob = new Blob([content], { type: 'text/plain' });
             const url = URL.createObjectURL(blob);
+            
+            // Get the current timestamp
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-'); // Format timestamp
+            const filename = `deck_${timestamp}.ydk`; // Create filename with timestamp
+
             const downloadLink = document.getElementById('downloadLink');
             downloadLink.href = url;
+            downloadLink.download = filename; // Set the download attribute with the new filename
             document.getElementById('downloadLinkContainer').style.display = 'block';
         }
 

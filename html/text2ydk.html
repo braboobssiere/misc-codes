@@ -32,12 +32,16 @@
     <div id="downloadLinkContainer" style="display:none;">
         <a id="downloadLink" href="#" download="deck.ydk">Download YDK File</a>
     </div>
+    <div id="copyYdkContainer" style="display:none;">
+        <button id="copyYdkButton">Copy YDK</button>
+    </div>
     <div id="logDownloadContainer" style="display:none;">
         <a id="logDownloadLink" href="#" download="error_log.txt">Download Error Log</a>
     </div>
 
     <script>
         let errorLog = '';
+        let ydkContent = ''; // Variable to store the generated YDK content
 
         function logError(message) {
             errorLog += message + '\n';
@@ -163,6 +167,7 @@
         }
 
         function createDownloadLink(content) {
+            ydkContent = content; // Store the YDK content for copying
             const blob = new Blob([content], { type: 'text/plain' });
             const url = URL.createObjectURL(blob);
             
@@ -174,6 +179,7 @@
             downloadLink.href = url;
             downloadLink.download = filename; // Set the download attribute with the new filename
             document.getElementById('downloadLinkContainer').style.display = 'block';
+            document.getElementById('copyYdkContainer').style.display = 'block'; // Show the copy button
         }
 
         function downloadLog() {
@@ -185,6 +191,20 @@
                 document.getElementById('logDownloadContainer').style.display = 'block';
             }
         }
+
+        // Add event listener for the copy button
+        document.getElementById('copyYdkButton').addEventListener('click', () => {
+            if (ydkContent) {
+                navigator.clipboard.writeText(ydkContent).then(() => {
+                    alert('YDKe content copied to clipboard!');
+                }).catch(err => {
+                    console.error('Failed to copy: ', err);
+                    alert('Failed to copy YDKe content. Please try again.');
+                });
+            } else {
+                alert('No YDKe content to copy.');
+            }
+        });
     </script>
 </body>
 </html>

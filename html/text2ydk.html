@@ -32,8 +32,17 @@
     <div id="downloadLinkContainer" style="display:none;">
         <a id="downloadLink" href="#" download="deck.ydk">Download YDK File</a>
     </div>
+    <div id="logDownloadContainer" style="display:none;">
+        <a id="logDownloadLink" href="#" download="error_log.txt">Download Error Log</a>
+    </div>
 
     <script>
+        let errorLog = '';
+
+        function logError(message) {
+            errorLog += message + '\n';
+        }
+
         document.getElementById('converterForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const fileInput = document.getElementById('fileInput');
@@ -53,6 +62,8 @@
                 await processInput(inputText);
             } else {
                 alert('Please provide either a file or text input.');
+                logError('No input provided.');
+                downloadLog();
             }
         });
 
@@ -65,37 +76,40 @@
             const cardRequests = [
                 ...mainDeck.map(line => {
                     const [quantity, ...cardNameParts] = line.split(' ');
-                    const cardName = cardNameParts.join(' ');
-                    return { quantity: parseInt(quantity), cardName, type: 'main' };
+                    return { quantity: parseInt(quantity), cardName: cardNameParts.join(' '), type: 'main' };
                 }),
                 ...extraDeck.map(line => {
                     const [quantity, ...cardNameParts] = line.split(' ');
-                    const cardName = cardNameParts.join(' ');
-                    return { quantity: parseInt(quantity), cardName, type: 'extra' };
+                    return { quantity: parseInt(quantity), cardName: cardNameParts.join(' '), type: 'extra' };
                 }),
                 ...sideDeck.map(line => {
                     const [quantity, ...cardNameParts] = line.split(' ');
-                    const cardName = cardNameParts.join(' ');
-                    return { quantity: parseInt(quantity), cardName, type: 'side' };
+                    return { quantity: parseInt(quantity), cardName: cardNameParts.join(' '), type: 'side' };
                 })
             ];
 
             const cardNames = cardRequests.map(card => encodeURIComponent(card.cardName)).join('|');
             const apiUrl = `https://db.ygoprodeck.com/api/v7/cardinfo.php?name=${cardNames}`;
+            logError(`API Call: ${apiUrl}`); // Log the API call
 
             try {
                 const response = await fetch(apiUrl);
                 const data = await response.json();
+                logError(`API Response: ${JSON.stringify(data)}`); // Log the API response
 
                 if (data.success) {
                     const ydkContent = generateYdkContent(data.data, cardRequests);
                     createDownloadLink(ydkContent);
                 } else {
                     alert('Error fetching card data. Please check your input.');
+                    logError('Error fetching card data: ' + JSON.stringify(data));
+                    downloadLog();
                 }
             } catch (error) {
                 console.error('Fetch error:', error);
                 alert('Error fetching card data. Please try again.');
+                logError('Fetch error: ' + error.message);
+                downloadLog();
             }
         }
 
@@ -111,6 +125,8 @@
                     for (let i = 0; i < request.quantity; i++) {
                         ydkLines.push(cardInfo.id.toString());
                     }
+                } else {
+                    logError(`Card not found in main deck: ${request.cardName}`);
                 }
             });
 
@@ -122,6 +138,8 @@
                     for (let i = 0; i < request.quantity; i++) {
                         ydkLines.push(cardInfo.id.toString());
                     }
+                } else {
+                    logError(`Card not found in extra deck: ${request.cardName}`);
                 }
             });
 
@@ -133,6 +151,8 @@
                     for (let i = 0; i < request.quantity; i++) {
                         ydkLines.push(cardInfo.id.toString());
                     }
+                } else {
+                    logError(`Card not found in side deck: ${request.cardName}`);
                 }
             });
 
@@ -145,6 +165,16 @@
             const downloadLink = document.getElementById('downloadLink');
             downloadLink.href = url;
             document.getElementById('downloadLinkContainer').style.display = 'block';
+        }
+
+        function downloadLog() {
+            if (errorLog) {
+                const logBlob = new Blob([errorLog], { type: 'text/plain' });
+                const logUrl = URL.createObjectURL(logBlob);
+                const logDownloadLink = document.getElementById('logDownloadLink');
+                logDownloadLink.href = logUrl;
+                document.getElementById('logDownloadContainer').style.display = 'block';
+            }
         }
     </script>
 </body>

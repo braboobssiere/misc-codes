@@ -101,6 +101,10 @@
                 if (data && data.data && Array.isArray(data.data) && data.data.length > 0) {
                     const ydkContent = generateYdkContent(data.data, cardRequests);
                     createDownloadLink(ydkContent);
+                    
+                    // Clear the inputs after successful conversion
+                    fileInput.value = ''; // Clear file input
+                    document.getElementById('textInput').value = ''; // Clear text input
                 } else {
                     // Log specific error messages if available
                     const errorMessage = data && data.error ? data.error : 'Unknown error occurred.';

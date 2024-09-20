@@ -107,15 +107,15 @@
             const cardRequests = [
                 ...mainDeck.map(line => {
                     const [quantity, ...cardNameParts] = line.split(' x');
-                    return { quantity: parseInt(quantity), cardName: cardNameParts.join(' x'), type: 'main' };
+                    return { quantity: parseInt(quantity), cardName: cardNameParts.join(' x').trim(), type: 'main' };
                 }),
                 ...extraDeck.map(line => {
                     const [quantity, ...cardNameParts] = line.split(' x');
-                    return { quantity: parseInt(quantity), cardName: cardNameParts.join(' x'), type: 'extra' };
+                    return { quantity: parseInt(quantity), cardName: cardNameParts.join(' x').trim(), type: 'extra' };
                 }),
                 ...sideDeck.map(line => {
                     const [quantity, ...cardNameParts] = line.split(' x');
-                    return { quantity: parseInt(quantity), cardName: cardNameParts.join(' x'), type: 'side' };
+                    return { quantity: parseInt(quantity), cardName: cardNameParts.join(' x').trim(), type: 'side' };
                 })
             ];
 

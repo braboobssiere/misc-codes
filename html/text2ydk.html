@@ -25,7 +25,7 @@
         <input type="file" id="fileInput" accept=".txt">
         <br><br>
         <label for="textInput">Or enter TCGPlayer text content:</label>
-        <textarea id="textInput" placeholder="3 Pot of Prosperity&#10;1 Accesscode Talker&#10;2 Crossout Designator"></textarea>
+        <textarea id="textInput" placeholder="3 Tenpai Dragon Paidra&#10;3 Tenpai Dragon Chundra&#10;2 Tenpai Dragon Fadra&#10;&#10;1 Black Rose Dragon&#10;1 Odd-Eyes Meteorburst Dragon&#10;1 Promethean Princess, Bestower of Flames&#10;&#10;1 Koa'ki Meiru Drago&#10;1 Bystial Druiswurm"></textarea>
         <br>
         <button type="submit">Convert to YDK</button>
     </form>
@@ -62,11 +62,23 @@
             const extraDeck = sections[1] ? sections[1].split('\n').map(line => line.trim()).filter(line => line) : [];
             const sideDeck = sections[2] ? sections[2].split('\n').map(line => line.trim()).filter(line => line) : [];
 
-            const cardRequests = [...mainDeck, ...extraDeck, ...sideDeck].map(line => {
-                const [quantity, ...cardNameParts] = line.split(' ');
-                const cardName = cardNameParts.join(' ');
-                return { quantity: parseInt(quantity), cardName };
-            });
+            const cardRequests = [
+                ...mainDeck.map(line => {
+                    const [quantity, ...cardNameParts] = line.split(' ');
+                    const cardName = cardNameParts.join(' ');
+                    return { quantity: parseInt(quantity), cardName, type: 'main' };
+                }),
+                ...extraDeck.map(line => {
+                    const [quantity, ...cardNameParts] = line.split(' ');
+                    const cardName = cardNameParts.join(' ');
+                    return { quantity: parseInt(quantity), cardName, type: 'extra' };
+                }),
+                ...sideDeck.map(line => {
+                    const [quantity, ...cardNameParts] = line.split(' ');
+                    const cardName = cardNameParts.join(' ');
+                    return { quantity: parseInt(quantity), cardName, type: 'side' };
+                })
+            ];
 
             const cardNames = cardRequests.map(card => encodeURIComponent(card.cardName)).join('|');
             const apiUrl = `https://db.ygoprodeck.com/api/v7/cardinfo.php?name=${cardNames}`;
@@ -84,33 +96,41 @@
         function generateYdkContent(cardData, cardRequests) {
             const ydkLines = [];
             ydkLines.push("#created by TCGPlayer Text to YDK Converter");
+
+            // Main Deck
             ydkLines.push("#main");
-
-            const mainLines = [];
-            const extraLines = [];
-            const sideLines = [];
-
-            cardRequests.forEach(request => {
+            cardRequests.filter(req => req.type === 'main').forEach(request => {
                 const cardInfo = cardData.find(card => card.name === request.cardName);
                 if (cardInfo) {
-                    const cardEntry = `${cardInfo.id}\n`.repeat(request.quantity).trim();
-                    if (mainLines.length < cardRequests.filter(req => req.cardName === request.cardName && req.quantity > 0).length) {
-                        mainLines.push(cardEntry);
-                    } else if (extraLines.length < cardRequests.filter(req => req.cardName === request.cardName && req.quantity > 0).length) {
-                        extraLines.push(cardEntry);
-                    } else if (sideLines.length < cardRequests.filter(req => req.cardName === request.cardName && req.quantity > 0).length) {
-                        sideLines.push(cardEntry);
+                    for (let i = 0; i < request.quantity; i++) {
+                        ydkLines.push(cardInfo.id.toString());
                     }
                 }
             });
 
-            ydkLines.push(...mainLines);
+            // Extra Deck
             ydkLines.push("#extra");
-            ydkLines.push(...extraLines);
-            ydkLines.push("#side");
-            ydkLines.push(...sideLines);
+            cardRequests.filter(req => req.type === 'extra').forEach(request => {
+                const cardInfo = cardData.find(card => card.name === request.cardName);
+                if (cardInfo) {
+                    for (let i = 0; i < request.quantity; i++) {
+                        ydkLines.push(cardInfo.id.toString());
+                    }
+                }
+            });
 
-            return ydkLines.join('\n').trim(); // Ensure no trailing new lines
+            // Side Deck
+            ydkLines.push("#side");
+            cardRequests.filter(req => req.type === 'side').forEach(request => {
+                const cardInfo = cardData.find(card => card.name === request.cardName);
+                if (cardInfo) {
+                    for (let i = 0; i < request.quantity; i++) {
+                        ydkLines.push(cardInfo.id.toString());
+                    }
+                }
+            });
+
+            return ydkLines.join('\n').trim();
         }
 
         function createDownloadLink(content) {

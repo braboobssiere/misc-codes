@@ -68,54 +68,23 @@
         });
 
         async function processInput(inputText) {
-            const sections = inputText.split(/\n\n+/); // Split on double newlines for old format
-            const mainDeck = [];
-            const extraDeck = [];
-            const sideDeck = [];
-
-            // Check if the input contains the new format headers
-            const hasNewFormat = sections.some(section => section.trim().startsWith("Main Deck:") || section.trim().startsWith("Extra Deck:") || section.trim().startsWith("Side Deck:"));
-
-            if (hasNewFormat) {
-                // Process new format
-                sections.forEach(section => {
-                    const lines = section.trim().split('\n').map(line => line.trim()).filter(line => line);
-                    if (lines.length > 0) {
-                        const header = lines[0];
-                        const cards = lines.slice(1); // Get all lines after the header
-
-                        if (header.includes("Main Deck")) {
-                            mainDeck.push(...cards);
-                        } else if (header.includes("Extra Deck")) {
-                            extraDeck.push(...cards);
-                        } else if (header.includes("Side Deck")) {
-                            sideDeck.push(...cards);
-                        }
-                    }
-                });
-            } else {
-                // Process old format
-                const mainDeckSection = sections[0] ? sections[0].split('\n').map(line => line.trim()).filter(line => line) : [];
-                const extraDeckSection = sections[1] ? sections[1].split('\n').map(line => line.trim()).filter(line => line) : [];
-                const sideDeckSection = sections[2] ? sections[2].split('\n').map(line => line.trim()).filter(line => line) : [];
-
-                mainDeck.push(...mainDeckSection);
-                extraDeck.push(...extraDeckSection);
-                sideDeck.push(...sideDeckSection);
-            }
+            const sections = inputText.split('\n\n\n').map(section => section.trim());
+            const mainDeck = sections[0] ? sections[0].split('\n').map(line => line.trim()).filter(line => line) : [];
+            const extraDeck = sections[1] ? sections[1].split('\n').map(line => line.trim()).filter(line => line) : [];
+            const sideDeck = sections[2] ? sections[2].split('\n').map(line => line.trim()).filter(line => line) : [];
 
             const cardRequests = [
                 ...mainDeck.map(line => {
-                    const [quantity, ...cardNameParts] = line.split(' x');
-                    return { quantity: parseInt(quantity), cardName: cardNameParts.join(' x').trim(), type: 'main' };
+                    const [quantity, ...cardNameParts] = line.split(' ');
+                    return { quantity: parseInt(quantity), cardName: cardNameParts.join(' '), type: 'main' };
                 }),
                 ...extraDeck.map(line => {
-                    const [quantity, ...cardNameParts] = line.split(' x');
-                    return { quantity: parseInt(quantity), cardName: cardNameParts.join(' x').trim(), type: 'extra' };
+                    const [quantity, ...cardNameParts] = line.split(' ');
+                    return { quantity: parseInt(quantity), cardName: cardNameParts.join(' '), type: 'extra' };
                 }),
                 ...sideDeck.map(line => {
-                    const [quantity, ...cardNameParts] = line.split(' x');
-                    return { quantity: parseInt(quantity), cardName: cardNameParts.join(' x').trim(), type: 'side' };
+                    const [quantity, ...cardNameParts] = line.split(' ');
+                    return { quantity: parseInt(quantity), cardName: cardNameParts.join(' '), type: 'side' };
                 })
             ];
 

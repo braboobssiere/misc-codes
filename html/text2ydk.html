@@ -97,12 +97,15 @@
                 const data = await response.json();
                 logError(`API Response: ${JSON.stringify(data)}`); // Log the API response
 
-                if (data.success) {
+                // Check for errors in the response
+                if (data && data.data && Array.isArray(data.data) && data.data.length > 0) {
                     const ydkContent = generateYdkContent(data.data, cardRequests);
                     createDownloadLink(ydkContent);
                 } else {
-                    alert('Error fetching card data. Please check your input.');
-                    logError('Error fetching card data: ' + JSON.stringify(data));
+                    // Log specific error messages if available
+                    const errorMessage = data && data.error ? data.error : 'Unknown error occurred.';
+                    alert('Error fetching card data: ' + errorMessage);
+                    logError('Error fetching card data: ' + errorMessage);
                     downloadLog();
                 }
             } catch (error) {

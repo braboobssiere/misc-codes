@@ -147,7 +147,7 @@
             });
 
             // Side Deck
-            ydkLines.push("#side");
+            ydkLines.push("!side");
             cardRequests.filter(req => req.type === 'side').forEach(request => {
                 const cardInfo = cardData.find(card => card.name === request.cardName);
                 if (cardInfo) {

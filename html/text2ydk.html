@@ -57,8 +57,12 @@
         });
 
         async function processInput(inputText) {
-            const lines = inputText.split('\n').map(line => line.trim()).filter(line => line);
-            const cardRequests = lines.map(line => {
+            const sections = inputText.split('\n\n').map(section => section.trim());
+            const mainDeck = sections[0] ? sections[0].split('\n').map(line => line.trim()).filter(line => line) : [];
+            const extraDeck = sections[1] ? sections[1].split('\n').map(line => line.trim()).filter(line => line) : [];
+            const sideDeck = sections[2] ? sections[2].split('\n').map(line => line.trim()).filter(line => line) : [];
+
+            const cardRequests = [...mainDeck, ...extraDeck, ...sideDeck].map(line => {
                 const [quantity, ...cardNameParts] = line.split(' ');
                 const cardName = cardNameParts.join(' ');
                 return { quantity: parseInt(quantity), cardName };
@@ -70,22 +74,42 @@
             const data = await response.json();
 
             if (data.success) {
-                const ydkContent = generateYdkContent(data.data, cardRequests);
+                const ydkContent = generateYdkContent(data.data, cardRequests, mainDeck, extraDeck, sideDeck);
                 createDownloadLink(ydkContent);
             } else {
                 alert('Error fetching card data. Please check your input.');
             }
         }
 
-        function generateYdkContent(cardData, cardRequests) {
+        function generateYdkContent(cardData, cardRequests, mainDeck, extraDeck, sideDeck) {
             const ydkLines = [];
             ydkLines.push("#created by TCGPlayer Text to YDK Converter");
+
+            const mainLines = [];
+            const extraLines = [];
+            const sideLines = [];
+
             cardRequests.forEach(request => {
                 const cardInfo = cardData.find(card => card.name === request.cardName);
                 if (cardInfo) {
-                    ydkLines.push(`${request.quantity} ${cardInfo.id}`);
+                    const cardEntry = `${cardInfo.id}\n`.repeat(request.quantity).trim();
+                    if (mainDeck.includes(request.cardName)) {
+                        mainLines.push(cardEntry);
+                    } else if (extraDeck.includes(request.cardName)) {
+                        extraLines.push(cardEntry);
+                    } else if (sideDeck.includes(request.cardName)) {
+                        sideLines.push(cardEntry);
+                    }
                 }
             });
+
+            ydkLines.push("#main");
+            ydkLines.push(...mainLines);
+            ydkLines.push("\n#extra");
+            ydkLines.push(...extraLines);
+            ydkLines.push("\n#side");
+            ydkLines.push(...sideLines);
+
             return ydkLines.join('\n');
         }
 

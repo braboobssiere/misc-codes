@@ -74,16 +74,17 @@
             const data = await response.json();
 
             if (data.success) {
-                const ydkContent = generateYdkContent(data.data, cardRequests, mainDeck, extraDeck, sideDeck);
+                const ydkContent = generateYdkContent(data.data, cardRequests);
                 createDownloadLink(ydkContent);
             } else {
                 alert('Error fetching card data. Please check your input.');
             }
         }
 
-        function generateYdkContent(cardData, cardRequests, mainDeck, extraDeck, sideDeck) {
+        function generateYdkContent(cardData, cardRequests) {
             const ydkLines = [];
             ydkLines.push("#created by TCGPlayer Text to YDK Converter");
+            ydkLines.push("#main");
 
             const mainLines = [];
             const extraLines = [];
@@ -93,24 +94,23 @@
                 const cardInfo = cardData.find(card => card.name === request.cardName);
                 if (cardInfo) {
                     const cardEntry = `${cardInfo.id}\n`.repeat(request.quantity).trim();
-                    if (mainDeck.includes(request.cardName)) {
+                    if (mainLines.length < cardRequests.filter(req => req.cardName === request.cardName && req.quantity > 0).length) {
                         mainLines.push(cardEntry);
-                    } else if (extraDeck.includes(request.cardName)) {
+                    } else if (extraLines.length < cardRequests.filter(req => req.cardName === request.cardName && req.quantity > 0).length) {
                         extraLines.push(cardEntry);
-                    } else if (sideDeck.includes(request.cardName)) {
+                    } else if (sideLines.length < cardRequests.filter(req => req.cardName === request.cardName && req.quantity > 0).length) {
                         sideLines.push(cardEntry);
                     }
                 }
             });
 
-            ydkLines.push("#main");
             ydkLines.push(...mainLines);
-            ydkLines.push("\n#extra");
+            ydkLines.push("#extra");
             ydkLines.push(...extraLines);
-            ydkLines.push("\n#side");
+            ydkLines.push("#side");
             ydkLines.push(...sideLines);
 
-            return ydkLines.join('\n');
+            return ydkLines.join('\n').trim(); // Ensure no trailing new lines
         }
 
         function createDownloadLink(content) {

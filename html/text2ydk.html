@@ -205,12 +205,21 @@
                 }
             });
 
+            // Convert to Uint32Array
+            const mainDeckArray = new Uint32Array(mainDeckIds);
+            const extraDeckArray = new Uint32Array(extraDeckIds);
+            const sideDeckArray = new Uint32Array(sideDeckIds);
+
             // Convert to YDKE format
-            const base64Main = btoa(new Uint8Array(mainDeckIds).reduce((data, byte) => data + String.fromCharCode(byte), ''));
-            const base64Extra = btoa(new Uint8Array(extraDeckIds).reduce((data, byte) => data + String.fromCharCode(byte), ''));
-            const base64Side = btoa(new Uint8Array(sideDeckIds).reduce((data, byte) => data + String.fromCharCode(byte), ''));
+            const base64Main = passcodesToBase64(mainDeckArray);
+            const base64Extra = passcodesToBase64(extraDeckArray);
+            const base64Side = passcodesToBase64(sideDeckArray);
 
             return `ydke://${base64Main}!${base64Extra}!${base64Side}!`;
+        }
+
+        function passcodesToBase64(passcodes) {
+            return btoa(String.fromCharCode.apply(null, new Uint8Array(passcodes.buffer)));
         }
 
         function displayYdkeUrl(ydkeUrl) {

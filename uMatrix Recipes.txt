@@ -1,0 +1,133 @@
+! uMatrix: Ruleset recipes 1.0
+! Title: uMatrix Recipes
+!
+! Assumes the following rules in place:
+!
+! https-strict: * true
+! no-workers: * true
+! noscript-spoof: * true
+! referrer-spoof: * true
+! * * * block
+! * 1st-party css allow
+! * 1st-party image allow
+!
+! Lines starting with character "!" are ignored.
+! Character "_" is an alias for "currently selected scope".
+! An empty line MUST be used to separate distinct ruleset recipes.
+
+reCAPTCHA as 3rd party
+ * www.google.com
+ _ 1st-party script allow
+ _ www.google.com css allow
+ _ www.google.com frame allow
+ _ www.google.com image allow
+ _ www.google.com script allow
+ _ www.google.com xhr allow
+ _ www.google.com media allow
+ _ www.gstatic.com css allow
+ _ www.gstatic.com image allow
+ _ www.gstatic.com script allow
+
+reCAPTCHA as 3rd party
+ * recaptcha.net
+ _ 1st-party script allow
+ _ recaptcha.net css allow
+ _ recaptcha.net frame allow
+ _ recaptcha.net image allow
+ _ recaptcha.net script allow
+ _ recaptcha.net xhr allow
+ _ www.gstatic.com css allow
+ _ www.gstatic.com image allow
+ _ www.gstatic.com script allow
+
+cloudflare captcha
+* challenges.cloudflare.com
+ no-workers: _ false
+ _ 1st-party cookie allow
+ _ 1st-party script allow
+ _ 1st-party xhr allow
+ _ challenges.cloudflare.com css allow
+ _ challenges.cloudflare.com frame allow
+ _ challenges.cloudflare.com image allow
+ _ challenges.cloudflare.com script allow
+ _ challenges.cloudflare.com xhr allow
+
+ paypal as 3rd party
+ * www.paypal.com
+ _ www.paypal.com css allow
+ _ www.paypal.com frame allow
+ _ www.paypal.com script allow
+ _ www.paypal.com xhr allow
+ _ www.paypalobjects.com script allow
+
+stripe as 3rd party
+ * stripe.com
+ _ js.stripe.com css allow
+ _ js.stripe.com frame allow
+ _ js.stripe.com script allow
+ _ stripe.com xhr allow
+ _ stripe.network frame allow
+ _ stripe.network script allow
+
+streamwish new domain
+ * streamwish.com
+ no-workers: _ false
+ _ 1st-party cookie allow
+ _ 1st-party script allow
+ _ streamwish.com script allow
+ _ sw-cdn-images.com image allow
+ _ sw-cdnstream.com xhr allow
+
+disqus as 3rd party
+ * disqus.com
+ _ 1st-party script allow
+ _ disquscdn.com css allow
+ _ disquscdn.com image allow
+ _ disquscdn.com script allow
+ _ disqus.com css allow
+ _ disqus.com frame allow
+ _ disqus.com script allow
+
+discouse as 3rd party
+ * discourse-cdn.com
+ _ 1st-party script allow
+ _ 1st-party xhr allow
+ _ discourse-cdn.com css allow
+ _ discourse-cdn.com image allow
+ _ discourse-cdn.com script allow
+
+youtube as 3rd party
+ * youtube.com
+ _ googlevideo.com xhr allow
+ _ youtube.com css allow
+ _ youtube.com frame allow
+ _ youtube.com script allow
+ _ youtube.com xhr allow
+ _ i.ytimg.com image allow
+
+! youtube embed indivious
+! * youtube.com
+! _ googlevideo.com media allow
+! _ vid.puffyan.us css allow
+! _ vid.puffyan.us frame allow
+! _ vid.puffyan.us image allow
+! _ vid.puffyan.us media allow
+! _ youtube.com frame allow
+
+! youtube embed indivious
+! * youtube-nocookie.com
+! _ googlevideo.com media allow
+! _ vid.puffyan.us css allow
+! _ vid.puffyan.us frame allow
+! _ vid.puffyan.us image allow
+! _ vid.puffyan.us media allow
+! _ youtube-nocookie.com frame allow
+
+vidguard video
+* guardstorage.net
+ _ guardstorage.net media allow
+ _ guardstorage.net xhr allow
+ _ i.guardstorage.net image allow
+ _ 1st-party cookie allow
+ _ 1st-party frame allow
+ _ 1st-party script allow

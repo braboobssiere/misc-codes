@@ -4,8 +4,21 @@
   <link rel="alternate" type="text/html" href="https://feedless.org/feeds/ca6c1fe7-a4a5-4d3d-a938-6792c656c148"/>
   <link rel="self" type="application/atom+xml" href="https://raw.githubusercontent.com/braboobssiere/misc-codes/main/feeds/space_monster.atom"/>
   <id>urn:uuid:ca6c1fe7-a4a5-4d3d-a938-6792c656c148</id>
-  <updated>2024-09-14T08:00:00Z</updated>
-  <dc:date>2024-09-14T08:00:00Z</dc:date>
+  <updated>2024-09-22T03:00:03Z</updated>
+  <dc:date>2024-09-22T03:00:03Z</dc:date>
+  <entry>
+    <title>Chapter 24 17 mins ago</title>
+    <link rel="alternate" href="https://manhuaus.com/manga/i-became-an-evolving-space-monster/chapter-24/" type="text/html"/>
+    <author>
+      <name>feedless.org</name>
+    </author>
+    <id>urn:uuid:bf0d3d3d-7abc-4bd2-8814-ee723cb3ff16</id>
+    <updated>2024-09-22T03:00:03Z</updated>
+    <published>2024-09-22T03:00:03Z</published>
+    <content type="text">Chapter 24   17 mins ago</content>
+    <summary type="text">Chapter 24   17 mins ago</summary>
+    <dc:date>2024-09-22T03:00:03Z</dc:date>
+  </entry>
   <entry>
     <title>Chapter 23.5 September 14, 2024</title>
     <link rel="alternate" href="https://manhuaus.com/manga/i-became-an-evolving-space-monster/chapter-23-5/" type="text/html"/>
@@ -121,19 +134,6 @@
     <published>2024-08-03T08:00:00Z</published>
     <content type="text">Chapter 20   August 3, 2024</content>
     <summary type="text">Chapter 20   August 3, 2024</summary>
-    <dc:date>2024-08-03T08:00:00Z</dc:date>
-  </entry>
-  <entry>
-    <title>Chapter 19.5 August 3, 2024</title>
-    <link rel="alternate" href="https://manhuaus.com/manga/i-became-an-evolving-space-monster/chapter-19-5/" type="text/html"/>
-    <author>
-      <name>feedless.org</name>
-    </author>
-    <id>urn:uuid:d92939da-3397-48d3-9133-e4d24f1ca957</id>
-    <updated>2024-08-03T08:00:00Z</updated>
-    <published>2024-08-03T08:00:00Z</published>
-    <content type="text">Chapter 19.5   August 3, 2024</content>
-    <summary type="text">Chapter 19.5   August 3, 2024</summary>
     <dc:date>2024-08-03T08:00:00Z</dc:date>
   </entry>
 </feed>

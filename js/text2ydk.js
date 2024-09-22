@@ -11,13 +11,17 @@ document.getElementById('converterForm').addEventListener('submit', async (e) =>
     let inputText = '';
 
     if (fileInput.files.length > 0) {
-        const file = fileInput.files[0];
-        const reader = new FileReader();
-        reader.onload = async (event) => {
-            inputText = event.target.result;
-            await processInput(inputText);
-        };
-        reader.readAsText(file);
+        const files = Array.from(fileInput.files);
+        if (files.length > 1) {
+            await processMultipleFiles(files);
+        } else {
+            const reader = new FileReader();
+            reader.onload = async (event) => {
+                inputText = event.target.result;
+                await processInput(inputText);
+            };
+            reader.readAsText(files[0]);
+        }
     } else if (textInput) {
         inputText = textInput;
         await processInput(inputText);
@@ -28,56 +32,56 @@ document.getElementById('converterForm').addEventListener('submit', async (e) =>
     }
 });
 
-async function processInput(inputText) {
+async function processMultipleFiles(files) {
+    const ydkContents = [];
+    for (const file of files) {
+        const text = await readFileAsText(file);
+        const ydkContent = await processInput(text, false); // No YDKE generation
+        ydkContents.push({ name: file.name.replace('.txt', '.ydk'), content: ydkContent });
+    }
+    createZipDownload(ydkContents);
+}
+
+function readFileAsText(file) {
+    return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = (event) => resolve(event.target.result);
+        reader.readAsText(file);
+    });
+}
+
+async function processInput(inputText, createLink = true) {
     const sections = inputText.split(/\n{2,}/).map(section => section.trim());
     const mainDeck = sections[0] ? sections[0].split('\n').map(line => line.trim()).filter(line => line) : [];
     const extraDeck = sections[1] ? sections[1].split('\n').map(line => line.trim()).filter(line => line) : [];
     const sideDeck = sections[2] ? sections[2].split('\n').map(line => line.trim()).filter(line => line) : [];
 
     const cardRequests = [
-        ...mainDeck.map(line => {
-            const [quantity, ...cardNameParts] = line.split(' ');
-            return { quantity: parseInt(quantity), cardName: cardNameParts.join(' '), type: 'main' };
-        }),
-        ...extraDeck.map(line => {
-            const [quantity, ...cardNameParts] = line.split(' ');
-            return { quantity: parseInt(quantity), cardName: cardNameParts.join(' '), type: 'extra' };
-        }),
-        ...sideDeck.map(line => {
-            const [quantity, ...cardNameParts] = line.split(' ');
-            return { quantity: parseInt(quantity), cardName: cardNameParts.join(' '), type: 'side' };
-        })
+        ...mainDeck.map(line => ({ quantity: parseInt(line.split(' ')[0]), cardName: line.split(' ').slice(1).join(' '), type: 'main' })),
+        ...extraDeck.map(line => ({ quantity: parseInt(line.split(' ')[0]), cardName: line.split(' ').slice(1).join(' '), type: 'extra' })),
+        ...sideDeck.map(line => ({ quantity: parseInt(line.split(' ')[0]), cardName: line.split(' ').slice(1).join(' '), type: 'side' }))
     ];
 
     const cardNames = cardRequests.map(card => encodeURIComponent(card.cardName)).join('|');
     const apiUrl = `https://db.ygoprodeck.com/api/v7/cardinfo.php?name=${cardNames}`;
-    logError(`API Call: ${apiUrl}`); // Log the API call
 
     try {
         const response = await fetch(apiUrl);
         const data = await response.json();
-        logError(`API Response: ${JSON.stringify(data)}`); // Log the API response
 
-        // Check for errors in the response
         if (data && data.data && Array.isArray(data.data) && data.data.length > 0) {
             const ydkContent = generateYdkContent(data.data, cardRequests);
-            createDownloadLink(ydkContent);
-            const ydkeUrl = generateYdkeUrl(data.data, cardRequests);
-            displayYdkeUrl(ydkeUrl);
-            
-            // Clear the inputs after successful conversion
-            fileInput.value = ''; // Clear file input
-            document.getElementById('textInput').value = ''; // Clear text input
+            if (createLink) createDownloadLink(ydkContent); // Create YDK link if single file
+
+            const ydkeUrl = generateYdkeUrl(data.data, cardRequests); // Generate YDKE only for single file
+            if (createLink) displayYdkeUrl(ydkeUrl);
+
+            return ydkContent; // Return the YDK content
         } else {
-            // Log specific error messages if available
-            const errorMessage = data && data.error ? data.error : 'Unknown error occurred.';
-            alert('Error fetching card data: ' + errorMessage);
-            logError('Error fetching card data: ' + errorMessage);
+            logError('Error fetching card data.');
             downloadLog();
         }
     } catch (error) {
-        console.error('Fetch error:', error);
-        alert('Error fetching card data. Please try again.');
         logError('Fetch error: ' + error.message);
         downloadLog();
     }
@@ -86,7 +90,7 @@ async function processInput(inputText) {
 function generateYdkContent(cardData, cardRequests) {
     const ydkLines = [];
     ydkLines.push("#created by TCGPlayer Text to YDK Converter");
-
+    
     // Main Deck
     ydkLines.push("#main");
     cardRequests.filter(req => req.type === 'main').forEach(request => {
@@ -99,7 +103,7 @@ function generateYdkContent(cardData, cardRequests) {
             logError(`Card not found in main deck: ${request.cardName}`);
         }
     });
-
+    
     // Extra Deck
     ydkLines.push("#extra");
     cardRequests.filter(req => req.type === 'extra').forEach(request => {
@@ -112,7 +116,7 @@ function generateYdkContent(cardData, cardRequests) {
             logError(`Card not found in extra deck: ${request.cardName}`);
         }
     });
-
+    
     // Side Deck
     ydkLines.push("!side");
     cardRequests.filter(req => req.type === 'side').forEach(request => {
@@ -125,7 +129,7 @@ function generateYdkContent(cardData, cardRequests) {
             logError(`Card not found in side deck: ${request.cardName}`);
         }
     });
-
+    
     return ydkLines.join('\n').trim();
 }
 
@@ -143,7 +147,6 @@ function generateYdkeUrl(cardData, cardRequests) {
             }
         }
     });
-
     cardRequests.filter(req => req.type === 'extra').forEach(request => {
         const cardInfo = cardData.find(card => card.name === request.cardName);
         if (cardInfo) {
@@ -152,7 +155,6 @@ function generateYdkeUrl(cardData, cardRequests) {
             }
         }
     });
-
     cardRequests.filter(req => req.type === 'side').forEach(request => {
         const cardInfo = cardData.find(card => card.name === request.cardName);
         if (cardInfo) {
@@ -171,7 +173,7 @@ function generateYdkeUrl(cardData, cardRequests) {
     const base64Main = passcodesToBase64(mainDeckArray);
     const base64Extra = passcodesToBase64(extraDeckArray);
     const base64Side = passcodesToBase64(sideDeckArray);
-
+    
     return `ydke://${base64Main}!${base64Extra}!${base64Side}!`;
 }
 
@@ -183,14 +185,13 @@ function displayYdkeUrl(ydkeUrl) {
     const ydkeUrlContainer = document.getElementById('ydkeUrlContainer');
     const ydkeUrlElement = document.getElementById('ydkeUrl');
     const copyFeedback = document.getElementById('copyFeedback');
-
+    
     ydkeUrlElement.textContent = ydkeUrl;
     ydkeUrlContainer.style.display = 'block';
 
     // Copy to clipboard functionality
     document.getElementById('copyUrlButton').onclick = () => {
         navigator.clipboard.writeText(ydkeUrl).then(() => {
-            // Show feedback text instead of an alert
             copyFeedback.style.display = 'block';
         }).catch(err => {
             console.error('Could not copy text: ', err);
@@ -198,14 +199,33 @@ function displayYdkeUrl(ydkeUrl) {
     };
 }
 
+function createZipDownload(ydkContents) {
+    const zip = new JSZip();
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const zipFilename = `deck_${timestamp}.zip`;
+
+    ydkContents.forEach(({ name, content }) => {
+        zip.file(name, content);
+    });
+
+    zip.generateAsync({ type: "blob" }).then((content) => {
+        const url = URL.createObjectURL(content);
+        const downloadLink = document.createElement('a');
+        downloadLink.href = url;
+        downloadLink.download = zipFilename;
+        document.body.appendChild(downloadLink);
+        downloadLink.click();
+        document.body.removeChild(downloadLink);
+    });
+}
+
 function createDownloadLink(content) {
     const blob = new Blob([content], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
-
     const fileInput = document.getElementById('fileInput');
     let filename;
 
-    if (fileInput.files.length > 0) {
+        if (fileInput.files.length > 0) {
         // Get the file name without the .txt extension
         const uploadedFileName = fileInput.files[0].name.replace('.txt', '');
         filename = `${uploadedFileName}.ydk`;

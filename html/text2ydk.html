@@ -17,12 +17,13 @@
             margin-top: 10px;
         }
     </style>
+    <script src="../lib/jszip.min.js"></script>
 </head>
 <body>
     <h2>Yu-Gi-Oh TCGPlayer Deck to YDK Converter</h2>
     <form id="converterForm">
-        <label for="fileInput">Select TCGPlayer text file:</label>
-        <input type="file" id="fileInput" accept=".txt">
+        <label for="fileInput">Select TCGPlayer text files:</label>
+        <input type="file" id="fileInput" accept=".txt" multiple>
         <br><br>
         <label for="textInput">Or enter TCGPlayer text content:</label>
         <textarea id="textInput" placeholder="Enter your deck content here..."></textarea>
@@ -31,16 +32,15 @@
     </form>
     <div id="downloadLinkContainer" style="display:none;">
         <a id="downloadLink" href="#" download="deck.ydk">Download YDK File</a>
-    </div>    
+    </div>
     <div id="ydkeUrlContainer" style="display:none;">
         <button id="copyUrlButton">Copy YDKE URL to Clipboard</button>
         <pre id="ydkeUrl" style="display:inline-block; padding: 5px; background-color: #f4f4f4; border: 1px solid #ccc;"></pre>
-        <p id="copyFeedback" style="color: green; display: none;">YDKE URL copied!</p> <!-- Feedback message -->
+        <p id="copyFeedback" style="color: green; display: none;">YDKE URL copied!</p>
     </div>
     <div id="logDownloadContainer" style="display:none;">
         <a id="logDownloadLink" href="#" download="error_log.txt">Download Error Log</a>
     </div>
-
     <script src="../js/text2ydk.js"></script>
 </body>
 </html>

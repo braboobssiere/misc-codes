@@ -29,7 +29,7 @@ document.getElementById('converterForm').addEventListener('submit', async (e) =>
 });
 
 async function processInput(inputText) {
-    const sections = inputText.split('\n\n\n').map(section => section.trim());
+    const sections = inputText.split(/\n{2,}/).map(section => section.trim());
     const mainDeck = sections[0] ? sections[0].split('\n').map(line => line.trim()).filter(line => line) : [];
     const extraDeck = sections[1] ? sections[1].split('\n').map(line => line.trim()).filter(line => line) : [];
     const sideDeck = sections[2] ? sections[2].split('\n').map(line => line.trim()).filter(line => line) : [];

@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yu-Gi-Oh Deck Extractor</title>
+</head>
+<body>
+    <h1>Yu-Gi-Oh Deck Extractor</h1>
+    <input type="text" id="deckUrl" placeholder="Enter Deck URL" />
+    <button id="fetchDeck">Fetch Deck</button>
+    <pre id="output"></pre>
+    <button id="download" style="display:none;">Download Decklist</button>
+
+    <script>
+        document.getElementById('fetchDeck').addEventListener('click', async () => {
+            const urlInput = document.getElementById('deckUrl').value;
+            const url = urlInput.replace(/&request_locale=jp/, '&request_locale=en');
+
+            try {
+                const response = await fetch(url);
+                const text = await response.text();
+                const mainDeck = extractDeck(text, 'deck_text');
+                const extraDeck = extractDeck(text, 'extra_list');
+                const sideDeck = extractDeck(text, 'side_list');
+
+                const output = formatDeck(mainDeck, extraDeck, sideDeck);
+                document.getElementById('output').textContent = output;
+                document.getElementById('download').style.display = 'block';
+                document.getElementById('download').onclick = () => downloadFile(output);
+            } catch (error) {
+                console.error('Error fetching the deck:', error);
+            }
+        });
+
+        function extractDeck(html, listId) {
+            const regex = new RegExp(`<table id="${listId}" class="deck_list">([\\s\\S]*?)</table>`, 'i');
+            const match = html.match(regex);
+            if (!match) return [];
+
+            const cardRegex = /<span>(.*?)<\/span>\s*\*\s*<span>(\d+)<\/span>/g;
+            const cards = [];
+            let cardMatch;
+
+            while ((cardMatch = cardRegex.exec(match[1])) !== null) {
+                cards.push({ name: cardMatch[1].trim(), amount: cardMatch[2].trim() });
+            }
+
+            return cards;
+        }
+
+        function formatDeck(mainDeck, extraDeck, sideDeck) {
+            let output = '#main\n';
+            mainDeck.forEach(card => {
+                output += `${card.amount} ${card.name}\n`;
+            });
+
+            output += '\n#extra\n';
+            extraDeck.forEach(card => {
+                output += `${card.amount} ${card.name}\n`;
+            });
+
+            output += '\n!side\n';
+            sideDeck.forEach(card => {
+                output += `${card.amount} ${card.name}\n`;
+            });
+
+            return output;
+        }
+
+        function downloadFile(content) {
+            const blob = new Blob([content], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'decklist.txt';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+    </script>
+</body>
+</html>

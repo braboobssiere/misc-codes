@@ -2,7 +2,7 @@ name: Mirror Feedless Feed
 
 on:
   schedule:
-    - cron: '0 * * * *'
+    - cron: '0 */3 * * *'
   workflow_dispatch:  # Allows manual triggering
 
 permissions:

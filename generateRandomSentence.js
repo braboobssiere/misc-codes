@@ -43,8 +43,8 @@ const words = [
 ];
 
 const words = [
-  ['I', 'We', 'They', 'She', 'He', 'You may'],
-  ['love', 'enjoy', 'like', 'prefer', 'appreciate', 'tried'],
+  ['I', 'We', 'They', 'She', 'He', 'Us'],
+  ['love', 'enjoy', 'like', 'prefer', 'appreciate', 'taste'],
   ['sushi', 'pizza', 'salad', 'ice cream', 'pasta', 'tacos'],
   ['with coffee', 'with tea', 'with wine', 'with juice', 'with beer', 'with soda'],
   ['while cooking', 'while baking', 'while gardening', 'while painting', 'while hiking', 'while reading'],

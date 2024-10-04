@@ -42,6 +42,17 @@ const words = [
     ['recipes', 'dishes', 'flavors', 'ingredients', 'cuisines', 'meals', 'snacks', 'treats', 'drinks', 'desserts']
 ];
 
+const words = [
+  ['I', 'We', 'They', 'She', 'He', 'You may'],
+  ['love', 'enjoy', 'like', 'prefer', 'appreciate', 'tried'],
+  ['sushi', 'pizza', 'salad', 'ice cream', 'pasta', 'tacos'],
+  ['with coffee', 'with tea', 'with wine', 'with juice', 'with beer', 'with soda'],
+  ['while cooking', 'while baking', 'while gardening', 'while painting', 'while hiking', 'while reading'],
+  ['in the evening', 'on weekends', 'during the week', 'in the summer', 'in the winter', 'at night'],
+  ['to relax', 'for fun', 'to learn', 'to explore', 'to socialize', 'to unwind'],
+  ['with friends', 'alone', 'at home', 'in a class', 'at the park', 'at a restaurant']
+];
+
 function generateRandomSentence() {
     let sentence = "";
     for (let i = 0; i < words.length; i++) {

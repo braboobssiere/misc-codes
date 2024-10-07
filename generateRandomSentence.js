@@ -53,34 +53,17 @@ const words = [
   ['with friends', 'alone', 'at home', 'in a class', 'at the park', 'at a restaurant']
 ];
 
-function getRandomInt(min, max) {
-    const range = max - min + 1;
-    const array = new Uint32Array(1);
-    window.crypto.getRandomValues(array);
-    return min + (array[0] % range);
-}
-
-function generateRandomSentence() {
-    let sentence = "";
-    for (let i = 0; i < words.length; i++) {
-        let index = getRandomInt(0, words[i].length - 1);
-        let word = words[i][index];
-
-        // Capitalize the first letter of the first word in the sentence
-        if (i === 0) {
-            word = word.charAt(0).toUpperCase() + word.slice(1);
-        }
-
-        // Append the word to the sentence
-        if (i === words.length - 1) {
-            // Last word in the sentence, end with period
-            sentence += word + ".";
-        } else {
-            sentence += word + " ";
-        }
+  generateRandomSentence: function() {
+    function getRandomInt(min, max) {
+        const range = max - min + 1;
+        const array = new Uint32Array(1);
+        window.crypto.getRandomValues(array);
+        return min + (array[0] % range);
     }
-    return sentence;
-}
+
+    var sentence = this.words.map(row => row[getRandomInt(0, row.length - 1)]).join(' ');
+    return sentence.charAt(0).toUpperCase() + sentence.slice(1) + '.';
+},
 
 // Example usage:
 console.log(generateRandomSentence());

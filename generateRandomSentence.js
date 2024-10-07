@@ -53,10 +53,17 @@ const words = [
   ['with friends', 'alone', 'at home', 'in a class', 'at the park', 'at a restaurant']
 ];
 
+function getRandomInt(min, max) {
+    const range = max - min + 1;
+    const array = new Uint32Array(1);
+    window.crypto.getRandomValues(array);
+    return min + (array[0] % range);
+}
+
 function generateRandomSentence() {
     let sentence = "";
     for (let i = 0; i < words.length; i++) {
-        let index = Math.floor(Math.random() * words[i].length);
+        let index = getRandomInt(0, words[i].length - 1);
         let word = words[i][index];
 
         // Capitalize the first letter of the first word in the sentence

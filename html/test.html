@@ -11,7 +11,6 @@
     <button id="fetchDeck">Fetch Deck</button>
     <pre id="output"></pre>
     <button id="download" style="display:none;">Download Decklist</button>
-    <button id="downloadLogs" style="display:none;">Download Fetch Logs</button>
 
     <script>
         document.getElementById('fetchDeck').addEventListener('click', fetchDeck);
@@ -34,10 +33,6 @@
                 document.getElementById('output').textContent = output;
                 document.getElementById('download').style.display = 'block';
                 document.getElementById('download').onclick = () => downloadFile(output);
-                
-                // Show log download button
-                document.getElementById('downloadLogs').style.display = 'block';
-                document.getElementById('downloadLogs').onclick = () => downloadFile(JSON.stringify(logDetails, null, 2), 'fetch_log.txt');
 
             } catch (error) {
                 console.error('Error fetching the deck:', error);
@@ -66,12 +61,12 @@
                 output += `${card.amount} ${card.name}\n`;
             });
 
-            output += '\n#extra\n';
+            output += '\n#extra\n'; // Always include #extra header
             extraDeck.forEach(card => {
                 output += `${card.amount} ${card.name}\n`;
             });
 
-            output += '\n!side\n';
+            output += '\n!side\n'; // Always include !side header
             sideDeck.forEach(card => {
                 output += `${card.amount} ${card.name}\n`;
             });

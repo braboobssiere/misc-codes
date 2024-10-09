@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Yu-Gi-Oh Deck Extractor 0.2</title>
+    <title>Yu-Gi-Oh Deck Extractor</title>
 </head>
 <body>
     <h1>Yu-Gi-Oh Deck Extractor</h1>
@@ -24,7 +24,6 @@
                 const data = await response.json();
                 const text = data.contents;
 
-                // Log response details
                 const logDetails = {
                     url: proxyUrl,
                     status: response.status,
@@ -42,7 +41,6 @@
                 document.getElementById('download').style.display = 'block';
                 document.getElementById('download').onclick = () => downloadFile(output);
                 
-                // Show log download button
                 document.getElementById('downloadLogs').style.display = 'block';
                 document.getElementById('downloadLogs').onclick = () => downloadFile(JSON.stringify(logDetails, null, 2), 'fetch_log.txt');
 
@@ -52,14 +50,13 @@
         });
 
         function extractDeck(html, startId, endId) {
-            const startRegex = new RegExp(`<table id="${startId}" class="deck_list">([\\s\\S]*?)`, 'i');
-            const endRegex = new RegExp(`<!--#${endId}-->`, 'i');
+            const startRegex = new RegExp(`<table id="${startId}" class="deck_list">[\\s\\S]*?<tbody>([\\s\\S]*?)</tbody>`, 'i');
+            const endRegex = new RegExp(`<table id="${endId}" class="deck_list">`, 'i');
 
             const startMatch = html.match(startRegex);
             if (!startMatch) return [];
 
-            const endMatch = html.match(endRegex);
-            const deckContent = html.substring(startMatch.index + startMatch[0].length, endMatch ? endMatch.index : html.length);
+            const deckContent = html.substring(startMatch.index + startMatch[0].length, endRegex ? endRegex.index : html.length);
 
             const cardRegex = /<tr class=' row' title=".*?">[\s\S]*?<td class="row_num">.*?<\/td>[\s\S]*?<td class="card_name">[\s\S]*?<span>(.*?)<\/span>[\s\S]*?<td class="num">[\s\S]*?<span>(\d+)<\/span>/g;
             const cards = [];

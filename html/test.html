@@ -11,11 +11,10 @@
     <button id="fetchDeck">Fetch Deck</button>
     <pre id="output"></pre>
     <button id="download" style="display:none;">Download Decklist</button>
+    <button id="downloadLogs" style="display:none;">Download Fetch Logs</button>
 
     <script>
-        document.getElementById('fetchDeck').addEventListener('click', fetchDeck);
-
-        async function fetchDeck() {
+        document.getElementById('fetchDeck').addEventListener('click', async () => {
             const urlInput = document.getElementById('deckUrl').value;
             const originalUrl = urlInput.replace(/&request_locale=jp/, '&request_locale=en');
             const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(originalUrl)}`;
@@ -25,26 +24,39 @@
                 const data = await response.json();
                 const text = data.contents;
 
-                const mainDeck = extractDeck(text, 'deck_text', 'extra_list');
-                const extraDeck = extractDeck(text, 'extra_list', 'side_list');
-                const sideDeck = extractDeck(text, 'side_list', 'deck_text');
+                // Log response details
+                const logDetails = {
+                    url: proxyUrl,
+                    status: response.status,
+                    headers: Array.from(response.headers.entries()).map(([key, value]) => `${key}: ${value}`).join('\n'),
+                    body: text
+                };
+                console.log('Fetch Response:', logDetails);
+
+                const mainDeck = extractDeck(text, 'deck_text');
+                const extraDeck = extractDeck(text, 'extra_list');
+                const sideDeck = extractDeck(text, 'side_list');
 
                 const output = formatDeck(mainDeck, extraDeck, sideDeck);
                 document.getElementById('output').textContent = output;
                 document.getElementById('download').style.display = 'block';
                 document.getElementById('download').onclick = () => downloadFile(output);
+                
+                // Show log download button
+                document.getElementById('downloadLogs').style.display = 'block';
+                document.getElementById('downloadLogs').onclick = () => downloadFile(JSON.stringify(logDetails, null, 2), 'fetch_log.txt');
 
             } catch (error) {
                 console.error('Error fetching the deck:', error);
             }
-        }
+        });
 
-        function extractDeck(html, startId, endId) {
-            const startRegex = new RegExp(`<div id="${startId}">([\\s\\S]*?)<table id="${endId}" class="deck_list">`, 'i');
-            const match = html.match(startRegex);
+        function extractDeck(html, listId) {
+            const regex = new RegExp(`<table id="${listId}" class="deck_list">([\\s\\S]*?)</table>`, 'i');
+            const match = html.match(regex);
             if (!match) return [];
 
-            const cardRegex = /<td class="card_name">.*?<span>(.*?)<\/span>.*?<input type="hidden" class="link_value" value="\/yugiohdb\/card_search\.action\?.*?">.*?<td class="num">.*?<span>(\d+)<\/span>/g;
+            const cardRegex = /<span>(.*?)<\/span>\s*\*\s*<span>(\d+)<\/span>/g;
             const cards = [];
             let cardMatch;
 
@@ -61,12 +73,12 @@
                 output += `${card.amount} ${card.name}\n`;
             });
 
-            output += '\n#extra\n'; // Always include #extra header
+            output += '\n#extra\n';
             extraDeck.forEach(card => {
                 output += `${card.amount} ${card.name}\n`;
             });
 
-            output += '\n!side\n'; // Always include !side header
+            output += '\n!side\n';
             sideDeck.forEach(card => {
                 output += `${card.amount} ${card.name}\n`;
             });

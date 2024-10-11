@@ -30,7 +30,7 @@ jobs:
 
       - name: Fetch feed
         run: |
-          curl -s "https://api.feedless.org/f/ca6c1fe7-a4a5-4d3d-a938-6792c656c148/atom?skey=z0iCz1mZ68" -o feeds/space_monster.atom
+          curl -s "https://api.feedless.org/f/32cf44ae-5c83-4a44-bef4-395a3920355f/atom" -o feeds/space_monster.atom
 
       - name: Set environment variables
         run: |

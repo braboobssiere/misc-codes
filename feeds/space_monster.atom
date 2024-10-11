@@ -1,23 +1,49 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <feed xmlns="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
-  <title>I became an evolving space monster  (Personal use)</title>
-  <link rel="alternate" type="text/html" href="https://feedless.org/feeds/ca6c1fe7-a4a5-4d3d-a938-6792c656c148"/>
+  <title>space monster (Personal use)</title>
+  <link rel="alternate" type="text/html" href="https://feedless.org/feeds/32cf44ae-5c83-4a44-bef4-395a3920355f"/>
   <link rel="self" type="application/atom+xml" href="https://raw.githubusercontent.com/braboobssiere/misc-codes/main/feeds/space_monster.atom"/>
-  <id>urn:uuid:ca6c1fe7-a4a5-4d3d-a938-6792c656c148</id>
-  <updated>2024-09-22T03:00:03Z</updated>
-  <dc:date>2024-09-22T03:00:03Z</dc:date>
+  <id>urn:uuid:32cf44ae-5c83-4a44-bef4-395a3920355f</id>
+  <updated>2024-10-07T08:00:00Z</updated>
+  <dc:date>2024-10-07T08:00:00Z</dc:date>
   <entry>
-    <title>Chapter 24 1 hour ago</title>
+    <title>Chapter 25 October 7, 2024</title>
+    <link rel="alternate" href="https://manhuaus.com/manga/i-became-an-evolving-space-monster/chapter-25/" type="text/html"/>
+    <author>
+      <name>feedless.org</name>
+    </author>
+    <id>urn:uuid:622f808f-47bb-4b68-a6a8-492ab1878d51</id>
+    <updated>2024-10-07T08:00:00Z</updated>
+    <published>2024-10-07T08:00:00Z</published>
+    <content type="text">Chapter 25   October 7, 2024</content>
+    <summary type="text">Chapter 25   October 7, 2024</summary>
+    <dc:date>2024-10-07T08:00:00Z</dc:date>
+  </entry>
+  <entry>
+    <title>Chapter 24.5 September 30, 2024</title>
+    <link rel="alternate" href="https://manhuaus.com/manga/i-became-an-evolving-space-monster/chapter-24-5/" type="text/html"/>
+    <author>
+      <name>feedless.org</name>
+    </author>
+    <id>urn:uuid:424ad86f-2972-4710-bd3d-48bb4c88f5ce</id>
+    <updated>2024-09-30T08:00:00Z</updated>
+    <published>2024-09-30T08:00:00Z</published>
+    <content type="text">Chapter 24.5   September 30, 2024</content>
+    <summary type="text">Chapter 24.5   September 30, 2024</summary>
+    <dc:date>2024-09-30T08:00:00Z</dc:date>
+  </entry>
+  <entry>
+    <title>Chapter 24 September 22, 2024</title>
     <link rel="alternate" href="https://manhuaus.com/manga/i-became-an-evolving-space-monster/chapter-24/" type="text/html"/>
     <author>
       <name>feedless.org</name>
     </author>
-    <id>urn:uuid:bf0d3d3d-7abc-4bd2-8814-ee723cb3ff16</id>
-    <updated>2024-09-22T03:00:03Z</updated>
-    <published>2024-09-22T03:00:03Z</published>
-    <content type="text">Chapter 24   17 mins ago</content>
-    <summary type="text">Chapter 24   17 mins ago</summary>
-    <dc:date>2024-09-22T03:00:03Z</dc:date>
+    <id>urn:uuid:2224851a-2a7d-47e0-9895-e07d9c69b041</id>
+    <updated>2024-09-22T08:00:00Z</updated>
+    <published>2024-09-22T08:00:00Z</published>
+    <content type="text">Chapter 24   September 22, 2024</content>
+    <summary type="text">Chapter 24   September 22, 2024</summary>
+    <dc:date>2024-09-22T08:00:00Z</dc:date>
   </entry>
   <entry>
     <title>Chapter 23.5 September 14, 2024</title>
@@ -25,7 +51,7 @@
     <author>
       <name>feedless.org</name>
     </author>
-    <id>urn:uuid:080cf04f-f618-4175-b360-5a6042a50b40</id>
+    <id>urn:uuid:cb33cca6-6765-49f0-9768-c4da2416dc19</id>
     <updated>2024-09-14T08:00:00Z</updated>
     <published>2024-09-14T08:00:00Z</published>
     <content type="text">Chapter 23.5   September 14, 2024</content>
@@ -38,7 +64,7 @@
     <author>
       <name>feedless.org</name>
     </author>
-    <id>urn:uuid:104d403b-00f8-4d64-9d92-058d8a67c909</id>
+    <id>urn:uuid:68007e16-9458-4d58-a084-a70343ddbd93</id>
     <updated>2024-09-08T08:00:00Z</updated>
     <published>2024-09-08T08:00:00Z</published>
     <content type="text">Chapter 23   September 8, 2024</content>
@@ -51,7 +77,7 @@
     <author>
       <name>feedless.org</name>
     </author>
-    <id>urn:uuid:b8032d66-6a4c-4172-b88b-406ee2ed282c</id>
+    <id>urn:uuid:35b123c6-ec1e-4cfd-92fb-82fc58d087c3</id>
     <updated>2024-08-31T08:00:00Z</updated>
     <published>2024-08-31T08:00:00Z</published>
     <content type="text">Chapter 22.5   August 31, 2024</content>
@@ -64,7 +90,7 @@
     <author>
       <name>feedless.org</name>
     </author>
-    <id>urn:uuid:84db68dc-9d8a-4de4-8f30-79d4a50bfd40</id>
+    <id>urn:uuid:fdd9e9cf-8c5b-4798-8e66-930cf7c228e9</id>
     <updated>2024-08-24T08:00:00Z</updated>
     <published>2024-08-24T08:00:00Z</published>
     <content type="text">Chapter 22   August 24, 2024</content>
@@ -77,7 +103,7 @@
     <author>
       <name>feedless.org</name>
     </author>
-    <id>urn:uuid:0379700f-5491-468f-bc37-4911517e12bd</id>
+    <id>urn:uuid:0bb9fdd0-3b0c-4965-8919-31c47050ad34</id>
     <updated>2024-08-16T08:00:00Z</updated>
     <published>2024-08-16T08:00:00Z</published>
     <content type="text">Chapter 21.5   August 16, 2024</content>
@@ -90,7 +116,7 @@
     <author>
       <name>feedless.org</name>
     </author>
-    <id>urn:uuid:e6bea156-937a-4a4d-86f9-8286f0aec731</id>
+    <id>urn:uuid:eb3e2ae8-b864-43dd-a93e-1e0e281a43b7</id>
     <updated>2024-08-09T08:00:00Z</updated>
     <published>2024-08-09T08:00:00Z</published>
     <content type="text">Chapter 21   August 9, 2024</content>
@@ -98,42 +124,16 @@
     <dc:date>2024-08-09T08:00:00Z</dc:date>
   </entry>
   <entry>
-    <title>Chapter 19 August 3, 2024</title>
-    <link rel="alternate" href="https://manhuaus.com/manga/i-became-an-evolving-space-monster/chapter-19/" type="text/html"/>
+    <title>Chapter 20 August 3, 2024</title>
+    <link rel="alternate" href="https://manhuaus.com/manga/i-became-an-evolving-space-monster/chapter-20/" type="text/html"/>
     <author>
       <name>feedless.org</name>
     </author>
-    <id>urn:uuid:72420829-9570-4f4a-904e-e921ad9cbeb5</id>
+    <id>urn:uuid:724d0c79-486f-404c-8ce9-0271f7d8e707</id>
     <updated>2024-08-03T08:00:00Z</updated>
     <published>2024-08-03T08:00:00Z</published>
-    <content type="text">Chapter 19   August 3, 2024</content>
-    <summary type="text">Chapter 19   August 3, 2024</summary>
-    <dc:date>2024-08-03T08:00:00Z</dc:date>
-  </entry>
-  <entry>
-    <title>Chapter 18 August 3, 2024</title>
-    <link rel="alternate" href="https://manhuaus.com/manga/i-became-an-evolving-space-monster/chapter-18/" type="text/html"/>
-    <author>
-      <name>feedless.org</name>
-    </author>
-    <id>urn:uuid:33b5cc19-cfe0-44a7-ab88-21414e5ed0fb</id>
-    <updated>2024-08-03T08:00:00Z</updated>
-    <published>2024-08-03T08:00:00Z</published>
-    <content type="text">Chapter 18   August 3, 2024</content>
-    <summary type="text">Chapter 18   August 3, 2024</summary>
-    <dc:date>2024-08-03T08:00:00Z</dc:date>
-  </entry>
-  <entry>
-    <title>Chapter 19.5 August 3, 2024</title>
-    <link rel="alternate" href="https://manhuaus.com/manga/i-became-an-evolving-space-monster/chapter-19-5/" type="text/html"/>
-    <author>
-      <name>feedless.org</name>
-    </author>
-    <id>urn:uuid:d92939da-3397-48d3-9133-e4d24f1ca957</id>
-    <updated>2024-08-03T08:00:00Z</updated>
-    <published>2024-08-03T08:00:00Z</published>
-    <content type="text">Chapter 19.5   August 3, 2024</content>
-    <summary type="text">Chapter 19.5   August 3, 2024</summary>
+    <content type="text">Chapter 20   August 3, 2024</content>
+    <summary type="text">Chapter 20   August 3, 2024</summary>
     <dc:date>2024-08-03T08:00:00Z</dc:date>
   </entry>
 </feed>

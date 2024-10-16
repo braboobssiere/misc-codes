@@ -37,6 +37,7 @@ user_pref("browser.taskbar.lists.tasks.enabled", false);
 // 5017: disable Form Autofill
 user_pref("extensions.formautofill.addresses.enabled", false); // [FF55+]
 user_pref("extensions.formautofill.creditCards.enabled", false); // [FF56+]
+user_pref("signon.rememberSignons", false);
 
 // 5020: disable Windows native notifications and use app notications instead [FF111+] [WINDOWS] ***/
 user_pref("alerts.useSystemBackend.windows.notificationserver.enabled", false);

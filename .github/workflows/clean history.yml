@@ -5,7 +5,6 @@ on:
 
 permissions:
   contents: write # Grant write access to the repository contents
-  actions: write # Grant write access to GitHub Actions
 
 jobs:
   clean-history:
@@ -51,17 +50,3 @@ jobs:
         run: |
           git reflog expire --expire=now --all # Expire reflog entries
           git gc --prune=now --aggressive # Run garbage collection
-
-      - name: Delete past workflow run history
-        run: |
-          curl -X GET \
-          https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/runs \
-          -H 'Accept: application/vnd.github.v3+json' \
-          -H 'Authorization: Bearer ${GITHUB_TOKEN}' \
-          -H 'Content-Type: application/json' | jq '.workflow_runs[] | select(.id != '${GITHUB_RUN_ID}') | .id' | while read id; do
-            curl -X DELETE \
-            https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/runs/$id \
-            -H 'Accept: application/vnd.github.v3+json' \
-            -H 'Authorization: Bearer ${GITHUB_TOKEN}' \
-            -H 'Content-Type: application/json'
-          done

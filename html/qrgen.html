@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+  <html>
+  <head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+  * {
+  box-sizing: border-box;
+  }
+  body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  }
+  div {
+  margin: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  }
+  input[type="text"],
+  input[type="number"] {
+  width: 80%;
+  padding: 10px;
+  margin: 10px;
+  font-size: 16px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  }
+  button {
+  padding: 10px 20px;
+  font-size: 16px;
+  margin: 10px;
+  border-radius: 5px;
+  border: none;
+  background-color: #4CAF50;
+  color: white;
+  cursor: pointer;
+  }
+  </style>
+  <script src="../lib/kjua.min.js"></script>
+  <script>
+  function generateQR() {
+  var text = document.getElementById("textInput").value;
+  var size = document.getElementById("sizeInput").value;
+  var qrDiv = document.getElementById("qr");
+  qrDiv.innerHTML = "";
+  var qrCode = kjua({
+  render: "canvas",
+  text: text,
+  size: size,
+  background: "#ffffff",
+  foreground: "#000000",
+  });
+  qrDiv.appendChild(qrCode);
+  }
+
+  function downloadQR() {
+  var canvas = document.querySelector("#qr canvas");
+  var img = new Image();
+  img.src = canvas.toDataURL();
+  var link = document.createElement("a");
+  link.download = "qrcode.png";
+  link.href = img.src;
+  link.click();
+  }
+  </script>
+  </head>
+  <body>
+  <div>
+  <label for="textInput">Text/URL: </label>
+  <input type="text" id="textInput" oninput="generateQR()"/>
+  </div>
+  <div>
+  <label for="sizeInput">Size: </label>
+  <input type="number" id="sizeInput" value="250" min="100" max="1000" oninput="generateQR()"/>
+  </div>
+  <div>
+  <button onclick="downloadQR()">Download QR Code</button>
+  </div>
+  <div id="qr" style="margin: 10px;"></div>
+</body>
+</html>
+ 

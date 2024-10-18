@@ -5,6 +5,7 @@ on:
 
 permissions:
   contents: write # Grant write access to the repository contents
+  actions: write # Grant write access to GitHub Actions
 
 jobs:
   clean-history:
@@ -18,8 +19,8 @@ jobs:
 
       - name: Set up Git user
         run: |
-          git config --global user.email "action@github.com"
-          git config --global user.name "GitHub Action"
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
 
       - name: Determine current branch
         id: get_branch
@@ -50,3 +51,20 @@ jobs:
         run: |
           git reflog expire --expire=now --all # Expire reflog entries
           git gc --prune=now --aggressive # Run garbage collection
+
+      - name: Delete workflow run history
+        uses: github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            github.actions.listWorkflowRuns({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: context.workflow.id
+            }).data.workflow_runs.forEach(run => {
+              github.actions.deleteWorkflowRun({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                run_id: run.id
+              })
+            })

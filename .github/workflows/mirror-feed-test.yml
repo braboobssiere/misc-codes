@@ -19,7 +19,7 @@ jobs:
 
       - name: Fetch feed
         run: |
-          curl -sf "https://xcancel.com/firefox/rss" -o feeds/nitter.rss
+          curl -sfL "https://xcancel.com/firefox/rss" -o feeds/nitter.rss
 
       - name: Commit and push changes
         run: |

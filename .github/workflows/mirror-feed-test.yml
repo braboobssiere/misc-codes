@@ -9,9 +9,6 @@ permissions:
 jobs:
   mirror:
     runs-on: ubuntu-latest
-    env:
-      FEED_FILE_PATH: feeds/nitter.rss
-      FEED_SELF_LINK: https://raw.githubusercontent.com/braboobssiere/misc-codes/main/feeds/nitter.rss
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4

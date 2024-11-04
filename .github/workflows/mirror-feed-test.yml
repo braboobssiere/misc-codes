@@ -3,6 +3,9 @@ name: Mirror nitter Feed
 on:
   workflow_dispatch:  # Allows manual triggering
 
+permissions:
+  contents: write
+
 jobs:
   mirror:
     runs-on: ubuntu-latest

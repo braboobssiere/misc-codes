@@ -14,57 +14,73 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # Step 2: Fetch the RSS XML from the URL
-      - name: Fetch RSS feed
-        run: |
-          curl -o feed.xml https://politepol.com/fd/fOrdd29ndzQa.xml
-
-      # Step 3: Install dependencies (for XML parsing and manipulation)
+      # Step 2: Install dependencies (for RSS parsing and HTTP requests)
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y python3 python3-pip
-          pip3 install xmltodict
+          sudo apt-get install -y nodejs npm
+          npm install axios xml2js
 
-      # Step 4: Parse and modify the RSS XML
-      - name: Modify RSS feed
+      # Step 3: Fetch the RSS XML from the URL and modify it
+      - name: Modify RSS feed using JavaScript
         run: |
-          python3 -c "
-import xmltodict
-import urllib.parse
-import os
+          node -e "
+const axios = require('axios');
+const xml2js = require('xml2js');
+const fs = require('fs');
+const path = require('path');
 
-# Read the original XML feed
-with open('feed.xml', 'r', encoding='utf-8') as f:
-    rss = xmltodict.parse(f.read())
+// Fetch the RSS feed from the URL
+axios.get('https://politepol.com/fd/fOrdd29ndzQa.xml')
+  .then(response => {
+    const rss = response.data;
 
-# Process each <item> in the RSS feed
-for item in rss['rss']['channel']['item']:
-    title = item['title']
-    description = item['description']
-    link = item['link']
+    // Parse the XML into a JavaScript object
+    xml2js.parseString(rss, { trim: true, explicitArray: false }, (err, result) => {
+      if (err) {
+        console.error('Error parsing XML:', err);
+        return;
+      }
 
-    # Create the new title as <title> / <description>
-    item['title'] = f'{title} / {description}'
+      // Modify each <item> in the RSS feed
+      result.rss.channel.item.forEach(item => {
+        const title = item.title;
+        const description = item.description;
+        const link = item.link;
 
-    # URL-encode the title and description for the YouTube search query
-    search_query = urllib.parse.quote(f'{title} / {description}')
+        // Create the new title as <title> / <description>
+        item.title = `${title} / ${description}`;
 
-    # Create the new link as the YouTube search URL
-    item['link'] = f'https://youtube.com/results?search_query={search_query}'
+        // URL-encode the title and description for the YouTube search query
+        const searchQuery = encodeURIComponent(`${title} / ${description}`);
 
-    # Set the new description as the original link
-    item['description'] = link
+        // Create the new link as the YouTube search URL
+        item.link = `https://youtube.com/results?search_query=${searchQuery}`;
 
-# Ensure the 'feeds' directory exists
-os.makedirs('feeds', exist_ok=True)
+        // Set the new description as the original link
+        item.description = link;
+      });
 
-# Write the modified XML to the desired location (feeds/ototoyRSS.xml)
-with open('feeds/ototoyRSS.xml', 'w', encoding='utf-8') as f:
-    f.write(xmltodict.unparse(rss, pretty=True))
-"
-      
-      # Step 5: Display the modified RSS XML (for debugging purposes)
+      // Ensure the 'feeds' directory exists
+      const feedsDir = path.join(__dirname, 'feeds');
+      if (!fs.existsSync(feedsDir)) {
+        fs.mkdirSync(feedsDir);
+      }
+
+      // Write the modified XML back to the 'feeds/ototoyRSS.xml' file
+      const builder = new xml2js.Builder({ xmldec: { version: '1.0', encoding: 'UTF-8' } });
+      const modifiedRss = builder.buildObject(result);
+      fs.writeFileSync(path.join(feedsDir, 'ototoyRSS.xml'), modifiedRss, 'utf-8');
+
+      console.log('RSS feed modified and saved to feeds/ototoyRSS.xml');
+    });
+  })
+  .catch(error => {
+    console.error('Error fetching RSS feed:', error);
+  });
+        "
+
+      # Step 4: Display the modified RSS XML (for debugging purposes)
       - name: Show modified RSS content
         run: |
           cat feeds/ototoyRSS.xml

@@ -1,0 +1,79 @@
+name: Modify Ototoy RSS Feed
+
+on:
+  schedule:
+    - cron: '0 * * * *'  # Runs every hour at minute 0
+  workflow_dispatch:  # Allows manual triggering of the workflow
+
+jobs:
+  modify_rss:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Check out the repository (if you want to commit to repo)
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # Step 2: Fetch the RSS XML from the URL
+      - name: Fetch RSS feed
+        run: |
+          curl -o feed.xml https://politepol.com/fd/fOrdd29ndzQa.xml
+
+      # Step 3: Install dependencies (for XML parsing and manipulation)
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y python3 python3-pip
+          pip3 install xmltodict
+
+      # Step 4: Parse and modify the RSS XML
+      - name: Modify RSS feed
+        run: |
+          python3 -c "
+import xmltodict
+import urllib.parse
+import os
+
+# Read the original XML feed
+with open('feed.xml', 'r', encoding='utf-8') as f:
+    rss = xmltodict.parse(f.read())
+
+# Process each <item> in the RSS feed
+for item in rss['rss']['channel']['item']:
+    title = item['title']
+    description = item['description']
+    link = item['link']
+
+    # Create the new title as <title> / <description>
+    item['title'] = f'{title} / {description}'
+
+    # URL-encode the title and description for the YouTube search query
+    search_query = urllib.parse.quote(f'{title} / {description}')
+
+    # Create the new link as the YouTube search URL
+    item['link'] = f'https://youtube.com/results?search_query={search_query}'
+
+    # Set the new description as the original link
+    item['description'] = link
+
+# Ensure the 'feeds' directory exists
+os.makedirs('feeds', exist_ok=True)
+
+# Write the modified XML to the desired location (feeds/ototoyRSS.xml)
+with open('feeds/ototoyRSS.xml', 'w', encoding='utf-8') as f:
+    f.write(xmltodict.unparse(rss, pretty=True))
+"
+      
+      # Step 5: Display the modified RSS XML (for debugging purposes)
+      - name: Show modified RSS content
+        run: |
+          cat feeds/ototoyRSS.xml
+
+      # Optional: Commit the changes back to the repository
+      - name: Commit modified RSS feed
+        uses: EndBug/add-and-commit@v9
+        with:
+          author_name: 'github-actions'
+          author_email: 'github-actions@users.noreply.github.com'
+          message: 'Update RSS feed with modified links and titles'
+          add: 'feeds/ototoyRSS.xml'

@@ -2,94 +2,38 @@ name: Modify ototoy RSS Feed
 
 on:
   schedule:
-    - cron: '0 * * * *'  # Runs every hour at minute 0
-  workflow_dispatch:  # Allows manual triggering of the workflow
+    - cron: 0 * * * *
 
 jobs:
-  modify_rss:
+  modify-rss:
     runs-on: ubuntu-latest
-
     steps:
-      # Step 1: Check out the repository (if you want to commit to repo)
-      - name: Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v3
 
-      # Step 2: Install dependencies (for RSS parsing and HTTP requests)
-      - name: Install dependencies
+      - name: Fetch and modify RSS feed
         run: |
-          sudo apt-get update
-          sudo apt-get install -y nodejs npm
-          npm install axios xml2js
+          curl -s https://politepol.com/fd/fOrdd29ndzQa.xml > original.xml
+          xmllint --xpath "//channel/item" original.xml | while read item; do
+            title=$(echo "$item" | xmllint --xpath "string(//title)" -)
+            description=$(echo "$item" | xmllint --xpath "string(//description)" -)
+            link=$(echo "$item" | xmllint --xpath "string(//link)" -)
+            echo "Modifying item with title '$title'"
+            sed -i "/$title/,/<\/item>/ s|$title|$title / $description|" original.xml
+            sed -i "/$title/,/<\/item>/ s|$link|https://youtube.com/results?search_query=$title / $description|" original.xml
+            sed -i "/$title/,/<\/item>/ s|$description|$link|" original.xml
+          done
+          mkdir -p feeds
+          mv original.xml feeds/ototoy-rss.xml
 
-      # Step 3: Fetch the RSS XML from the URL and modify it
-      - name: Modify RSS feed using JavaScript
-        run: |
-          node -e "
-const axios = require('axios');
-const xml2js = require('xml2js');
-const fs = require('fs');
-const path = require('path');
-
-// Fetch the RSS feed from the URL
-axios.get('https://politepol.com/fd/fOrdd29ndzQa.xml')
-  .then(response => {
-    const rss = response.data;
-
-    // Parse the XML into a JavaScript object
-    xml2js.parseString(rss, { trim: true, explicitArray: false }, (err, result) => {
-      if (err) {
-        console.error('Error parsing XML:', err);
-        return;
-      }
-
-      // Modify each <item> in the RSS feed
-      result.rss.channel.item.forEach(item => {
-        const title = item.title;
-        const description = item.description;
-        const link = item.link;
-
-        // Create the new title as <title> / <description>
-        item.title = `${title} / ${description}`;
-
-        // URL-encode the title and description for the YouTube search query
-        const searchQuery = encodeURIComponent(`${title} / ${description}`);
-
-        // Create the new link as the YouTube search URL
-        item.link = `https://youtube.com/results?search_query=${searchQuery}`;
-
-        // Set the new description as the original link
-        item.description = link;
-      });
-
-      // Ensure the 'feeds' directory exists
-      const feedsDir = path.join(__dirname, 'feeds');
-      if (!fs.existsSync(feedsDir)) {
-        fs.mkdirSync(feedsDir);
-      }
-
-      // Write the modified XML back to the 'feeds/ototoyRSS.xml' file
-      const builder = new xml2js.Builder({ xmldec: { version: '1.0', encoding: 'UTF-8' } });
-      const modifiedRss = builder.buildObject(result);
-      fs.writeFileSync(path.join(feedsDir, 'ototoyRSS.xml'), modifiedRss, 'utf-8');
-
-      console.log('RSS feed modified and saved to feeds/ototoyRSS.xml');
-    });
-  })
-  .catch(error => {
-    console.error('Error fetching RSS feed:', error);
-  });
-        "
-
-      # Step 4: Display the modified RSS XML (for debugging purposes)
-      - name: Show modified RSS content
-        run: |
-          cat feeds/ototoyRSS.xml
-
-      # Optional: Commit the changes back to the repository
       - name: Commit modified RSS feed
-        uses: EndBug/add-and-commit@v9
+        run: |
+          git config --global user.name "github-actions"
+          git config --global user.email "github-actions@github.com"
+          git add feeds/ototoy-rss.xml
+          git commit -m "Update ototoy-rss.xml"
+
+      - name: Push modified RSS feed
+        uses: ad-m/github-push-action@v0.6.0
         with:
-          author_name: 'github-actions'
-          author_email: 'github-actions@users.noreply.github.com'
-          message: 'Update RSS feed with modified links and titles'
-          add: 'feeds/ototoyRSS.xml'
+          github_token: ${{ secrets.GITHUB_TOKEN }}

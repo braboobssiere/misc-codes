@@ -1,6 +1,7 @@
 name: Modify ototoy RSS Feed
 
 on:
+  workflow_dispatch:
   schedule:
     - cron: 0 * * * *
 

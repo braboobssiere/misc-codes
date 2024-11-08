@@ -1,4 +1,4 @@
-name: Modify Ototoy RSS Feed
+name: Modify ototoy RSS Feed
 
 on:
   schedule:

@@ -23,21 +23,25 @@ jobs:
           # Use curl to fetch the Firefox release notes page HTML
           RELEASE_NOTES_PAGE=$(curl -s https://www.mozilla.org/en-US/firefox/notes/)
           
-          # Extract the version from the <title> tag, e.g., "Firefox 132.0.2, See All New Features..."
-          FIREFOX_VERSION=$(echo "$RELEASE_NOTES_PAGE" | grep -oP '(?<=<title>Firefox )\d+\.\d+(\.\d+)?' | head -n 1)
+          # Extract the version number from the title using regex
+          # The version is typically formatted as "Firefox <version>" in the title
+          FIREFOX_VERSION=$(echo "$RELEASE_NOTES_PAGE" | grep -oP '<title>Firefox \K[0-9]+\.[0-9]+(\.[0-9]+)?' | head -n 1)
           
           # Debugging: Print the extracted Firefox version
           echo "Extracted Firefox version: $FIREFOX_VERSION"
           
-          # Ensure we have a valid version
+          # Check if we found the version
           if [[ -z "$FIREFOX_VERSION" ]]; then
-            echo "Error: Could not extract Firefox version from the title."
-            exit 1
+            echo "Error: Could not extract Firefox version from the title. Using default User-Agent instead."
+            # Set a default User-Agent if version extraction fails
+            echo "USER_AGENT=Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:90.0) Gecko/20100101 Firefox/90.0" >> $GITHUB_ENV
+          else
+            # Set the User-Agent string using the extracted version
+            echo "USER_AGENT=Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:$FIREFOX_VERSION) Gecko/20100101 Firefox/$FIREFOX_VERSION" >> $GITHUB_ENV
           fi
           
-          # Set the User-Agent string using the extracted version
-          echo "USER_AGENT=Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:$FIREFOX_VERSION) Gecko/20100101 Firefox/$FIREFOX_VERSION" >> $GITHUB_ENV
-          echo "Firefox User-Agent string set for Windows: $USER_AGENT"
+          # Debugging: Print the User-Agent being used
+          echo "Using User-Agent: $USER_AGENT"
 
       - name: Fetch combined Nitter RSS feed with dynamic Firefox User-Agent
         run: |

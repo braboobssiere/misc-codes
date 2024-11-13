@@ -15,35 +15,67 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Fetch latest Firefox version for Windows from WhatIsMyBrowser API v3
+      - name: Fetch latest Firefox version for Windows from WhatIsMyBrowser API v2
         id: get_firefox_version
         run: |
+          echo "Fetching the latest Firefox version for Windows from WhatIsMyBrowser API v2..."
+          
           # Use the WHATISMYBROWSER_API_KEY GitHub secret
           API_KEY="${{ secrets.WHATISMYBROWSER_API_KEY }}"
           
-          # Fetch the latest Firefox User-Agent string for Windows using WhatIsMyBrowser API v3
-          LATEST_FIREFOX=$(curl -s -X GET "https://api.whatismybrowser.com/api/v3/user_agent_strings" \
+          # Fetch the latest Firefox User-Agent string for Windows using WhatIsMyBrowser API v2
+          echo "Making API call to WhatIsMyBrowser API v2 to get the latest Firefox version for Windows..."
+          LATEST_FIREFOX=$(curl -s -X GET "https://api.whatismybrowser.com/api/v2/user_agent_strings" \
             -H "X-API-KEY: $API_KEY" \
             -d "browser=Firefox" \
             -d "platform=Windows" \
-            -d "count=1" | jq -r '.user_agent_strings[0].user_agent_string')
+            -d "count=1")
           
+          # Debug: Print the full response from the API
+          echo "API Response: $LATEST_FIREFOX"
+          
+          # Check if we received a valid response
+          if [[ -z "$LATEST_FIREFOX" || "$LATEST_FIREFOX" == *"error"* ]]; then
+            echo "Error: Could not fetch the Firefox user agent string."
+            exit 1
+          fi
+
           # Extract the Firefox version from the User-Agent string (e.g. Firefox/120.0)
-          FIREFOX_VERSION=$(echo $LATEST_FIREFOX | grep -oP 'Firefox/\K[0-9]+\.[0-9]+')
+          FIREFOX_VERSION=$(echo $LATEST_FIREFOX | jq -r '.user_agent_strings[0].user_agent_string' | grep -oP 'Firefox/\K[0-9]+\.[0-9]+')
+          
+          if [[ -z "$FIREFOX_VERSION" ]]; then
+            echo "Error: Could not extract Firefox version from the user-agent string."
+            exit 1
+          fi
+          
           echo "Latest Firefox version for Windows: $FIREFOX_VERSION"
           
           # Set the dynamic User-Agent string with the extracted Firefox version for Windows
           echo "USER_AGENT=Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:$FIREFOX_VERSION) Gecko/20100101 Firefox/$FIREFOX_VERSION" >> $GITHUB_ENV
+          echo "Firefox User-Agent string set for Windows: $USER_AGENT"
 
       - name: Fetch combined Nitter RSS feed with dynamic Firefox User-Agent
         run: |
+          echo "Fetching the combined Nitter RSS feed using the following User-Agent:"
+          echo "$USER_AGENT"
+          
           # Fetch the combined RSS feed using the dynamically generated Firefox User-Agent
           curl -s -A "$USER_AGENT" "https://nitter.poast.org/yuki_sakuna,ksononair,95rn16,hanamiya_rica/rss" -o feeds/nitter_combined_feed.rss
+          
+          echo "Feed successfully fetched and saved to feeds/nitter_combined_feed.rss"
 
       - name: Commit and push changes
         run: |
+          echo "Checking if any changes need to be committed..."
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git add feeds/nitter_combined_feed.rss
-          git commit -m "Update mirrored Nitter RSS feed" || echo "No changes to commit"
-          git push
+          
+          git diff --exit-code
+          if [ $? -eq 1 ]; then
+            echo "Changes detected, committing and pushing the updated RSS feed..."
+            git add feeds/nitter_combined_feed.rss
+            git commit -m "Update mirrored Nitter RSS feed"
+            git push
+          else
+            echo "No changes detected. Skipping commit and push."
+          fi

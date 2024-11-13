@@ -1,0 +1,49 @@
+name: Mirror Nitter Feed
+
+on:
+  schedule:
+    - cron: '0 */3 * * *'  # Schedule to run every 3 hours
+  workflow_dispatch:  # Allows manual triggering
+
+permissions:
+  contents: write  # Required to push changes to the repository
+
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Fetch latest Firefox version for Windows from WhatIsMyBrowser API v3
+        id: get_firefox_version
+        run: |
+          # Use the WHATISMYBROWSER_API_KEY GitHub secret
+          API_KEY="${{ secrets.WHATISMYBROWSER_API_KEY }}"
+          
+          # Fetch the latest Firefox User-Agent string for Windows using WhatIsMyBrowser API v3
+          LATEST_FIREFOX=$(curl -s -X GET "https://api.whatismybrowser.com/api/v3/user_agent_strings" \
+            -H "X-API-KEY: $API_KEY" \
+            -d "browser=Firefox" \
+            -d "platform=Windows" \
+            -d "count=1" | jq -r '.user_agent_strings[0].user_agent_string')
+          
+          # Extract the Firefox version from the User-Agent string (e.g. Firefox/120.0)
+          FIREFOX_VERSION=$(echo $LATEST_FIREFOX | grep -oP 'Firefox/\K[0-9]+\.[0-9]+')
+          echo "Latest Firefox version for Windows: $FIREFOX_VERSION"
+          
+          # Set the dynamic User-Agent string with the extracted Firefox version for Windows
+          echo "USER_AGENT=Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:$FIREFOX_VERSION) Gecko/20100101 Firefox/$FIREFOX_VERSION" >> $GITHUB_ENV
+
+      - name: Fetch combined Nitter RSS feed with dynamic Firefox User-Agent
+        run: |
+          # Fetch the combined RSS feed using the dynamically generated Firefox User-Agent
+          curl -s -A "$USER_AGENT" "https://nitter.poast.org/yuki_sakuna,ksononair,95rn16,hanamiya_rica/rss" -o feeds/nitter_combined_feed.rss
+
+      - name: Commit and push changes
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add feeds/nitter_combined_feed.rss
+          git commit -m "Update mirrored Nitter RSS feed" || echo "No changes to commit"
+          git push

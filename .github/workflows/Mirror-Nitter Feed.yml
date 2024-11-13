@@ -26,7 +26,3 @@ jobs:
           git add feeds/nitter_combined_feed.xml
           git commit -m "Update mirrored Nitter RSS feed" || echo "No changes to commit"
           git push
-
-          else
-            echo "No changes detected. Skipping commit and push."
-          fi

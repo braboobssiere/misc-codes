@@ -1,5 +1,4 @@
 name: Mirror Nitter Feed
-
 on:
   schedule:
     - cron: '0 */3 * * *'  # Schedule to run every 3 hours
@@ -15,56 +14,19 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Fetch latest Firefox version from release notes title
-        id: fetch_firefox_version
+      - name: Fetch combined Nitter RSS feed
         run: |
-          echo "Fetching the latest Firefox version from the release notes page title..."
-          
-          # Use curl to fetch the Firefox release notes page HTML
-          RELEASE_NOTES_PAGE=$(curl -s https://www.mozilla.org/en-US/firefox/notes/)
-          
-          # Extract the version number from the title using regex
-          # The version is typically formatted as "Firefox <version>" in the title
-          FIREFOX_VERSION=$(echo "$RELEASE_NOTES_PAGE" | grep -oP '<title>Firefox \K[0-9]+\.[0-9]+(\.[0-9]+)?' | head -n 1)
-          
-          # Debugging: Print the extracted Firefox version
-          echo "Extracted Firefox version: $FIREFOX_VERSION"
-          
-          # Check if we found the version
-          if [[ -z "$FIREFOX_VERSION" ]]; then
-            echo "Error: Could not extract Firefox version from the title. Using default User-Agent instead."
-            # Set a default User-Agent if version extraction fails
-            echo "USER_AGENT=Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:90.0) Gecko/20100101 Firefox/90.0" >> $GITHUB_ENV
-          else
-            # Set the User-Agent string using the extracted version
-            echo "USER_AGENT=Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:$FIREFOX_VERSION) Gecko/20100101 Firefox/$FIREFOX_VERSION" >> $GITHUB_ENV
-          fi
-          
-          # Debugging: Print the User-Agent being used
-          echo "Using User-Agent: $USER_AGENT"
-
-      - name: Fetch combined Nitter RSS feed with dynamic Firefox User-Agent
-        run: |
-          echo "Fetching the combined Nitter RSS feed using the following User-Agent:"
-          echo "$USER_AGENT"
-          
-          # Fetch the combined RSS feed using the dynamically generated Firefox User-Agent
-          curl -s -A "$USER_AGENT" "https://nitter.poast.org/yuki_sakuna,ksononair,95rn16,hanamiya_rica/rss" -o feeds/nitter_combined_feed.rss
-          
-          echo "Feed successfully fetched and saved to feeds/nitter_combined_feed.rss"
+          # Fetch the combined RSS feed (single-line XML document)
+          curl -s "https://nitter.poast.org/yuki_sakuna,ksononair,95rn16,hanamiya_rica/rss" -o feeds/nitter_combined_feed.xml
 
       - name: Commit and push changes
         run: |
-          echo "Checking if any changes need to be committed..."
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          
-          git diff --exit-code
-          if [ $? -eq 1 ]; then
-            echo "Changes detected, committing and pushing the updated RSS feed..."
-            git add feeds/nitter_combined_feed.rss
-            git commit -m "Update mirrored Nitter RSS feed"
-            git push
+          git add feeds/nitter_combined_feed.xml
+          git commit -m "Update mirrored Nitter RSS feed" || echo "No changes to commit"
+          git push
+
           else
             echo "No changes detected. Skipping commit and push."
           fi

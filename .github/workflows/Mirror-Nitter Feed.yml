@@ -15,42 +15,27 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Fetch latest Firefox version for Windows from WhatIsMyBrowser API v2
-        id: get_firefox_version
+      - name: Fetch latest Firefox version from release notes title
+        id: fetch_firefox_version
         run: |
-          echo "Fetching the latest Firefox version for Windows from WhatIsMyBrowser API v2..."
+          echo "Fetching the latest Firefox version from the release notes page title..."
           
-          # Use the WHATISMYBROWSER_API_KEY GitHub secret
-          API_KEY="${{ secrets.WHATISMYBROWSER_API_KEY }}"
+          # Use curl to fetch the Firefox release notes page HTML
+          RELEASE_NOTES_PAGE=$(curl -s https://www.mozilla.org/en-US/firefox/notes/)
           
-          # Fetch the latest Firefox User-Agent string for Windows using WhatIsMyBrowser API v2
-          echo "Making API call to WhatIsMyBrowser API v2 to get the latest Firefox version for Windows..."
-          LATEST_FIREFOX=$(curl -s -X GET "https://api.whatismybrowser.com/api/v2/user_agent_strings" \
-            -H "X-API-KEY: $API_KEY" \
-            -d "browser=Firefox" \
-            -d "platform=Windows" \
-            -d "count=1")
+          # Extract the version from the <title> tag, e.g., "Firefox 132.0.2, See All New Features..."
+          FIREFOX_VERSION=$(echo "$RELEASE_NOTES_PAGE" | grep -oP '(?<=<title>Firefox )\d+\.\d+(\.\d+)?' | head -n 1)
           
-          # Debug: Print the full response from the API
-          echo "API Response: $LATEST_FIREFOX"
+          # Debugging: Print the extracted Firefox version
+          echo "Extracted Firefox version: $FIREFOX_VERSION"
           
-          # Check if we received a valid response
-          if [[ -z "$LATEST_FIREFOX" || "$LATEST_FIREFOX" == *"error"* ]]; then
-            echo "Error: Could not fetch the Firefox user agent string."
-            exit 1
-          fi
-
-          # Extract the Firefox version from the User-Agent string (e.g. Firefox/120.0)
-          FIREFOX_VERSION=$(echo $LATEST_FIREFOX | jq -r '.user_agent_strings[0].user_agent_string' | grep -oP 'Firefox/\K[0-9]+\.[0-9]+')
-          
+          # Ensure we have a valid version
           if [[ -z "$FIREFOX_VERSION" ]]; then
-            echo "Error: Could not extract Firefox version from the user-agent string."
+            echo "Error: Could not extract Firefox version from the title."
             exit 1
           fi
           
-          echo "Latest Firefox version for Windows: $FIREFOX_VERSION"
-          
-          # Set the dynamic User-Agent string with the extracted Firefox version for Windows
+          # Set the User-Agent string using the extracted version
           echo "USER_AGENT=Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:$FIREFOX_VERSION) Gecko/20100101 Firefox/$FIREFOX_VERSION" >> $GITHUB_ENV
           echo "Firefox User-Agent string set for Windows: $USER_AGENT"
 

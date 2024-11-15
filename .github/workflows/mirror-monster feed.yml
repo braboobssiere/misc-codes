@@ -39,7 +39,7 @@ jobs:
           
       - name: Modify feed content
         run: |
-          node js/modify_feed.js
+          node js/modify_monster_feed.js
 
       - name: Commit and push changes
         run: |

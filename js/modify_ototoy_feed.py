@@ -41,7 +41,7 @@ def modify_rss_feed():
             match = re.search(r'/p/(\d+)$', guid_text)
             if match:
                 guid.text = match.group(1)
-            guid.attrib.pop('isPermaLink', None)
+            guid.set('isPermaLink', 'false')
 
     # Output the modified RSS feed as a string
     modified_feed = ET.tostring(root, encoding='unicode', method='xml')

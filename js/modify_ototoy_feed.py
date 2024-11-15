@@ -2,7 +2,6 @@ import requests
 import xml.etree.ElementTree as ET
 import urllib.parse
 from xml.dom import minidom
-import re
 
 def modify_rss_feed():
     # Fetch the RSS feed
@@ -28,20 +27,11 @@ def modify_rss_feed():
         new_link = f"https://youtube.com/results?search_query={search_query}"
         
         # Replace the description with the original link
-        item.find("description").text = link
+        item.find("description").text = new_link
 
         # Update the title and link
         item.find("title").text = new_title
-        item.find("link").text = new_link
-
-        # Strip the URL part from the <guid> tag
-        guid = item.find("guid")
-        if guid is not None:
-            guid_text = guid.text
-            match = re.search(r'/p/(\d+)$', guid_text)
-            if match:
-                guid.text = match.group(1)
-            guid.set('isPermaLink', 'false')
+        item.find("link").text = link
 
     # Output the modified RSS feed as a string
     modified_feed = ET.tostring(root, encoding='unicode', method='xml')

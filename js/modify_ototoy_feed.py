@@ -1,6 +1,7 @@
 import requests
 import xml.etree.ElementTree as ET
 import urllib.parse
+from xml.dom import minidom
 
 def modify_rss_feed():
     # Fetch the RSS feed
@@ -32,14 +33,19 @@ def modify_rss_feed():
         item.find("title").text = new_title
         item.find("link").text = new_link
 
-    # Output the modified RSS feed (you can save this to a file or use it as needed)
+    # Output the modified RSS feed as a string
     modified_feed = ET.tostring(root, encoding='unicode', method='xml')
 
-    # Save the modified feed to the correct location
-    with open("feeds/ototoy_hololive.rss", "w", encoding="utf-8") as f:
-        f.write(modified_feed)
+    # Format the RSS feed to be more human-readable
+    # Parse the string back into a minidom object for pretty-printing
+    parsed_feed = minidom.parseString(modified_feed)
+    pretty_feed = parsed_feed.toprettyxml(indent="  ")
 
-    print("RSS feed successfully modified.")
+    # Save the formatted RSS feed to the correct location
+    with open("feeds/ototoy_hololive.rss", "w", encoding="utf-8") as f:
+        f.write(pretty_feed)
+
+    print("RSS feed successfully modified and formatted.")
 
 if __name__ == "__main__":
     modify_rss_feed()

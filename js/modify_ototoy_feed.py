@@ -12,6 +12,13 @@ def modify_rss_feed():
     # Parse the RSS feed
     root = ET.fromstring(response.content)
 
+    # Find the <channel> element
+    channel = root.find(".//channel")
+
+    # Add the atom:link with rel="self" inside the <channel> element
+    atom_link = ET.Element("atom:link", href="https://raw.githubusercontent.com/braboobssiere/misc-codes/refs/heads/main/feeds/ototoy_hololive.rss", rel="self")
+    channel.append(atom_link)
+
     # Loop through each <item> element
     for item in root.findall(".//item"):
         # Extract title and description

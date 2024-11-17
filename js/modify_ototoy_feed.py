@@ -14,10 +14,9 @@ def modify_rss_feed():
 
     # Loop through each <item> element
     for item in root.findall(".//item"):
-        # Extract title and description
+        # Extract items for editing 
         title = item.find("title").text
         description = item.find("description").text
-        link = item.find("link").text
         guid = item.find("guid")
         
         # Combine title and description for the new title
@@ -30,9 +29,8 @@ def modify_rss_feed():
         # Replace the description with the original link
         item.find("description").text = new_link
 
-        # Update the title and link
+        # Update the title and guid
         item.find("title").text = new_title
-        item.find("link").text = link
         guid.set("isPermaLink", "true")
 
     # Output the modified RSS feed as a string

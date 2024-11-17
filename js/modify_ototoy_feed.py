@@ -18,6 +18,7 @@ def modify_rss_feed():
         title = item.find("title").text
         description = item.find("description").text
         link = item.find("link").text
+        guid = item.find("guid").text
         
         # Combine title and description for the new title
         new_title = f"{title} / {description}"
@@ -32,6 +33,7 @@ def modify_rss_feed():
         # Update the title and link
         item.find("title").text = new_title
         item.find("link").text = link
+        guid.set("isPermaLink", "true")
 
     # Output the modified RSS feed as a string
     modified_feed = ET.tostring(root, encoding='unicode', method='xml')

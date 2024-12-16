@@ -1,114 +1,23 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <feed xmlns="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
-  <title>space monster (Personal use)</title>
-  <link rel="alternate" type="text/html" href="https://feedless.org/feeds/32cf44ae-5c83-4a44-bef4-395a3920355f"/>
+  <title>I Became an Evolving Space Monster (Personal use)</title>
+  <link rel="alternate" type="text/html" href="https://feedless.org/feeds/3628b1e8-d4f1-4806-be93-4163657ad13f"/>
   <link rel="self" type="application/atom+xml" href="https://raw.githubusercontent.com/braboobssiere/misc-codes/main/feeds/space_monster.atom"/>
-  <id>urn:uuid:32cf44ae-5c83-4a44-bef4-395a3920355f</id>
-  <updated>2024-11-08T17:00:16Z</updated>
-  <dc:date>2024-11-08T17:00:16Z</dc:date>
-  <entry>
-    <title>Chapter 55 November 8, 2024</title>
-    <link rel="alternate" href="https://manhuaus.com/manga/i-became-an-evolving-space-monster/chapter-55/" type="text/html"/>
-    <author>
-      <name>feedless.org</name>
-    </author>
-    <id>urn:uuid:5969b4f3-d6ac-45f3-a5f1-ef5b9be6375a</id>
-    <updated>2024-11-08T17:00:16Z</updated>
-    <published>2024-11-08T17:00:16Z</published>
-    <content type="text">Chapter 55   November 8, 2024</content>
-    <summary type="text">Chapter 55   November 8, 2024</summary>
-    <dc:date>2024-11-08T17:00:16Z</dc:date>
-  </entry>
+  <id>urn:uuid:3628b1e8-d4f1-4806-be93-4163657ad13f</id>
+  <updated>2024-12-16T03:56:38Z</updated>
+  <dc:date>2024-12-16T03:56:38Z</dc:date>
   <entry>
     <title>Chapter 54 November 1, 2024</title>
     <link rel="alternate" href="https://manhuaus.com/manga/i-became-an-evolving-space-monster/chapter-54/" type="text/html"/>
     <author>
       <name>feedless.org</name>
     </author>
-    <id>urn:uuid:534efca9-065b-4086-8fd4-a88f72c19ef2</id>
-    <updated>2024-11-01T17:00:01Z</updated>
-    <published>2024-11-01T17:00:01Z</published>
+    <id>urn:uuid:3f0bffcf-e69b-4b22-8ccb-d18a36faa941</id>
+    <updated>2024-11-01T08:00:00Z</updated>
+    <published>2024-11-01T08:00:00Z</published>
     <content type="text">Chapter 54   November 1, 2024</content>
     <summary type="text">Chapter 54   November 1, 2024</summary>
-    <dc:date>2024-11-01T17:00:01Z</dc:date>
-  </entry>
-  <entry>
-    <title>Chapter 24.5 September 30, 2024</title>
-    <link rel="alternate" href="https://manhuaus.com/manga/i-became-an-evolving-space-monster/chapter-24-5/" type="text/html"/>
-    <author>
-      <name>feedless.org</name>
-    </author>
-    <id>urn:uuid:424ad86f-2972-4710-bd3d-48bb4c88f5ce</id>
-    <updated>2024-09-30T08:00:00Z</updated>
-    <published>2024-09-30T08:00:00Z</published>
-    <content type="text">Chapter 24.5   September 30, 2024</content>
-    <summary type="text">Chapter 24.5   September 30, 2024</summary>
-    <dc:date>2024-09-30T08:00:00Z</dc:date>
-  </entry>
-  <entry>
-    <title>Chapter 53 October 25, 2024</title>
-    <link rel="alternate" href="https://manhuaus.com/manga/i-became-an-evolving-space-monster/chapter-53/" type="text/html"/>
-    <author>
-      <name>feedless.org</name>
-    </author>
-    <id>urn:uuid:327ed01a-9a05-4e39-9ca0-8345edd23893</id>
-    <updated>2024-10-25T17:00:01Z</updated>
-    <published>2024-10-25T17:00:01Z</published>
-    <content type="text">Chapter 53   October 25, 2024</content>
-    <summary type="text">Chapter 53   October 25, 2024</summary>
-    <dc:date>2024-10-25T17:00:01Z</dc:date>
-  </entry>
-  <entry>
-    <title>Chapter 51 October 12, 2024</title>
-    <link rel="alternate" href="https://manhuaus.com/manga/i-became-an-evolving-space-monster/chapter-51/" type="text/html"/>
-    <author>
-      <name>feedless.org</name>
-    </author>
-    <id>urn:uuid:f9c2cd04-4448-46fe-b2a6-d89a58afcf7e</id>
-    <updated>2024-10-12T18:00:38Z</updated>
-    <published>2024-10-12T18:00:38Z</published>
-    <content type="text">Chapter 51   October 12, 2024</content>
-    <summary type="text">Chapter 51   October 12, 2024</summary>
-    <dc:date>2024-10-12T18:00:38Z</dc:date>
-  </entry>
-  <entry>
-    <title>Chapter 48 September 22, 2024</title>
-    <link rel="alternate" href="https://manhuaus.com/manga/i-became-an-evolving-space-monster/chapter-48/" type="text/html"/>
-    <author>
-      <name>feedless.org</name>
-    </author>
-    <id>urn:uuid:5b0a83bb-6466-4217-bb14-d7649c6c93f5</id>
-    <updated>2024-09-22T08:00:00Z</updated>
-    <published>2024-09-22T08:00:00Z</published>
-    <content type="text">Chapter 48   September 22, 2024</content>
-    <summary type="text">Chapter 48   September 22, 2024</summary>
-    <dc:date>2024-09-22T08:00:00Z</dc:date>
-  </entry>
-  <entry>
-    <title>Chapter 24 September 22, 2024</title>
-    <link rel="alternate" href="https://manhuaus.com/manga/i-became-an-evolving-space-monster/chapter-24/" type="text/html"/>
-    <author>
-      <name>feedless.org</name>
-    </author>
-    <id>urn:uuid:2224851a-2a7d-47e0-9895-e07d9c69b041</id>
-    <updated>2024-09-22T08:00:00Z</updated>
-    <published>2024-09-22T08:00:00Z</published>
-    <content type="text">Chapter 24   September 22, 2024</content>
-    <summary type="text">Chapter 24   September 22, 2024</summary>
-    <dc:date>2024-09-22T08:00:00Z</dc:date>
-  </entry>
-  <entry>
-    <title>Chapter 25 October 7, 2024</title>
-    <link rel="alternate" href="https://manhuaus.com/manga/i-became-an-evolving-space-monster/chapter-25/" type="text/html"/>
-    <author>
-      <name>feedless.org</name>
-    </author>
-    <id>urn:uuid:622f808f-47bb-4b68-a6a8-492ab1878d51</id>
-    <updated>2024-10-07T08:00:00Z</updated>
-    <published>2024-10-07T08:00:00Z</published>
-    <content type="text">Chapter 25   October 7, 2024</content>
-    <summary type="text">Chapter 25   October 7, 2024</summary>
-    <dc:date>2024-10-07T08:00:00Z</dc:date>
+    <dc:date>2024-11-01T08:00:00Z</dc:date>
   </entry>
   <entry>
     <title>Chapter 52 October 20, 2024</title>
@@ -116,24 +25,115 @@
     <author>
       <name>feedless.org</name>
     </author>
-    <id>urn:uuid:d863a287-0438-4cc4-908c-da05ddb876e4</id>
-    <updated>2024-10-20T01:00:01Z</updated>
-    <published>2024-10-20T01:00:01Z</published>
+    <id>urn:uuid:3aa2bc84-ce75-4b07-ab4a-117ba4306a4a</id>
+    <updated>2024-10-20T08:00:00Z</updated>
+    <published>2024-10-20T08:00:00Z</published>
     <content type="text">Chapter 52   October 20, 2024</content>
     <summary type="text">Chapter 52   October 20, 2024</summary>
-    <dc:date>2024-10-20T01:00:01Z</dc:date>
+    <dc:date>2024-10-20T08:00:00Z</dc:date>
   </entry>
   <entry>
-    <title>Chapter 49 September 30, 2024</title>
-    <link rel="alternate" href="https://manhuaus.com/manga/i-became-an-evolving-space-monster/chapter-49/" type="text/html"/>
+    <title>Chapter 56 November 15, 2024</title>
+    <link rel="alternate" href="https://manhuaus.com/manga/i-became-an-evolving-space-monster/chapter-56/" type="text/html"/>
     <author>
       <name>feedless.org</name>
     </author>
-    <id>urn:uuid:8d5d2e30-5617-4034-a336-1853b6abcff2</id>
-    <updated>2024-09-30T08:00:00Z</updated>
-    <published>2024-09-30T08:00:00Z</published>
-    <content type="text">Chapter 49   September 30, 2024</content>
-    <summary type="text">Chapter 49   September 30, 2024</summary>
-    <dc:date>2024-09-30T08:00:00Z</dc:date>
+    <id>urn:uuid:5b1fe4b2-7748-4a83-9031-64d1a2141611</id>
+    <updated>2024-11-15T08:00:00Z</updated>
+    <published>2024-11-15T08:00:00Z</published>
+    <content type="text">Chapter 56   November 15, 2024</content>
+    <summary type="text">Chapter 56   November 15, 2024</summary>
+    <dc:date>2024-11-15T08:00:00Z</dc:date>
+  </entry>
+  <entry>
+    <title>Chapter 60 12 hours ago</title>
+    <link rel="alternate" href="https://manhuaus.com/manga/i-became-an-evolving-space-monster/chapter-60/" type="text/html"/>
+    <author>
+      <name>feedless.org</name>
+    </author>
+    <id>urn:uuid:5a19ae44-0004-4d82-87e1-9a2ff1053d24</id>
+    <updated>2024-12-16T03:56:38Z</updated>
+    <published>2024-12-16T03:56:38Z</published>
+    <content type="text">Chapter 60   12 hours ago</content>
+    <summary type="text">Chapter 60   12 hours ago</summary>
+    <dc:date>2024-12-16T03:56:38Z</dc:date>
+  </entry>
+  <entry>
+    <title>Chapter 50 October 7, 2024</title>
+    <link rel="alternate" href="https://manhuaus.com/manga/i-became-an-evolving-space-monster/chapter-50/" type="text/html"/>
+    <author>
+      <name>feedless.org</name>
+    </author>
+    <id>urn:uuid:a88e6ee5-2160-4895-9ded-2fdc51597612</id>
+    <updated>2024-10-07T08:00:00Z</updated>
+    <published>2024-10-07T08:00:00Z</published>
+    <content type="text">Chapter 50   October 7, 2024</content>
+    <summary type="text">Chapter 50   October 7, 2024</summary>
+    <dc:date>2024-10-07T08:00:00Z</dc:date>
+  </entry>
+  <entry>
+    <title>Chapter 58 November 30, 2024</title>
+    <link rel="alternate" href="https://manhuaus.com/manga/i-became-an-evolving-space-monster/chapter-58/" type="text/html"/>
+    <author>
+      <name>feedless.org</name>
+    </author>
+    <id>urn:uuid:ffb736b0-ae3b-4fb8-bd89-5cd021cb8eb4</id>
+    <updated>2024-11-30T08:00:00Z</updated>
+    <published>2024-11-30T08:00:00Z</published>
+    <content type="text">Chapter 58   November 30, 2024</content>
+    <summary type="text">Chapter 58   November 30, 2024</summary>
+    <dc:date>2024-11-30T08:00:00Z</dc:date>
+  </entry>
+  <entry>
+    <title>Chapter 55 November 8, 2024</title>
+    <link rel="alternate" href="https://manhuaus.com/manga/i-became-an-evolving-space-monster/chapter-55/" type="text/html"/>
+    <author>
+      <name>feedless.org</name>
+    </author>
+    <id>urn:uuid:b580a0fa-e066-4219-8658-cc6f4c1f6aff</id>
+    <updated>2024-11-08T08:00:00Z</updated>
+    <published>2024-11-08T08:00:00Z</published>
+    <content type="text">Chapter 55   November 8, 2024</content>
+    <summary type="text">Chapter 55   November 8, 2024</summary>
+    <dc:date>2024-11-08T08:00:00Z</dc:date>
+  </entry>
+  <entry>
+    <title>Chapter 59 December 7, 2024</title>
+    <link rel="alternate" href="https://manhuaus.com/manga/i-became-an-evolving-space-monster/chapter-59/" type="text/html"/>
+    <author>
+      <name>feedless.org</name>
+    </author>
+    <id>urn:uuid:36a26838-2b82-4ffc-a796-f0bc7448e455</id>
+    <updated>2024-12-07T08:00:00Z</updated>
+    <published>2024-12-07T08:00:00Z</published>
+    <content type="text">Chapter 59   December 7, 2024</content>
+    <summary type="text">Chapter 59   December 7, 2024</summary>
+    <dc:date>2024-12-07T08:00:00Z</dc:date>
+  </entry>
+  <entry>
+    <title>Chapter 51 October 12, 2024</title>
+    <link rel="alternate" href="https://manhuaus.com/manga/i-became-an-evolving-space-monster/chapter-51/" type="text/html"/>
+    <author>
+      <name>feedless.org</name>
+    </author>
+    <id>urn:uuid:bb5c0f20-847d-4d26-914d-36cdf52326ed</id>
+    <updated>2024-10-12T08:00:00Z</updated>
+    <published>2024-10-12T08:00:00Z</published>
+    <content type="text">Chapter 51   October 12, 2024</content>
+    <summary type="text">Chapter 51   October 12, 2024</summary>
+    <dc:date>2024-10-12T08:00:00Z</dc:date>
+  </entry>
+  <entry>
+    <title>Chapter 53 October 25, 2024</title>
+    <link rel="alternate" href="https://manhuaus.com/manga/i-became-an-evolving-space-monster/chapter-53/" type="text/html"/>
+    <author>
+      <name>feedless.org</name>
+    </author>
+    <id>urn:uuid:4a9dfd4f-ce78-4292-952d-caa9030c4294</id>
+    <updated>2024-10-25T08:00:00Z</updated>
+    <published>2024-10-25T08:00:00Z</published>
+    <content type="text">Chapter 53   October 25, 2024</content>
+    <summary type="text">Chapter 53   October 25, 2024</summary>
+    <dc:date>2024-10-25T08:00:00Z</dc:date>
   </entry>
 </feed>

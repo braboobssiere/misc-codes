@@ -1,9 +1,7 @@
 name: Decompile SWF
 
 on:
-  push:
-    paths:
-      - 'flash/zilch.swf'
+  workflow_dispatch:
 
 jobs:
   decompile:

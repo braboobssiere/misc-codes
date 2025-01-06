@@ -6,7 +6,7 @@ unzip ffdec_22.0.1.zip -d jpexs
 
 # Decompile SWF file
 mkdir -p decompiled
-java -jar jpexs/ffdec.jar -export script,shape,image,sound,text,movie decompiled flash/zilch.swf
+java -jar jpexs/ffdec.jar -export all decompiled flash/zilch.swf
 
 # Move files to the 'flash' directory
 mv decompiled/* flash/

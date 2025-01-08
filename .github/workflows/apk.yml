@@ -1,9 +1,6 @@
 name: Convert APKS to APK
 
 on:
-  push:
-    branches:
-      - main
   workflow_dispatch:
 
 jobs:

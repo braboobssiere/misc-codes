@@ -1,0 +1,40 @@
+name: Convert APKS to APK
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  convert-apks:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install Java
+        run: sudo apt-get install -y openjdk-11-jdk
+
+      - name: Download apktool
+        run: |
+          wget https://raw.githubusercontent.com/iBotPeaches/Apktool/master/scripts/linux/apktool
+          chmod +x apktool
+          sudo mv apktool /usr/local/bin/
+
+      - name: Convert APKS to APK
+        run: |
+          mkdir -p output
+          apktool d ./apks/capybara_1.4.1.apks -o output/capybara
+
+      - name: Build APK
+        run: |
+          apktool b output/capybara -o output/capybara.apk
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v3
+        with:
+          name: capybara-apk
+          path: output/capybara.apk
+          retention-days: 3

@@ -27,6 +27,10 @@ jobs:
       - name: Unzip files
         run: unzip apk/capybara_1.4.1.zip -d apk/capybara_1.4.1
 
+      - name: Verify the extracted files
+        run: |
+          ls -R apk/capybara_1.4.1 || exit 1
+
       - name: Download apktool
         run: |
           wget https://github.com/iBotPeaches/Apktool/releases/download/v2.10.0/apktool_2.10.0.jar -O apktool.jar
@@ -35,7 +39,7 @@ jobs:
 
       - name: Convert ZIP to APK
         run: |
-          java -jar /usr/local/bin/apktool.jar d apk/capybara_1.4.1/apks/capybara_1.4.1.apks -o output/capybara
+          java -jar /usr/local/bin/apktool.jar d apk/capybara_1.4.1/capybara_1.4.1.apks -o output/capybara
 
       - name: Build APK
         run: |

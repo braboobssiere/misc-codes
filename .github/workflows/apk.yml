@@ -29,18 +29,17 @@ jobs:
 
       - name: Download apktool
         run: |
-          wget https://raw.githubusercontent.com/iBotPeaches/Apktool/master/scripts/linux/apktool
-          chmod +x apktool
-          sudo mv apktool /usr/local/bin/
+          wget https://github.com/iBotPeaches/Apktool/releases/download/v2.10.0/apktool_2.10.0.jar -O apktool.jar
+          chmod +x apktool.jar
+          sudo mv apktool.jar /usr/local/bin/
 
       - name: Convert ZIP to APK
         run: |
-          mkdir -p output
-          apktool d apk/capybara_1.4.1/apks/capybara_1.4.1.apks -o output/capybara
+          java -jar /usr/local/bin/apktool.jar d apk/capybara_1.4.1/apks/capybara_1.4.1.apks -o output/capybara
 
       - name: Build APK
         run: |
-          apktool b output/capybara -o output/capybara.apk
+          java -jar /usr/local/bin/apktool.jar b output/capybara -o output/capybara.apk
 
       - name: Upload APK
         uses: actions/upload-artifact@v3

@@ -17,11 +17,15 @@ jobs:
       - name: Install unzip
         run: sudo apt-get install -y unzip
 
+      - name: Verify ZIP parts exist
+        run: |
+          ls apk/capybara_1.4.1.zip.* || exit 1
+
       - name: Combine ZIP files
-        run: cat ./zips/capybara_1.4.1.zip.* > ./zips/capybara_1.4.1.zip
+        run: cat apk/capybara_1.4.1.zip.* > apk/capybara_1.4.1.zip
 
       - name: Unzip files
-        run: unzip ./zips/capybara_1.4.1.zip -d ./zips/capybara_1.4.1
+        run: unzip apk/capybara_1.4.1.zip -d apk/capybara_1.4.1
 
       - name: Download apktool
         run: |
@@ -32,7 +36,7 @@ jobs:
       - name: Convert ZIP to APK
         run: |
           mkdir -p output
-          apktool d ./zips/capybara_1.4.1/apks/capybara_1.4.1.apks -o output/capybara
+          apktool d apk/capybara_1.4.1/apks/capybara_1.4.1.apks -o output/capybara
 
       - name: Build APK
         run: |

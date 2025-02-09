@@ -43,10 +43,10 @@ jobs:
           URL="${{ github.event.inputs.video_url }}"
           if [[ "$URL" == *"youtube.com"* || "$URL" == *"youtu.be"* ]]; then
             echo "Detected YouTube URL, using cookies file."
-            yt-dlp --cookies cookies.txt --restrict-filenames -f "bestvideo[height<=1080]+bestaudio/best" -o "output/%(title)s.%(ext)s" "$URL"
+            yt-dlp --cookies cookies.txt --windows-filenames -f "bestvideo[height<=1080]+bestaudio/best" -o "output/%(title)s.%(ext)s" "$URL"
           else
             echo "Non-YouTube URL detected, proceeding without cookies."
-            yt-dlp --restrict-filenames -f "bestvideo[height<=1080]+bestaudio/best" -o "output/%(title)s.%(ext)s" "$URL"
+            yt-dlp --windows-filenames -f "bestvideo[height<=1080]+bestaudio/best" -o "output/%(title)s.%(ext)s" "$URL"
           fi
           echo "Download complete. Listing files in output directory:"
           ls -lh output

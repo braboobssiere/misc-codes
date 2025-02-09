@@ -1,4 +1,4 @@
-name: Download Video 
+name: Download Video
 
 on:
   workflow_dispatch:
@@ -6,8 +6,7 @@ on:
       video_url:
         description: "Video URL to download"
         required: true
-        default: "https://example.com/video"
-
+        
 jobs:
   download_and_upload:
     runs-on: ubuntu-latest
@@ -18,7 +17,6 @@ jobs:
       - name: Cache pip packages
         uses: actions/cache@v4
         with:
-          # cache the pip cache directory
           path: ~/.cache/pip
           key: ${{ runner.os }}-pip-cache
 
@@ -26,17 +24,31 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y python3 python3-pip
-          # Install yt-dlp via pip. pip will utilize the cached packages if available.
           pip3 install --upgrade yt-dlp
 
       - name: Create output directory
         run: mkdir -p output
 
+      - name: Write YouTube cookie file if needed
+        run: |
+          # If the video URL is from YouTube, write the secret yt_cookies to cookies.txt.
+          if [[ "${{ github.event.inputs.video_url }}" == *"youtube.com"* || "${{ github.event.inputs.video_url }}" == *"youtu.be"* ]]; then
+            echo "Detected YouTube URL. Writing cookies file..."
+            echo "${{ secrets.yt_cookies }}" > cookies.txt
+          else
+            echo "Non-YouTube URL detected. Not writing cookies file."
+          fi
+
       - name: Download video with yt-dlp into output folder
         run: |
-          # Download the video with yt-dlp, limiting video quality to 1080p.
-          # The output filename is based on the video's title and extension.
-          yt-dlp -f "bestvideo[height<=1080]+bestaudio/best" -o "output/%(title)s.%(ext)s" "${{ github.event.inputs.video_url }}"
+          URL="${{ github.event.inputs.video_url }}"
+          if [[ "$URL" == *"youtube.com"* || "$URL" == *"youtu.be"* ]]; then
+            echo "Detected YouTube URL, using cookies file."
+            yt-dlp --cookies cookies.txt -f "bestvideo[height<=1080]+bestaudio/best" -o "output/%(title)s.%(ext)s" "$URL"
+          else
+            echo "Non-YouTube URL detected, proceeding without cookies."
+            yt-dlp -f "bestvideo[height<=1080]+bestaudio/best" -o "output/%(title)s.%(ext)s" "$URL"
+          fi
           echo "Download complete. Listing files in output directory:"
           ls -lh output
 

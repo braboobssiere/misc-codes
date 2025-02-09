@@ -78,7 +78,6 @@ jobs:
             # Extract resolution and codec using ffprobe
             resolution=$(ffprobe -v error -select_streams v:0 -show_entries stream=height -of csv=p=0 "$file")
             codec=$(ffprobe -v error -select_streams v:0 -show_entries stream=codec_name -of csv=p=0 "$file")
-            domain="youtube"  # You can modify this to extract actual domain if needed
 
             # Format resolution and codec
             if [[ -n "$resolution" ]]; then
@@ -87,7 +86,7 @@ jobs:
               resolution="unknown"
             fi
             
-            new_name="${title} (${resolution}, ${codec}, ${domain}).mp4"
+            new_name="${title} (${resolution}, ${codec}).mp4"
             mv "$file" "output/$new_name"
             echo "Renamed $file to $new_name"
           done
@@ -99,3 +98,4 @@ jobs:
         with:
           name: downloaded-video
           path: output
+          retention-days: 3

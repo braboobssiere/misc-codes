@@ -23,7 +23,7 @@ jobs:
       - name: Install Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y python3 python3-pip
+          sudo apt-get install -y python3 python3-pip ffmpeg
           pip3 install --upgrade yt-dlp
 
       - name: Create output directory
@@ -50,6 +50,27 @@ jobs:
             yt-dlp -f "bestvideo[height<=1080]+bestaudio/best" -o "output/%(title)s.%(ext)s" "$URL"
           fi
           echo "Download complete. Listing files in output directory:"
+          ls -lh output
+
+      - name: Check and Remux video with ffmpeg if needed
+        run: |
+          for file in output/*; do
+            # Check if the file has both video and audio streams
+            video_streams=$(ffprobe -v error -select_streams v -show_entries stream=codec_type -of csv=p=0 "$file" | grep -c video)
+            audio_streams=$(ffprobe -v error -select_streams a -show_entries stream=codec_type -of csv=p=0 "$file" | grep -c audio)
+
+            if [[ "$video_streams" -gt 0 && "$audio_streams" -gt 0 ]]; then
+              echo "$file already has both video and audio streams. Skipping remux."
+            else
+              output_file="${file%.*}.mp4"
+              echo "Remuxing $file to $output_file"
+              ffmpeg -i "$file" -c copy "$output_file"
+              # Remove the original separate video/audio files
+              rm "$file"
+              echo "Removed original file: $file"
+            fi
+          done
+          echo "Check and remuxing complete. Listing files in output directory:"
           ls -lh output
 
       - name: Upload output directory as an artifact

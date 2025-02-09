@@ -31,7 +31,6 @@ jobs:
 
       - name: Write YouTube cookie file if needed
         run: |
-          # If the video URL is from YouTube, write the secret yt_cookies to cookies.txt.
           if [[ "${{ github.event.inputs.video_url }}" == *"youtube.com"* || "${{ github.event.inputs.video_url }}" == *"youtu.be"* ]]; then
             echo "Detected YouTube URL. Writing cookies file..."
             echo "${{ secrets.yt_cookies }}" > cookies.txt
@@ -55,7 +54,6 @@ jobs:
       - name: Check and Remux video with ffmpeg if needed
         run: |
           for file in output/*; do
-            # Check if the file has both video and audio streams
             video_streams=$(ffprobe -v error -select_streams v -show_entries stream=codec_type -of csv=p=0 "$file" | grep -c video)
             audio_streams=$(ffprobe -v error -select_streams a -show_entries stream=codec_type -of csv=p=0 "$file" | grep -c audio)
 
@@ -65,12 +63,35 @@ jobs:
               output_file="${file%.*}.mp4"
               echo "Remuxing $file to $output_file"
               ffmpeg -i "$file" -c copy "$output_file"
-              # Remove the original separate video/audio files
               rm "$file"
               echo "Removed original file: $file"
             fi
           done
           echo "Check and remuxing complete. Listing files in output directory:"
+          ls -lh output
+
+      - name: Rename files in specified format
+        run: |
+          for file in output/*; do
+            title=$(basename "$file" | sed 's/\.[^.]*$//')  # Get the title without extension
+            
+            # Extract resolution and codec using ffprobe
+            resolution=$(ffprobe -v error -select_streams v:0 -show_entries stream=height -of csv=p=0 "$file")
+            codec=$(ffprobe -v error -select_streams v:0 -show_entries stream=codec_name -of csv=p=0 "$file")
+            domain="youtube"  # You can modify this to extract actual domain if needed
+
+            # Format resolution and codec
+            if [[ -n "$resolution" ]]; then
+              resolution="${resolution}p"
+            else
+              resolution="unknown"
+            fi
+            
+            new_name="${title} (${resolution}, ${codec}, ${domain}).mp4"
+            mv "$file" "output/$new_name"
+            echo "Renamed $file to $new_name"
+          done
+          echo "Renaming complete. Listing files in output directory:"
           ls -lh output
 
       - name: Upload output directory as an artifact

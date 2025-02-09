@@ -1,0 +1,47 @@
+name: Download Video 
+
+on:
+  workflow_dispatch:
+    inputs:
+      video_url:
+        description: "Video URL to download"
+        required: true
+        default: "https://example.com/video"
+
+jobs:
+  download_and_upload:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Cache pip packages
+        uses: actions/cache@v4
+        with:
+          # cache the pip cache directory
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-cache
+
+      - name: Install Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y python3 python3-pip
+          # Install yt-dlp via pip. pip will utilize the cached packages if available.
+          pip3 install --upgrade yt-dlp
+
+      - name: Create output directory
+        run: mkdir -p output
+
+      - name: Download video with yt-dlp into output folder
+        run: |
+          # Download the video with yt-dlp, limiting video quality to 1080p.
+          # The output filename is based on the video's title and extension.
+          yt-dlp -f "bestvideo[height<=1080]+bestaudio/best" -o "output/%(title)s.%(ext)s" "${{ github.event.inputs.video_url }}"
+          echo "Download complete. Listing files in output directory:"
+          ls -lh output
+
+      - name: Upload output directory as an artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: downloaded-video
+          path: output

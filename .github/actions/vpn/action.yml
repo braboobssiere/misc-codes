@@ -1,0 +1,10 @@
+name: VPN Setup
+description: 'Connects to VPN and disconnects based on input'
+inputs:
+  vpn_enabled:
+    description: 'Enable VPN connection? (true/false)'
+    required: true
+    type: string
+runs:
+  using: "node12"
+  main: "dist/index.js"

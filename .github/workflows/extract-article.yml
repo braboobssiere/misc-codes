@@ -12,8 +12,13 @@ on:
         default: 'false'
 
 jobs:
+  vpn-setup:
+    uses: ./.github/workflows/openvpn.yml  
+    with:
+      vpn_enabled: ${{ github.event.inputs.vpn_enabled }} 
   extract:
     runs-on: ubuntu-latest
+    needs: vpn-setup
 
     steps:
       - name: Checkout repository
@@ -27,11 +32,6 @@ jobs:
       - name: Install dependencies
         run: |
           npm install @extractus/article-extractor
-
-      - name: Use VPN Setup
-        uses: ./.github/actions/vpn
-        with:
-          vpn_enabled: ${{ github.event.inputs.vpn_enabled }}
 
       - name: Run article extraction
         id: extract_article
@@ -51,10 +51,11 @@ jobs:
           echo "});" >> extract.js
           node extract.js
 
-      - name: Disconnect VPN
-        uses: ./.github/actions/vpn
+      - name: Disable VPN
+        if: ${{ github.event.inputs.vpn_enabled == 'true' }}
+        uses: ./.github/workflows/openvpn.yml
         with:
-          vpn_enabled: 'false'
+          vpn_enabled: 'disable'
 
       - name: Convert JSON to HTML
         run: |

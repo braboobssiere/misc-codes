@@ -7,12 +7,6 @@ on:
         description: 'Enable VPN connection? (true/false)'
         required: true
         type: string
-  workflow_call:
-    inputs:
-      vpn_enabled:
-        description: 'Enable VPN connection? (true/false)'
-        required: true
-        type: string
 
 jobs:
   vpn:

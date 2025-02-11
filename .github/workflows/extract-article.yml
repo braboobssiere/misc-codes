@@ -12,13 +12,8 @@ on:
         default: 'false'
 
 jobs:
-  vpn-setup:
-    uses: ./.github/workflows/openvpn.yml  
-    with:
-      vpn_enabled: ${{ github.event.inputs.vpn_enabled }} 
   extract:
     runs-on: ubuntu-latest
-    needs: vpn-setup
 
     steps:
       - name: Checkout repository
@@ -32,6 +27,37 @@ jobs:
       - name: Install dependencies
         run: |
           npm install @extractus/article-extractor
+
+      - name: Get non-VPN Public IP
+        id: check_nonvpn_ip
+        run: |
+          NON_VPN_IP=$(curl -s https://api.ipify.org)
+          echo "Non VPN IP: ${NON_VPN_IP}"
+
+      - name: Install OpenVPN 
+        if: ${{ github.event.inputs.vpn_enabled == 'true' }}
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y openvpn openvpn-systemd-resolved
+
+      - name: Deploy VPN configuration file
+        if: ${{ github.event.inputs.vpn_enabled == 'true' }}
+        run: |
+          echo "${{ secrets.OPENVPN_CONFIG }}" > vpnconfig.ovpn
+                 
+      - name: Connect to VPN
+        if: ${{ github.event.inputs.vpn_enabled == 'true' }}
+        uses: "kota65535/github-openvpn-connect-action@v3"
+        with:
+          config_file: vpnconfig.ovpn
+          username: ${{ secrets.OPENVPN_USERNAME }}
+          password: ${{ secrets.OPENVPN_PASSWORD }}
+          
+      - name: Check for VPN IP Change
+        if: ${{ github.event.inputs.vpn_enabled == 'true' }}
+        run: |
+          VPN_IP=$(curl -s https://api.ipify.org)
+          echo "Current public IP: $VPN_IP"
 
       - name: Run article extraction
         id: extract_article
@@ -51,11 +77,11 @@ jobs:
           echo "});" >> extract.js
           node extract.js
 
-      - name: Disable VPN
+      - name: Disconnect VPN
         if: ${{ github.event.inputs.vpn_enabled == 'true' }}
-        uses: ./.github/workflows/openvpn.yml
-        with:
-          vpn_enabled: 'disable'
+        run: |
+          echo "Disconnecting VPN..."
+          sudo pkill openvpn || echo "OpenVPN not running"
 
       - name: Convert JSON to HTML
         run: |
@@ -78,4 +104,3 @@ jobs:
           path: |
             extracted-article.json
             extracted-article.html
-          retention-days: 3 

@@ -1,7 +1,7 @@
 name: VPN Setup
 
 on:
-  workflow_dispatch:
+  workflow_call:
     inputs:
       vpn_enabled:
         description: 'Enable VPN connection? (true/false)'

@@ -28,36 +28,10 @@ jobs:
         run: |
           npm install @extractus/article-extractor
 
-      - name: Get non-VPN Public IP
-        id: check_nonvpn_ip
-        run: |
-          NON_VPN_IP=$(curl -s https://api.ipify.org)
-          echo "Non VPN IP: ${NON_VPN_IP}"
-
-      - name: Install OpenVPN 
-        if: ${{ github.event.inputs.vpn_enabled == 'true' }}
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y openvpn openvpn-systemd-resolved
-
-      - name: Deploy VPN configuration file
-        if: ${{ github.event.inputs.vpn_enabled == 'true' }}
-        run: |
-          echo "${{ secrets.OPENVPN_CONFIG }}" > vpnconfig.ovpn
-                 
-      - name: Connect to VPN
-        if: ${{ github.event.inputs.vpn_enabled == 'true' }}
-        uses: "kota65535/github-openvpn-connect-action@v2"
+      - name: Use VPN Workflow
+        uses: ./github/workflows/vpn.yml
         with:
-          config_file: vpnconfig.ovpn
-          username: ${{ secrets.OPENVPN_USERNAME }}
-          password: ${{ secrets.OPENVPN_PASSWORD }}
-          
-      - name: Check for VPN IP Change
-        if: ${{ github.event.inputs.vpn_enabled == 'true' }}
-        run: |
-          CURRENT_IP=$(curl -s https://api.ipify.org)
-          echo "Current public IP: $CURRENT_IP"
+          vpn_enabled: ${{ github.event.inputs.vpn_enabled }}
 
       - name: Run article extraction
         id: extract_article
@@ -77,6 +51,12 @@ jobs:
           echo "});" >> extract.js
           node extract.js
 
+      - name: Disconnect VPN
+        if: ${{ github.event.inputs.vpn_enabled == 'true' }}
+        uses: ./github/workflows/vpn.yml
+        with:
+          vpn_enabled: 'false'
+
       - name: Convert JSON to HTML
         run: |
           echo "const fs = require('fs');" > convert-to-html.js
@@ -90,12 +70,6 @@ jobs:
           echo "<!DOCTYPE html><html lang='en'><head><meta charset='UTF-8'><meta name='viewport' content='width=device-width, initial-scale=1.0'><title>\${getSafeValue(jsonData.title)}</title></head><body><h1>\${getSafeValue(jsonData.title)}</h1><p><strong>By \${getSafeValue(jsonData.byline)}</strong></p><p><em>Published on \${getSafeValue(jsonData.publishedTime)}</em></p><div>\${jsonData.content || ''}</div></body></html>\`;" >> convert-to-html.js
           echo "fs.writeFileSync('extracted-article.html', htmlContent);" >> convert-to-html.js
           node convert-to-html.js
-
-      - name: Disconnect VPN
-        if: ${{ github.event.inputs.vpn_enabled == 'true' }}
-        run: |
-          echo "Disconnecting VPN..."
-          sudo pkill openvpn || echo "OpenVPN not running"
 
       - name: Upload extracted article as JSON and HTML
         uses: actions/upload-artifact@v4

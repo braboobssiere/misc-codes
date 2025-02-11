@@ -104,3 +104,5 @@ jobs:
           path: |
             extracted-article.json
             extracted-article.html
+            retention-days: 3
+      

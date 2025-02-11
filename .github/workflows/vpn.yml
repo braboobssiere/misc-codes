@@ -1,0 +1,45 @@
+name: VPN Workflow
+
+on:
+  workflow_call:
+    inputs:
+      vpn_enabled:
+        description: 'Enable VPN connection? (true/false)'
+        required: true
+        type: string
+
+jobs:
+  vpn-setup:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Install OpenVPN
+        if: ${{ inputs.vpn_enabled == 'true' }}
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y openvpn openvpn-systemd-resolved
+
+      - name: Deploy VPN configuration file
+        if: ${{ inputs.vpn_enabled == 'true' }}
+        run: |
+          echo "${{ secrets.OPENVPN_CONFIG }}" > vpnconfig.ovpn
+          
+      - name: Connect to VPN
+        if: ${{ inputs.vpn_enabled == 'true' }}
+        uses: "kota65535/github-openvpn-connect-action@v2"
+        with:
+          config_file: vpnconfig.ovpn
+          username: ${{ secrets.OPENVPN_USERNAME }}
+          password: ${{ secrets.OPENVPN_PASSWORD }}
+          
+      - name: Check for VPN IP Change
+        if: ${{ inputs.vpn_enabled == 'true' }}
+        run: |
+          CURRENT_IP=$(curl -s https://api.ipify.org)
+          echo "Current VPN IP: $CURRENT_IP"
+
+      - name: Disconnect VPN
+        if: ${{ inputs.vpn_enabled == 'false' }}
+        run: |
+          echo "Disconnecting VPN..."
+          sudo pkill openvpn || echo "OpenVPN not running"

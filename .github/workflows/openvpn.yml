@@ -33,7 +33,7 @@ jobs:
 
       - name: Connect to VPN
         if: ${{ inputs.vpn_enabled == 'true' }}
-        uses: "kota65535/github-openvpn-connect-action@v2"
+        uses: "kota65535/github-openvpn-connect-action@v3"
         with:
           config_file: vpnconfig.ovpn
           username: ${{ secrets.OPENVPN_USERNAME }}  

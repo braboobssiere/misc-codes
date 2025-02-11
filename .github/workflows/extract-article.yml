@@ -86,7 +86,7 @@ jobs:
       - name: Convert JSON to HTML
         run: |
           echo "const fs = require('fs');" > convert-to-html.js
-          echo "const jsonData = require('./extracted-article.json');" >> convert-to-html.js
+          echo "const jsonData = require('./extracted-article.json') || {};" >> convert-to-html.js
           echo "" >> convert-to-html.js
           echo "function getSafeValue(value, defaultValue = 'N/A') {" >> convert-to-html.js
           echo "  return value && value.trim() !== '' ? value : defaultValue;" >> convert-to-html.js

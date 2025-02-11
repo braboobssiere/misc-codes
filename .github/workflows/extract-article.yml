@@ -28,8 +28,8 @@ jobs:
         run: |
           npm install @extractus/article-extractor
 
-      - name: Use VPN Workflow
-        uses: ./github/workflows/vpn.yml
+      - name: Use VPN Setup
+        uses: ./.github/actions/vpn
         with:
           vpn_enabled: ${{ github.event.inputs.vpn_enabled }}
 
@@ -52,8 +52,7 @@ jobs:
           node extract.js
 
       - name: Disconnect VPN
-        if: ${{ github.event.inputs.vpn_enabled == 'true' }}
-        uses: ./github/workflows/vpn.yml
+        uses: ./.github/actions/vpn
         with:
           vpn_enabled: 'false'
 

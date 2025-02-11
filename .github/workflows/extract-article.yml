@@ -1,0 +1,106 @@
+name: Extract Article
+
+on:
+  workflow_dispatch:
+    inputs:
+      url:
+        description: 'The URL of the article to extract'
+        required: true
+      vpn_enabled:
+        description: 'Enable VPN connection? (true/false)'
+        required: true
+        default: 'false'
+
+jobs:
+  extract:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: |
+          npm install @extractus/article-extractor
+
+      - name: Get non-VPN Public IP
+        id: check_nonvpn_ip
+        run: |
+          NON_VPN_IP=$(curl -s https://api.ipify.org)
+          echo "Non VPN IP: ${NON_VPN_IP}"
+
+      - name: Install OpenVPN 
+        if: ${{ github.event.inputs.vpn_enabled == 'true' }}
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y openvpn openvpn-systemd-resolved
+
+      - name: Deploy VPN configuration file
+        if: ${{ github.event.inputs.vpn_enabled == 'true' }}
+        run: |
+          echo "${{ secrets.OPENVPN_CONFIG }}" > vpnconfig.ovpn
+                 
+      - name: Connect to VPN
+        if: ${{ github.event.inputs.vpn_enabled == 'true' }}
+        uses: "kota65535/github-openvpn-connect-action@v2"
+        with:
+          config_file: vpnconfig.ovpn
+          username: ${{ secrets.OPENVPN_USERNAME }}
+          password: ${{ secrets.OPENVPN_PASSWORD }}
+          
+      - name: Check for VPN IP Change
+        if: ${{ github.event.inputs.vpn_enabled == 'true' }}
+        run: |
+          CURRENT_IP=$(curl -s https://api.ipify.org)
+          echo "Current public IP: $CURRENT_IP"
+
+      - name: Run article extraction
+        id: extract_article
+        run: |
+          echo "const input = '${{ github.event.inputs.url }}';" > extract.js
+          echo "import('@extractus/article-extractor').then(({ extract }) => {" >> extract.js
+          echo "  async function run() {" >> extract.js
+          echo "    try {" >> extract.js
+          echo "      const article = await extract(input);" >> extract.js
+          echo "      console.log(JSON.stringify(article, null, 2));" >> extract.js
+          echo "      require('fs').writeFileSync('extracted-article.json', JSON.stringify(article, null, 2));" >> extract.js
+          echo "    } catch (err) {" >> extract.js
+          echo "      console.error('Error:', err);" >> extract.js
+          echo "    }" >> extract.js
+          echo "  }" >> extract.js
+          echo "  run();" >> extract.js
+          echo "});" >> extract.js
+          node extract.js
+
+      - name: Convert JSON to HTML
+        run: |
+          echo "const fs = require('fs');" > convert-to-html.js
+          echo "const jsonData = require('./extracted-article.json');" >> convert-to-html.js
+          echo "" >> convert-to-html.js
+          echo "function getSafeValue(value, defaultValue = 'N/A') {" >> convert-to-html.js
+          echo "  return value && value.trim() !== '' ? value : defaultValue;" >> convert-to-html.js
+          echo "}" >> convert-to-html.js
+          echo "" >> convert-to-html.js
+          echo "const htmlContent = \`" >> convert-to-html.js
+          echo "<!DOCTYPE html><html lang='en'><head><meta charset='UTF-8'><meta name='viewport' content='width=device-width, initial-scale=1.0'><title>\${getSafeValue(jsonData.title)}</title></head><body><h1>\${getSafeValue(jsonData.title)}</h1><p><strong>By \${getSafeValue(jsonData.byline)}</strong></p><p><em>Published on \${getSafeValue(jsonData.publishedTime)}</em></p><div>\${jsonData.content || ''}</div></body></html>\`;" >> convert-to-html.js
+          echo "fs.writeFileSync('extracted-article.html', htmlContent);" >> convert-to-html.js
+          node convert-to-html.js
+
+      - name: Disconnect VPN
+        if: ${{ github.event.inputs.vpn_enabled == 'true' }}
+        run: |
+          echo "Disconnecting VPN..."
+          sudo pkill openvpn || echo "OpenVPN not running"
+
+      - name: Upload extracted article as JSON and HTML
+        uses: actions/upload-artifact@v4
+        with:
+          name: extracted-article
+          path: |
+            extracted-article.json
+            extracted-article.html

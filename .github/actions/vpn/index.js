@@ -17,12 +17,19 @@ if (process.env.INPUT_VPN_ENABLED === 'true') {
     });
   });
 } else {
-  // Disconnect VPN
-  exec('sudo pkill openvpn', (err, stdout, stderr) => {
+  // Check if OpenVPN is running, then disconnect
+  exec('pgrep openvpn', (err, stdout, stderr) => {
     if (err) {
-      console.error('Error disconnecting VPN:', err);
-      return;
+      console.log('OpenVPN is not running, skipping disconnection.');
+      return;  // If OpenVPN is not running, we don't need to disconnect
     }
-    console.log(stdout);
+    // If OpenVPN is running, disconnect it
+    exec('sudo pkill openvpn', (err, stdout, stderr) => {
+      if (err) {
+        console.error('Error disconnecting VPN:', err);
+        return;
+      }
+      console.log(stdout);
+    });
   });
 }

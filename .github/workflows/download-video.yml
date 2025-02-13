@@ -62,8 +62,7 @@ jobs:
         if: ${{ github.event.inputs.vpn_enabled == 'true' }}
         run: |
           VPN_IP=$(curl -s https://api.ipify.org)
-          echo "Current public IP: $VPN
-          _IP"
+          echo "Current public IP: $VPN_IP"
 
       - name: Write YouTube cookie file if needed
         run: |
@@ -128,12 +127,6 @@ jobs:
           done
           echo "Renaming complete. Listing files in output directory:"
           ls -lh output
-
-      - name: Disconnect VPN
-        if: ${{ github.event.inputs.vpn_enabled == 'true' }}
-        run: |
-          echo "Disconnecting VPN..."
-          sudo pkill openvpn || echo "OpenVPN not running"
 
       - name: Upload output directory as an artifact
         uses: actions/upload-artifact@v4

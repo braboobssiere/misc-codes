@@ -5,7 +5,11 @@ on:
     inputs:
       video_url:
         description: "Video URL to download"
+        required: true    
+      vpn_enabled:
+        description: 'Enable VPN connection? (true/false)'
         required: true
+        default: 'false'
         
 jobs:
   download_and_upload:
@@ -28,6 +32,38 @@ jobs:
 
       - name: Create output directory
         run: mkdir -p output
+
+      - name: Get non-VPN Public IP
+        id: check_nonvpn_ip
+        run: |
+          NON_VPN_IP=$(curl -s https://api.ipify.org)
+          echo "Non VPN IP: ${NON_VPN_IP}"
+
+      - name: Install OpenVPN 
+        if: ${{ github.event.inputs.vpn_enabled == 'true' }}
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y openvpn openvpn-systemd-resolved
+
+      - name: Deploy VPN configuration file
+        if: ${{ github.event.inputs.vpn_enabled == 'true' }}
+        run: |
+          echo "${{ secrets.OPENVPN_CONFIG }}" > vpnconfig.ovpn
+                 
+      - name: Connect to VPN
+        if: ${{ github.event.inputs.vpn_enabled == 'true' }}
+        uses: "kota65535/github-openvpn-connect-action@v3"
+        with:
+          config_file: vpnconfig.ovpn
+          username: ${{ secrets.OPENVPN_USERNAME }}
+          password: ${{ secrets.OPENVPN_PASSWORD }}
+          
+      - name: Check for VPN IP Change
+        if: ${{ github.event.inputs.vpn_enabled == 'true' }}
+        run: |
+          VPN_IP=$(curl -s https://api.ipify.org)
+          echo "Current public IP: $VPN
+          _IP"
 
       - name: Write YouTube cookie file if needed
         run: |
@@ -92,6 +128,12 @@ jobs:
           done
           echo "Renaming complete. Listing files in output directory:"
           ls -lh output
+
+      - name: Disconnect VPN
+        if: ${{ github.event.inputs.vpn_enabled == 'true' }}
+        run: |
+          echo "Disconnecting VPN..."
+          sudo pkill openvpn || echo "OpenVPN not running"
 
       - name: Upload output directory as an artifact
         uses: actions/upload-artifact@v4

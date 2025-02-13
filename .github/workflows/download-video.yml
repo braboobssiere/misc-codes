@@ -9,7 +9,7 @@ on:
       vpn_enabled:
         description: 'Enable VPN connection? (true/false)'
         required: true
-        default: 'false'
+        default: 'true'
         
 jobs:
   download_and_upload:

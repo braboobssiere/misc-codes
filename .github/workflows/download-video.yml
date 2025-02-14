@@ -7,7 +7,7 @@ on:
         description: "Video URL to download"
         required: true    
       vpn_enabled:
-        description: 'Enable VPN connection? (true/false)'
+        description: 'Enable VPN connection?'
         required: true
         default: 'true'
         type: choice

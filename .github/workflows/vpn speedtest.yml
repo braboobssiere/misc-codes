@@ -1,0 +1,88 @@
+name: VPN Speed Test
+on:
+  workflow_dispatch:
+    inputs:
+      vpn_enabled:
+        description: 'Enable VPN connection'
+        required: true
+        default: 'true'
+        type: choice
+        options:
+          - 'true'
+          - 'false'
+
+jobs:
+  speed-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Get Non-VPN IP
+        id: check_nonvpn_ip
+        run: |
+          NON_VPN_IP=$(curl -s https://api.ipify.org)
+          echo "Non-VPN IP: ${NON_VPN_IP}"
+          echo "non_vpn_ip=${NON_VPN_IP}" >> $GITHUB_OUTPUT
+
+      - name: Install OpenVPN
+        if: ${{ github.event.inputs.vpn_enabled == 'true' }}
+        run: sudo apt-get install -y openvpn openvpn-systemd-resolved
+
+      - name: Deploy VPN Config
+        if: ${{ github.event.inputs.vpn_enabled == 'true' }}
+        run: |
+          echo "${{ secrets.OPENVPN_CONFIG }}" > vpnconfig.ovpn
+          echo "OVPN config created at $(pwd)/vpnconfig.ovpn"
+
+      - name: Connect to VPN
+        if: ${{ github.event.inputs.vpn_enabled == 'true' }}
+        uses: kota65535/github-openvpn-connect-action@v3
+        with:
+          config_file: vpnconfig.ovpn
+          username: ${{ secrets.OPENVPN_USERNAME }}
+          password: ${{ secrets.OPENVPN_PASSWORD }}
+
+      - name: Verify VPN IP
+        if: ${{ github.event.inputs.vpn_enabled == 'true' }}
+        run: |
+          VPN_IP=$(curl -s https://api.ipify.org)
+          echo "Current IP: $VPN_IP"
+          if [ "$VPN_IP" == "${{ steps.check_nonvpn_ip.outputs.non_vpn_ip }}" ]; then
+            echo "VPN connection failed!"
+            exit 1
+          fi
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.20'
+
+      - name: Install speedtest-go
+        run: |
+          go install github.com/showwin/speedtest-go/speedtest@latest
+          echo "$HOME/go/bin" >> $GITHUB_PATH
+
+      - name: Run Speed Test
+        id: speedtest
+        run: |
+          echo "### Speed Test Results" >> $GITHUB_STEP_SUMMARY
+          
+          # Human-readable output
+          echo "Running standard test..."
+          speedtest -m | tee speedtest.log
+          
+          # JSON output for machine parsing
+          echo "Running JSON test..."
+          speedtest -f json > results.json
+          
+          # Extract metrics
+          LATENCY=$(jq -r '.latency' results.json)
+          DOWNLOAD=$(jq -r '.download' results.json)
+          UPLOAD=$(jq -r '.upload' results.json)
+          
+          # Format results
+          echo "Latency: ${LATENCY}ms" >> $GITHUB_STEP_SUMMARY
+          echo "Download: ${DOWNLOAD} Mbps" >> $GITHUB_STEP_SUMMARY
+          echo "Upload: ${UPLOAD} Mbps" >> $GITHUB_STEP_SUMMARY
+          

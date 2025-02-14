@@ -18,6 +18,16 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.20'
+
+      - name: Install speedtest-go
+        run: |
+          go install github.com/showwin/speedtest-go/speedtest@latest
+          echo "$HOME/go/bin" >> $GITHUB_PATH
+
       - name: Get Non-VPN IP
         id: check_nonvpn_ip
         run: |
@@ -25,15 +35,11 @@ jobs:
           echo "Non-VPN IP: ${NON_VPN_IP}"
           echo "non_vpn_ip=${NON_VPN_IP}" >> $GITHUB_OUTPUT
 
-      - name: Install OpenVPN
-        if: ${{ github.event.inputs.vpn_enabled == 'true' }}
-        run: sudo apt-get install -y openvpn openvpn-systemd-resolved
-
-      - name: Deploy VPN Config
+      - name: VPN Setup
         if: ${{ github.event.inputs.vpn_enabled == 'true' }}
         run: |
+          sudo apt-get install -y openvpn openvpn-systemd-resolved
           echo "${{ secrets.OPENVPN_CONFIG }}" > vpnconfig.ovpn
-          echo "OVPN config created at $(pwd)/vpnconfig.ovpn"
 
       - name: Connect to VPN
         if: ${{ github.event.inputs.vpn_enabled == 'true' }}
@@ -53,36 +59,25 @@ jobs:
             exit 1
           fi
 
-      - name: Set up Go
-        uses: actions/setup-go@v4
-        with:
-          go-version: '1.20'
-
-      - name: Install speedtest-go
-        run: |
-          go install github.com/showwin/speedtest-go/speedtest@latest
-          echo "$HOME/go/bin" >> $GITHUB_PATH
-
-      - name: Run Speed Test
+      - name: Execute Speed Test
         id: speedtest
         run: |
           echo "### Speed Test Results" >> $GITHUB_STEP_SUMMARY
           
-          # Human-readable output
-          echo "Running standard test..."
+          # Run test with monitor mode
           speedtest -m | tee speedtest.log
           
-          # JSON output for machine parsing
-          echo "Running JSON test..."
-          speedtest -f json > results.json
-          
-          # Extract metrics
-          LATENCY=$(jq -r '.latency' results.json)
-          DOWNLOAD=$(jq -r '.download' results.json)
-          UPLOAD=$(jq -r '.upload' results.json)
-          
+          # Parse metrics using awk
+          LATENCY=$(awk -F'[:|]' '/Latency/ {print $2}' speedtest.log | xargs)
+          DOWNLOAD=$(awk -F'[:|]' '/Download/ {print $3}' speedtest.log | xargs)
+          UPLOAD=$(awk -F'[:|]' '/Upload/ {print $4}' speedtest.log | xargs)
+
           # Format results
-          echo "Latency: ${LATENCY}ms" >> $GITHUB_STEP_SUMMARY
-          echo "Download: ${DOWNLOAD} Mbps" >> $GITHUB_STEP_SUMMARY
-          echo "Upload: ${UPLOAD} Mbps" >> $GITHUB_STEP_SUMMARY
+          echo "**Latency:** \`${LATENCY}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Download:** \`${DOWNLOAD}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Upload:** \`${UPLOAD}\`" >> $GITHUB_STEP_SUMMARY
           
+          # Set output variables
+          echo "latency=${LATENCY}" >> $GITHUB_OUTPUT
+          echo "download=${DOWNLOAD}" >> $GITHUB_OUTPUT
+          echo "upload=${UPLOAD}" >> $GITHUB_OUTPUT

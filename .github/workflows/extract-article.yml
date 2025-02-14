@@ -7,9 +7,13 @@ on:
         description: 'The URL of the article to extract'
         required: true
       vpn_enabled:
-        description: 'Enable VPN connection? (true/false)'
+        description: 'Enable VPN connection?'
         required: true
         default: 'false'
+        type: choice
+        options:
+          - 'true'
+          - 'false'
 
 jobs:
   extract:

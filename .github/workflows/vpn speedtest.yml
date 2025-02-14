@@ -18,15 +18,18 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up Go
-        uses: actions/setup-go@v4
-        with:
-          go-version: '1.20'
-
-      - name: Install speedtest-go
+      - name: Install speedtest-go (Tarball)
         run: |
-          go install github.com/showwin/speedtest-go/speedtest@latest
-          echo "$HOME/go/bin" >> $GITHUB_PATH
+          # Specify version and download
+          VERSION="1.7.10"
+          sudo wget -O /tmp/speedtest.tar.gz \
+            "https://github.com/showwin/speedtest-go/releases/download/v${VERSION}/speedtest-go_${VERSION}_Linux_x86_64.tar.gz"
+          
+          # Extract and install
+          sudo tar -xzf /tmp/speedtest.tar.gz -C /usr/local/bin/
+          sudo chmod +x /usr/local/bin/speedtest-go
+          sudo mv /usr/local/bin/speedtest-go /usr/local/bin/speedtest
+          sudo rm /tmp/speedtest.tar.gz
 
       - name: Get Non-VPN IP
         id: check_nonvpn_ip
@@ -38,7 +41,7 @@ jobs:
       - name: VPN Setup
         if: ${{ github.event.inputs.vpn_enabled == 'true' }}
         run: |
-          sudo apt-get install -y openvpn openvpn-systemd-resolved
+          sudo apt-get install -y openvpn
           echo "${{ secrets.OPENVPN_CONFIG }}" > vpnconfig.ovpn
 
       - name: Connect to VPN
@@ -60,24 +63,9 @@ jobs:
           fi
 
       - name: Execute Speed Test
-        id: speedtest
         run: |
           echo "### Speed Test Results" >> $GITHUB_STEP_SUMMARY
-          
-          # Run test with monitor mode
-          speedtest -m | tee speedtest.log
-          
-          # Parse metrics using awk
-          LATENCY=$(awk -F'[:|]' '/Latency/ {print $2}' speedtest.log | xargs)
-          DOWNLOAD=$(awk -F'[:|]' '/Download/ {print $3}' speedtest.log | xargs)
-          UPLOAD=$(awk -F'[:|]' '/Upload/ {print $4}' speedtest.log | xargs)
-
-          # Format results
-          echo "**Latency:** \`${LATENCY}\`" >> $GITHUB_STEP_SUMMARY
-          echo "**Download:** \`${DOWNLOAD}\`" >> $GITHUB_STEP_SUMMARY
-          echo "**Upload:** \`${UPLOAD}\`" >> $GITHUB_STEP_SUMMARY
-          
-          # Set output variables
-          echo "latency=${LATENCY}" >> $GITHUB_OUTPUT
-          echo "download=${DOWNLOAD}" >> $GITHUB_OUTPUT
-          echo "upload=${UPLOAD}" >> $GITHUB_OUTPUT
+          speedtest -m | tee /dev/stderr | awk -F'[|:]' '
+            /Latency/ {printf "**Latency:** `%s`\n", $2}
+            /Download/ {printf "**Download:** `%s`\n", $3}
+            /Upload/ {printf "**Upload:** `%s`\n", $4}' >> $GITHUB_STEP_SUMMARY

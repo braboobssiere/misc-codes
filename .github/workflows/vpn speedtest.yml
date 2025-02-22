@@ -42,7 +42,7 @@ jobs:
         if: ${{ github.event.inputs.vpn_enabled == 'true' }}
         run: |
           sudo apt-get install -y openvpn
-          echo "${{ secrets.OPENVPN_CONFIG }}" > vpnconfig.ovpn
+          echo "${{ secrets.OPENVPN_CONFIG_TEST }}" > vpnconfig.ovpn
 
       - name: Connect to VPN
         if: ${{ github.event.inputs.vpn_enabled == 'true' }}

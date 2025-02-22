@@ -65,7 +65,8 @@ jobs:
       - name: Execute Speed Test
         run: |
           echo "### Speed Test Results" >> $GITHUB_STEP_SUMMARY
-          speedtest -m | tee /dev/stderr | awk -F'[|:]' '
-            /Latency/ {printf "**Latency:** `%s`\n", $2}
-            /Download/ {printf "**Download:** `%s`\n", $3}
-            /Upload/ {printf "**Upload:** `%s`\n", $4}' >> $GITHUB_STEP_SUMMARY
+          speedtest -m | tee /dev/stderr | awk -F': ' '
+            $1 ~ /Latency/ {sub(/^ /, "", $2); printf "**Latency:** `%s`\n", $2}
+            $1 ~ /Download/ {sub(/^ /, "", $2); split($2,a,/ /); printf "**Download:** `%.2f Mbps`\n", a[1]}
+            $1 ~ /Upload/ {sub(/^ /, "", $2); split($2,a,/ /); printf "**Upload:** `%.2f Mbps`\n", a[1]}
+            $1 ~ /Packet Loss/ {sub(/^ /, "", $2); split($2,a,/ /); printf "**Packet Loss:** `%s`\n", a[1]}' >> $GITHUB_STEP_SUMMARY

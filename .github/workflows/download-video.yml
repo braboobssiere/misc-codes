@@ -82,7 +82,7 @@ jobs:
         run: |
           if [[ "${{ github.event.inputs.video_url }}" == *"youtube.com"* || "${{ github.event.inputs.video_url }}" == *"youtu.be"* ]]; then
             echo "Detected YouTube URL. Writing cookies file..."
-            echo "${{ secrets.yt_cookies }}" > cookies.txt
+            echo "${{ secrets.YT_COOKIES }}" > cookies.txt
           else
             echo "Non-YouTube URL detected. Not writing cookies file."
           fi

@@ -101,7 +101,7 @@ jobs:
               echo "Live stream detected, adding --live-from-start flag"
             fi
       
-            yt-dlp --cookies cookies.txt $LIVE_FLAGS --windows-filenames -f "bestvideo[height<=1080]+bestaudio/best" -o "output/%(title)s.%(ext)s" "$URL"
+            yt-dlp $LIVE_FLAGS --cookies cookies.txt --windows-filenames -f "bestvideo[height<=1080]+bestaudio/best" -o "output/%(title)s.%(ext)s" "$URL"
           else
             echo "Non-YouTube URL detected, proceeding without cookies or live flags"
             yt-dlp --windows-filenames -f "bestvideo[height<=1080]+bestaudio/best" -o "output/%(title)s.%(ext)s" "$URL"

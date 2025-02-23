@@ -9,7 +9,7 @@ on:
       vpn_enabled:
         description: 'Enable VPN connection?'
         required: true
-        default: 'true'
+        default: 'false'
         type: choice
         options:
           - 'true'

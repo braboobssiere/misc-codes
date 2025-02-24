@@ -51,10 +51,12 @@ jobs:
           sudo wg show
 
       - name: Verify VPN IP
+        id: verify_vpn_ip
         if: ${{ github.event.inputs.vpn_enabled == 'true' }}
         run: |
           VPN_IP=$(curl -s https://api.ipify.org)
           echo "Current IP: $VPN_IP"
+          echo "vpn_ip=${VPN_IP}" >> $GITHUB_OUTPUT
           if [ "$VPN_IP" == "${{ steps.check_nonvpn_ip.outputs.non_vpn_ip }}" ]; then
             echo "VPN connection failed!"
             exit 1
@@ -62,7 +64,13 @@ jobs:
 
       - name: Execute Speed Test
         run: |
-          echo "### Speed Test Results" >> $GITHUB_STEP_SUMMARY
+          echo "### IP Information" >> $GITHUB_STEP_SUMMARY
+          echo "**Non-VPN IP:** ${{ steps.check_nonvpn_ip.outputs.non_vpn_ip }}" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ github.event.inputs.vpn_enabled }}" = 'true' ]; then
+            echo "**VPN IP:** ${{ steps.verify_vpn_ip.outputs.vpn_ip }}" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo -e "\n### Speed Test Results" >> $GITHUB_STEP_SUMMARY
           speedtest -m | tee /dev/stderr | awk -F': ' '
             $1 ~ /Latency/ {sub(/^ /, "", $2); printf "**Latency:** `%s`\n", $2}
             $1 ~ /Download/ {sub(/^ /, "", $2); split($2,a,/ /); printf "**Download:** `%.2f Mbps`\n", a[1]}

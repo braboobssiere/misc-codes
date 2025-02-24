@@ -1,4 +1,4 @@
-name: OPENVPN Speed Test
+name: Openvpn Speed Test
 on:
   workflow_dispatch:
     inputs:

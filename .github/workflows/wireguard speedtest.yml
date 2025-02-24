@@ -41,7 +41,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y wireguard-tools
           sudo mkdir -p /etc/wireguard/
-          echo "${{ secrets.WIREGUARD_CONFIG }}" | sudo tee /etc/wireguard/wg0.conf > /dev/null
+          echo "${{ secrets.WIREGUARD_CONFIG_TEST }}" | sudo tee /etc/wireguard/wg0.conf > /dev/null
           sudo chmod 600 /etc/wireguard/wg0.conf
 
       - name: Connect to WireGuard

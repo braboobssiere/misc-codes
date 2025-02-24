@@ -9,7 +9,7 @@ on:
       vpn_enabled:
         description: 'Enable VPN connection?'
         required: true
-        default: 'false'
+        default: 'true'
         type: choice
         options:
           - 'true'
@@ -48,35 +48,39 @@ jobs:
       - name: Create output directory
         run: mkdir -p output
 
-      - name: Get non-VPN Public IP
+      - name: Get Non-VPN IP
         id: check_nonvpn_ip
         run: |
           NON_VPN_IP=$(curl -s https://api.ipify.org)
-          echo "Non VPN IP: ${NON_VPN_IP}"
+          echo "Non-VPN IP: ${NON_VPN_IP}"
+          echo "non_vpn_ip=${NON_VPN_IP}" >> $GITHUB_OUTPUT
 
-      - name: Install OpenVPN 
+      - name: WireGuard Setup
         if: ${{ github.event.inputs.vpn_enabled == 'true' }}
         run: |
-          sudo apt-get install -y openvpn openvpn-systemd-resolved
+          sudo apt-get update
+          sudo apt-get install -y wireguard-tools
+          sudo mkdir -p /etc/wireguard/
+          echo "${{ secrets.WIREGUARD_CONFIG }}" | sudo tee /etc/wireguard/wg0.conf > /dev/null
+          sudo chmod 600 /etc/wireguard/wg0.conf
 
-      - name: Deploy VPN configuration file
+      - name: Connect to WireGuard
         if: ${{ github.event.inputs.vpn_enabled == 'true' }}
         run: |
-          echo "${{ secrets.OPENVPN_CONFIG }}" > vpnconfig.ovpn
-                 
-      - name: Connect to VPN
-        if: ${{ github.event.inputs.vpn_enabled == 'true' }}
-        uses: "kota65535/github-openvpn-connect-action@v3"
-        with:
-          config_file: vpnconfig.ovpn
-          username: ${{ secrets.OPENVPN_USERNAME }}
-          password: ${{ secrets.OPENVPN_PASSWORD }}
-          
-      - name: Check for VPN IP Change
+          sudo wg-quick up wg0
+          sudo wg show
+
+      - name: Verify VPN IP
+        id: verify_vpn_ip
         if: ${{ github.event.inputs.vpn_enabled == 'true' }}
         run: |
           VPN_IP=$(curl -s https://api.ipify.org)
-          echo "Current public IP: $VPN_IP"
+          echo "Current IP: $VPN_IP"
+          echo "vpn_ip=${VPN_IP}" >> $GITHUB_OUTPUT
+          if [ "$VPN_IP" == "${{ steps.check_nonvpn_ip.outputs.non_vpn_ip }}" ]; then
+            echo "VPN connection failed!"
+            exit 1
+          fi
 
       - name: Write YouTube cookie file if needed
         run: |

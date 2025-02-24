@@ -1,4 +1,4 @@
-name: wireguard Speed Test
+name: Wireguard Speed Test
 on:
   workflow_dispatch:
     inputs:

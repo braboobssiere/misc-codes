@@ -1,4 +1,4 @@
-name: VPN Speed Test
+name: wireguard Speed Test
 on:
   workflow_dispatch:
     inputs:

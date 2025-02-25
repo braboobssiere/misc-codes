@@ -51,7 +51,7 @@ jobs:
       - name: Get Non-VPN IP
         id: check_nonvpn_ip
         run: |
-          NON_VPN_IP=$(curl -s https://api.ipify.org)
+          NON_VPN_IP=$(curl -s --retry 3 https://api.ipify.org)
           echo "Non-VPN IP: ${NON_VPN_IP}"
           echo "non_vpn_ip=${NON_VPN_IP}" >> $GITHUB_OUTPUT
 
@@ -59,22 +59,32 @@ jobs:
         if: ${{ github.event.inputs.vpn_enabled == 'true' }}
         run: |
           sudo apt-get update
-          sudo apt-get install -y wireguard-tools
+          sudo apt-get install -y wireguard-tools systemd-resolved
+          sudo ln -sf /run/systemd/resolve/resolv.conf /etc/resolv.conf
           sudo mkdir -p /etc/wireguard/
           echo "${{ secrets.WIREGUARD_CONFIG }}" | sudo tee /etc/wireguard/wg0.conf > /dev/null
           sudo chmod 600 /etc/wireguard/wg0.conf
+          sudo systemctl daemon-reload
+
+      - name: Validate WireGuard Config
+        if: ${{ github.event.inputs.vpn_enabled == 'true' }}
+        run: |
+          sudo wg-quick down wg0 2>/dev/null || true
+          sudo wg-quick up wg0 --dry-run
 
       - name: Connect to WireGuard
         if: ${{ github.event.inputs.vpn_enabled == 'true' }}
         run: |
-          sudo wg-quick up wg0
+          sudo systemctl enable wg-quick@wg0
+          timeout 45 sudo wg-quick up wg0
           sudo wg show
+          sudo networkctl status wg0
 
       - name: Verify VPN IP
         id: verify_vpn_ip
         if: ${{ github.event.inputs.vpn_enabled == 'true' }}
         run: |
-          VPN_IP=$(curl -s https://api.ipify.org)
+          VPN_IP=$(curl -s --retry 3 --connect-timeout 10 https://api.ipify.org)
           echo "Current IP: $VPN_IP"
           echo "vpn_ip=${VPN_IP}" >> $GITHUB_OUTPUT
           if [ "$VPN_IP" == "${{ steps.check_nonvpn_ip.outputs.non_vpn_ip }}" ]; then
@@ -82,6 +92,13 @@ jobs:
             exit 1
           fi
 
+      - name: Network Diagnostics
+        if: ${{ github.event.inputs.vpn_enabled == 'true' }}
+        run: |
+          resolvectl status
+          ip route show table all
+          ping -c 4 example.com
+          
       - name: Write YouTube cookie file if needed
         run: |
           if [[ "${{ github.event.inputs.video_url }}" == *"youtube.com"* || "${{ github.event.inputs.video_url }}" == *"youtu.be"* ]]; then

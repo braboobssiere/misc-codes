@@ -9,7 +9,7 @@ on:
       vpn_enabled:
         description: 'Enable VPN connection?'
         required: true
-        default: 'false'
+        default: 'true'
         type: choice
         options:
           - 'true'
@@ -104,8 +104,9 @@ jobs:
               LIVE_FLAGS="--live-from-start"
               echo "Live stream detected, adding --live-from-start flag"
             fi
-      
-            yt-dlp $LIVE_FLAGS --cookies cookies.txt --windows-filenames -f "bestvideo[height<=1080]+bestaudio/best" -o "output/%(title)s.%(ext)s" "$URL"
+            
+            # yt-dlp $LIVE_FLAGS --cookies cookies.txt --windows-filenames -f "bestvideo[height<=1080]+bestaudio/best" -o "output/%(title)s.%(ext)s" "$URL"
+            yt-dlp $LIVE_FLAGS --windows-filenames -f "bestvideo[height<=1080]+bestaudio/best" -o "output/%(title)s.%(ext)s" "$URL"
           else
             echo "Non-YouTube URL detected, proceeding without cookies or live flags"
             yt-dlp --windows-filenames -f "bestvideo[height<=1080]+bestaudio/best" -o "output/%(title)s.%(ext)s" "$URL"

@@ -69,11 +69,9 @@ jobs:
       - name: Connect to WireGuard
         if: ${{ github.event.inputs.vpn_enabled == 'true' }}
         run: |
-          sudo systemctl enable wg-quick@wg0
           timeout 45 sudo wg-quick up wg0
           sudo wg show
-          sudo networkctl status wg0
-
+  
       - name: Verify VPN IP
         id: verify_vpn_ip
         if: ${{ github.event.inputs.vpn_enabled == 'true' }}

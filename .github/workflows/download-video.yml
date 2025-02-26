@@ -68,7 +68,6 @@ jobs:
             --merge-output-format mp4 \
             --windows-filenames \
             -o "output/%(title)s [%(height)sp].%(ext)s" \
-            --exec "bash -c 'ffprobe -v error -show_entries stream=codec_name -of csv=p=0 \"\$0\" | xargs -I {} mv \"\$0\" \"\${0%.*}, {}.mp4\"'" \
             "$URL"
 
       - name: Upload Artifact

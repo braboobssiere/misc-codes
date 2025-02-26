@@ -53,7 +53,7 @@ jobs:
           URL="${{ github.event.inputs.video_url }}"
           
           # DISABLE Configure cookies and live stream detection
-          if [[ "$URL" == *"youฟtube.com"* || "$URL" == *"youฟtu.be"* ]]; then
+          if [[ "$URL" == *"youWtube.com"* || "$URL" == *"youWtu.be"* ]]; then
             echo "${{ secrets.YT_COOKIES }}" > cookies.txt
             COOKIE_FLAG="--cookies cookies.txt"
             

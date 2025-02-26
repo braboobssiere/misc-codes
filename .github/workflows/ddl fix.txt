@@ -1,0 +1,169 @@
+name: Download Video with VPN
+
+on:
+  workflow_dispatch:
+    inputs:
+      video_url:
+        description: "Video URL to download"
+        required: true    
+      vpn_enabled:
+        description: 'Enable VPN connection?'
+        required: true
+        default: 'true'
+        type: choice
+        options:
+          - 'true'
+          - 'false'
+
+jobs:
+  download_and_upload:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Create requirements.txt
+        run: echo "yt-dlp" > requirements.txt
+
+      - name: Cache pip packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Create output directory
+        run: mkdir -p output
+
+      - name: Get Non-VPN IP
+        id: check_nonvpn_ip
+        run: |
+          NON_VPN_IP=$(curl -s --retry 3 https://api.ipify.org)
+          echo "Non-VPN IP: ${NON_VPN_IP}"
+          echo "non_vpn_ip=${NON_VPN_IP}" >> $GITHUB_OUTPUT
+
+      - name: WireGuard Setup
+        if: ${{ github.event.inputs.vpn_enabled == 'true' }}
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y wireguard-tools systemd-resolved
+          sudo ln -sf /run/systemd/resolve/resolv.conf /etc/resolv.conf
+          sudo mkdir -p /etc/wireguard/
+          echo "${{ secrets.WIREGUARD_CONFIG }}" | sudo tee /etc/wireguard/wg0.conf > /dev/null
+          sudo chmod 600 /etc/wireguard/wg0.conf
+          sudo systemctl daemon-reload
+
+      - name: Validate WireGuard Config
+        if: ${{ github.event.inputs.vpn_enabled == 'true' }}
+        run: |
+          sudo wg-quick down wg0 2>/dev/null || true
+          sudo wg-quick up wg0 --dry-run
+
+      - name: Connect to WireGuard
+        if: ${{ github.event.inputs.vpn_enabled == 'true' }}
+        run: |
+          sudo systemctl enable wg-quick@wg0
+          timeout 45 sudo wg-quick up wg0
+          sudo wg show
+          sudo networkctl status wg0
+
+      - name: Verify VPN IP
+        id: verify_vpn_ip
+        if: ${{ github.event.inputs.vpn_enabled == 'true' }}
+        run: |
+          VPN_IP=$(curl -s --retry 3 --connect-timeout 10 https://api.ipify.org)
+          echo "Current IP: $VPN_IP"
+          echo "vpn_ip=${VPN_IP}" >> $GITHUB_OUTPUT
+          if [ "$VPN_IP" == "${{ steps.check_nonvpn_ip.outputs.non_vpn_ip }}" ]; then
+            echo "VPN connection failed!"
+            exit 1
+          fi
+
+      - name: Network Diagnostics
+        if: ${{ github.event.inputs.vpn_enabled == 'true' }}
+        run: |
+          resolvectl status
+          ip route show table all
+          ping -c 4 google.com
+
+      - name: Write YouTube cookie file if needed
+        run: |
+          if [[ "${{ github.event.inputs.video_url }}" == *"youtube.com"* || "${{ github.event.inputs.video_url }}" == *"youtu.be"* ]]; then
+            echo "Detected YouTube URL. Writing cookies file..."
+            echo "${{ secrets.YT_COOKIES }}" > cookies.txt
+          else
+            echo "Non-YouTube URL detected. Not writing cookies file."
+          fi
+
+      - name: Download video with yt-dlp
+        run: |
+          URL="${{ github.event.inputs.video_url }}"
+          LIVE_FLAGS=""
+          TIMEOUT=1800  # 30 minutes timeout
+    
+          if [[ "$URL" == *"youtube.com"* || "$URL" == *"youtu.be"* ]]; then
+            echo "Detected YouTube URL, checking live status"
+            LIVE_STATUS=$(timeout 300 yt-dlp --print live_status "$URL")
+      
+            if [[ "$LIVE_STATUS" == "is_live" || "$LIVE_STATUS" == "post_live" ]]; then
+              LIVE_FLAGS="--live-from-start"
+              echo "Live stream detected, adding --live-from-start flag"
+            fi
+            
+            timeout $TIMEOUT yt-dlp $LIVE_FLAGS --windows-filenames \
+              -f "bestvideo[height<=1080]+bestaudio/best" \
+              -o "output/%(title)s.%(ext)s" "$URL"
+          else
+            echo "Non-YouTube URL detected, proceeding without cookies or live flags"
+            timeout $TIMEOUT yt-dlp --windows-filenames \
+              -f "bestvideo[height<=1080]+bestaudio/best" \
+              -o "output/%(title)s.%(ext)s" "$URL"
+          fi
+
+          echo "Download complete. Listing files in output directory:"
+          ls -lh output
+
+      - name: Check and Remux video with ffmpeg if needed
+        run: |
+          for file in output/*; do
+            video_streams=$(ffprobe -v error -select_streams v -show_entries stream=codec_type -of csv=p=0 "$file" | grep -c video)
+            audio_streams=$(ffprobe -v error -select_streams a -show_entries stream=codec_type -of csv=p=0 "$file" | grep -c audio)
+
+            if [[ "$video_streams" -gt 0 && "$audio_streams" -gt 0 ]]; then
+              echo "$file already has both video and audio streams. Skipping remux."
+            else
+              output_file="${file%.*}.mp4"
+              echo "Remuxing $file to $output_file"
+              ffmpeg -hide_banner -loglevel error -i "$file" -c copy "$output_file"
+              rm "$file"
+              echo "Removed original file: $file"
+            fi
+          done
+
+      - name: Disconnect WireGuard
+        if: ${{ always() && github.event.inputs.vpn_enabled == 'true' }}
+        run: |
+          sudo wg-quick down wg0
+          sudo systemctl disable wg-quick@wg0
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: downloaded-video
+          path: output
+          retention-days: 7
+          compression-level: 1
+          if-no-files-found: error

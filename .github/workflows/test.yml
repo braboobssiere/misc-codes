@@ -1,0 +1,79 @@
+name: Download Video
+
+on:
+  workflow_dispatch:
+    inputs:
+      video_url:
+        description: "Video URL to download"
+        required: true    
+      vpn_enabled:
+        description: 'Enable VPN connection?'
+        required: true
+        default: 'true'
+        type: choice
+        options:
+          - 'true'
+          - 'false'
+        
+jobs:
+  download_and_upload:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Environment
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg wireguard-tools python3-pip
+          python3 -m pip install --upgrade pip yt-dlp
+
+      - name: VPN Management
+        if: ${{ github.event.inputs.vpn_enabled == 'true' }}
+        run: |
+          # Get original IP
+          ORIG_IP=$(curl -s https://api.ipify.org)
+          
+          # Configure VPN
+          sudo mkdir -p /etc/wireguard/
+          echo "${{ secrets.WIREGUARD_CONFIG }}" | sudo tee /etc/wireguard/wg0.conf > /dev/null
+          sudo chmod 600 /etc/wireguard/wg0.conf
+          sudo wg-quick up wg0
+          
+          # Verify new IP
+          VPN_IP=$(curl -s https://api.ipify.org)
+          if [ "$VPN_IP" == "$ORIG_IP" ]; then
+            echo "VPN connection failed!"
+            exit 1
+          fi
+
+      - name: Download and Process Video
+        run: |
+          mkdir -p output
+          URL="${{ github.event.inputs.video_url }}"
+          
+          # Configure cookies and live stream detection
+          if [[ "$URL" == *"youtube.com"* || "$URL" == *"youtu.be"* ]]; then
+            echo "${{ secrets.YT_COOKIES }}" > cookies.txt
+            COOKIE_FLAG="--cookies cookies.txt"
+            
+            # Detect live streams
+            LIVE_STATUS=$(yt-dlp --print live_status "$URL")
+            [[ "$LIVE_STATUS" =~ "is_live|post_live" ]] && LIVE_FLAG="--live-from-start"
+          fi
+
+          # Download with metadata capture
+          yt-dlp $COOKIE_FLAG $LIVE_FLAG \
+            -f "bestvideo[height<=1080]+bestaudio/best" \
+            --merge-output-format mp4 \
+            --windows-filenames \
+            -o "output/%(title)s [%(height)sp].%(ext)s" \
+            --exec "bash -c 'ffprobe -v error -show_entries stream=codec_name -of csv=p=0 \"\$0\" | xargs -I {} mv \"\$0\" \"\${0%.*}, {}.mp4\"'" \
+            "$URL"
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: downloaded-video
+          path: output
+          retention-days: 7

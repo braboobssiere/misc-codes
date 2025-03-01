@@ -86,4 +86,11 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: downloaded-video
-          path: output/
+          path: output
+          retention-days: 7
+          compression-level: 1
+          if-no-files-found: error
+
+      - name: VPN Cleanup
+        if: ${{ always() && github.event.inputs.vpn_enabled == 'true' }}
+        run: sudo wg-quick down wg0 || true

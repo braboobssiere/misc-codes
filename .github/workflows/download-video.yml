@@ -22,7 +22,7 @@ on:
         type: choice
         options:
           - '1080p'
-          - 'Best'
+          - 'best'
           - '720p'
           - '480p'
 
@@ -60,7 +60,7 @@ jobs:
           RESOLUTION="${{ github.event.inputs.resolution }}"
 
           # Configure resolution filter
-          if [[ "$RESOLUTION" == "Best" ]]; then
+          if [[ "$RESOLUTION" == "best" ]]; then
             VIDEO_FILTER="bestvideo"
           else
             VIDEO_FILTER="bestvideo[height<=${RESOLUTION//[^0-9]/}]"

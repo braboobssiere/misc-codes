@@ -5,7 +5,8 @@ on:
     inputs:
       video_url:
         description: "Video URL to download"
-        required: true    
+        required: true
+        type: string
       vpn_enabled:
         description: 'Enable VPN connection?'
         required: true
@@ -14,7 +15,17 @@ on:
         options:
           - 'true'
           - 'false'
-        
+      resolution:
+        description: "Video resolution (default: 1080p)"
+        required: true
+        default: '1080p'
+        type: choice
+        options:
+          - '1080p'
+          - 'Best'
+          - '720p'
+          - '480p'
+
 jobs:
   download_and_upload:
     runs-on: ubuntu-latest
@@ -31,16 +42,11 @@ jobs:
       - name: VPN Setup
         if: ${{ github.event.inputs.vpn_enabled == 'true' }}
         run: |
-          # Get original IP
           ORIG_IP=$(curl -s https://api.ipify.org)
-          
-          # Configure VPN
           sudo mkdir -p /etc/wireguard/
           echo "${{ secrets.WIREGUARD_CONFIG }}" | sudo tee /etc/wireguard/wg0.conf > /dev/null
           sudo chmod 600 /etc/wireguard/wg0.conf
           sudo wg-quick up wg0
-          
-          # Verify new IP
           VPN_IP=$(curl -s https://api.ipify.org)
           if [ "$VPN_IP" == "$ORIG_IP" ]; then
             echo "VPN connection failed!"
@@ -51,20 +57,26 @@ jobs:
         run: |
           mkdir -p output
           URL="${{ github.event.inputs.video_url }}"
-          
-          # DISABLE Configure cookies and live stream detection
+          RESOLUTION="${{ github.event.inputs.resolution }}"
+
+          # Configure resolution filter
+          if [[ "$RESOLUTION" == "Best" ]]; then
+            VIDEO_FILTER="bestvideo"
+          else
+            VIDEO_FILTER="bestvideo[height<=${RESOLUTION//[^0-9]/}]"
+          fi
+
+          # Handle youtube
           if [[ "$URL" == *"youWtube.com"* || "$URL" == *"youWtu.be"* ]]; then
             echo "${{ secrets.YT_COOKIES }}" > cookies.txt
             COOKIE_FLAG="--cookies cookies.txt"
-            
-            # Detect live streams
             LIVE_STATUS=$(yt-dlp --print live_status "$URL")
             [[ "$LIVE_STATUS" =~ "is_live|post_live" ]] && LIVE_FLAG="--live-from-start"
           fi
 
-          # Download with metadata capture
+          # Download command
           yt-dlp $COOKIE_FLAG $LIVE_FLAG \
-            -f "bestvideo[height<=1080]+bestaudio/best" \
+            -f "${VIDEO_FILTER}+bestaudio/best" \
             --merge-output-format mp4 \
             --windows-filenames \
             -o "output/%(title)s [%(height)sp].%(ext)s" \

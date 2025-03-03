@@ -37,7 +37,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y ffmpeg wireguard-tools python3-pip
-          python3 -m pip install --upgrade pip yt-dlp curl_cffi
+          python3 -m pip install --upgrade pip yt-dlp[default,curl-cffi]
 
       - name: VPN Setup
         if: ${{ github.event.inputs.vpn_enabled == 'true' }}

@@ -25,6 +25,10 @@ on:
           - 'best'
           - '720p'
           - '480p'
+      additional_args:
+        description: 'Optional yt-dlp arguments'
+        required: false
+        default: ''
 
 jobs:
   download_and_upload:
@@ -74,8 +78,10 @@ jobs:
             [[ "$LIVE_STATUS" =~ "is_live|post_live" ]] && LIVE_FLAG="--live-from-start"
           fi
 
+          ADDITIONAL_ARGS="${{ github.event.inputs.additional_args }}"
+
           # Download command
-          yt-dlp $COOKIE_FLAG $LIVE_FLAG \
+          yt-dlp $COOKIE_FLAG $LIVE_FLAG $ADDITIONAL_ARGS \
             -f "${VIDEO_FILTER}+bestaudio/best" \
             --merge-output-format mp4 \
             --windows-filenames \

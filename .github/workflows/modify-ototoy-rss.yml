@@ -1,10 +1,10 @@
 name: Modify ototoy Feed
 
-# Trigger the workflow to run every 2 hours and also on push or manually.
+# Trigger the workflow to run every 6 hours and also on push or manually.
 on:
   workflow_dispatch:
   schedule:
-    - cron: "0 */2 * * *"  # Run every 2 hours
+    - cron: "0 */6 * * *"  
 
 jobs:
   modify-rss:

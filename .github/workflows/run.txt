@@ -1,0 +1,138 @@
+name: Process Multiple Files with OCRmyPDF
+
+on:
+  workflow_dispatch:
+    inputs:
+      url:
+        description: 'URL to PDF/image file (leave blank to use file from input)'
+        required: false
+      additional_param:
+        description: 'Additional OCR parameters'
+        required: false
+        default: -l tha+eng
+
+permissions:
+  contents: write
+
+jobs:
+  process_files:
+    runs-on: ubuntu-latest
+    env:
+      INPUT_DIR: ./input
+      OUTPUT_DIR: ./output
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y ocrmypdf tesseract-ocr curl
+        lang_codes=$(echo "${{ github.event.inputs.additional_param }}" | sed -n 's/.*-l[[:space:]]*\([a-zA-Z]\{3\}\([+][a-zA-Z]\{3\}\)*\)\b.*/\1/p')
+        if [ -n "$lang_codes" ]; then
+          for lang_code in $(echo "$lang_codes" | tr '+' ' '); do
+            [ "$lang_code" = "eng" ] && continue
+            sudo apt-get install -y "tesseract-ocr-$lang_code"
+          done
+        fi
+        mkdir -p $OUTPUT_DIR
+        # Only create input dir if not using URL
+        if [ -z "${{ github.event.inputs.url }}" ]; then
+          [ -d $INPUT_DIR ] || mkdir $INPUT_DIR
+        fi
+
+    - name: Process URL input
+      if: ${{ github.event.inputs.url }}
+      run: |
+        set -eo pipefail
+        DOWNLOAD_DIR="./temp_download"
+        mkdir -p "$DOWNLOAD_DIR"
+        
+        # Extract filename from URL
+        url="${{ github.event.inputs.url }}"
+        filename=$(basename "${url%%\?*}")
+        filepath="$DOWNLOAD_DIR/$filename"
+        
+        # Download file
+        curl -L -o "$filepath" "$url"
+        
+        # Process file
+        timestamp=$(date +"%Y%m%d_%H%M%S")
+        extension="${filename##*.}"
+        success=false
+        
+        if [[ "${extension,,}" =~ ^(jpg|jpeg|png|tiff|bmp)$ ]]; then
+          output_base="$OUTPUT_DIR/${filename%.*}_$timestamp"
+          if tesseract ${{ github.event.inputs.additional_param }} "$filepath" "$output_base" pdf txt; then
+            success=true
+          fi
+        elif [[ "${extension,,}" == "pdf" ]]; then
+          output_pdf="$OUTPUT_DIR/${filename%.*}_$timestamp.pdf"
+          if ocrmypdf ${{ github.event.inputs.additional_param }} --skip-text --clean \
+            --sidecar "${output_pdf}.txt" "$filepath" "$output_pdf"; then
+            success=true
+          fi
+        else
+          echo "Unsupported file type: $extension"
+          exit 1
+        fi
+        
+        if [ "$success" = false ]; then
+          echo "Failed to process URL file"
+          exit 1
+        fi
+        rm -rf "$DOWNLOAD_DIR"
+
+    - name: Process local files
+      if: ${{ !github.event.inputs.url }}
+      run: |
+        set -eo pipefail
+        while IFS= read -rd '' file; do
+          filename=$(basename "$file")
+          extension="${filename##*.}"
+          success=false
+          timestamp=$(date +"%Y%m%d_%H%M%S")
+
+          if [[ "${extension,,}" =~ ^(jpg|jpeg|png|tiff|bmp)$ ]]; then
+            output_base="$OUTPUT_DIR/${filename%.*}_$timestamp"
+            if tesseract ${{ github.event.inputs.additional_param }} "$file" "$output_base" pdf txt; then
+              success=true
+            fi
+          elif [[ "${extension,,}" == "pdf" ]]; then
+            output_pdf="$OUTPUT_DIR/${filename%.*}_$timestamp.pdf"
+            if ocrmypdf ${{ github.event.inputs.additional_param }} --skip-text --clean \
+              --sidecar "${output_pdf}.txt" "$file" "$output_pdf"; then
+              success=true
+            fi
+          fi
+
+          if [ "$success" = true ]; then
+            git rm -f --ignore-unmatch "$file"
+            rm -f "$file"
+            echo "Processed: $filename"
+          else
+            echo "Skipped: $filename"
+          fi
+        done < <(find $INPUT_DIR -type f \( -iname '*.pdf' -o -iname '*.jpg' -o -iname '*.jpeg' \
+          -o -iname '*.png' -o -iname '*.tiff' -o -iname '*.bmp' \) -print0)
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: processed-files
+        path: ${{ env.OUTPUT_DIR }}/
+        retention-days: 7
+
+    - name: Delete output directory
+      run: |
+        rm -rf $OUTPUT_DIR
+
+    - name: Commit changes
+      if: ${{ !github.event.inputs.url }}
+      run: |
+        git config --local user.name "github-actions"
+        git config --local user.email "github-actions@github.com"
+        git add -A
+        git commit -m "Clear Input" || echo "No changes to commit"
+        git push

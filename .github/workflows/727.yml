@@ -1,0 +1,39 @@
+name: Download 727 Images
+
+on:
+  workflow_dispatch:
+
+jobs:
+  download-images:
+    runs-on: ubuntu-latest
+    steps:
+
+    - name: VPN Setup
+      run: |
+          ORIG_IP=$(curl -s https://api.ipify.org)
+          sudo mkdir -p /etc/wireguard/
+          echo "${{ secrets.WIREGUARD_CONFIG }}" | sudo tee /etc/wireguard/wg0.conf > /dev/null
+          sudo chmod 600 /etc/wireguard/wg0.conf
+          sudo wg-quick up wg0
+          VPN_IP=$(curl -s https://api.ipify.org)
+          if [ "$VPN_IP" == "$ORIG_IP" ]; then
+            echo "VPN connection failed!"
+            exit 1
+          fi
+    
+    - name: Create images directory
+      run: mkdir -p 727images
+
+    - name: Download images with delay
+      run: |
+        for num in {222..263}; do
+          url="https://dugrqaqinbtcq.cloudfront.net/product/ynnFQcGDLfaUcGhp/assets/ultra/images/navigation/dmm/nazuna_body_${num}.png"
+          curl -s -o "727images/nazuna_body_${num}.png" "$url" || true
+          sleep 5
+        done
+
+    - name: Upload images as artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: nazuna-body-images
+        path: 727images/

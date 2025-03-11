@@ -10,16 +10,18 @@ jobs:
 
     - name: VPN Setup
       run: |
-          ORIG_IP=$(curl -s https://api.ipify.org)
-          sudo mkdir -p /etc/wireguard/
-          echo "${{ secrets.WIREGUARD_CONFIG }}" | sudo tee /etc/wireguard/wg0.conf > /dev/null
-          sudo chmod 600 /etc/wireguard/wg0.conf
-          sudo wg-quick up wg0
-          VPN_IP=$(curl -s https://api.ipify.org)
-          if [ "$VPN_IP" == "$ORIG_IP" ]; then
-            echo "VPN connection failed!"
-            exit 1
-          fi
+        sudo apt-get update
+        sudo apt-get install -y wireguard-tools 
+        ORIG_IP=$(curl -s https://api.ipify.org)
+        sudo mkdir -p /etc/wireguard/
+        echo "${{ secrets.WIREGUARD_CONFIG }}" | sudo tee /etc/wireguard/wg0.conf > /dev/null
+        sudo chmod 600 /etc/wireguard/wg0.conf
+        sudo wg-quick up wg0
+        VPN_IP=$(curl -s https://api.ipify.org)
+        if [ "$VPN_IP" == "$ORIG_IP" ]; then
+          echo "VPN connection failed!"
+          exit 1
+        fi
     
     - name: Create images directory
       run: mkdir -p 727images

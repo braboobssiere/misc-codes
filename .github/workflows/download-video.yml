@@ -29,6 +29,14 @@ on:
         description: 'Optional yt-dlp arguments'
         required: false
         default: ''
+      upload_to_cloud:  
+        description: 'Upload downloaded video to cloud storage?'
+        required: true
+        default: 'true'
+        type: choice
+        options:
+          - 'true'
+          - 'false'
 
 jobs:
   download_and_upload:
@@ -40,7 +48,19 @@ jobs:
       - name: Setup Environment
         run: |
           sudo apt-get update
-          sudo apt-get install -y ffmpeg wireguard-tools python3-pip jq curl
+          PACKAGES="ffmpeg python3-pip"
+          
+          # Conditional VPN dependencies
+          if [ "${{ github.event.inputs.vpn_enabled }}" = "true" ]; then
+            PACKAGES="$PACKAGES wireguard-tools"
+          fi
+
+          # Conditional Cloud dependencies
+          if [ "${{ github.event.inputs.upload_to_cloud }}" = "true" ]; then
+            PACKAGES="$PACKAGES jq curl"
+          fi
+
+          sudo apt-get install -y $PACKAGES
           python3 -m pip install --upgrade pip yt-dlp[default,curl-cffi]
 
       - name: VPN Setup
@@ -103,8 +123,9 @@ jobs:
 
       - name: Upload Files to Gofile
         id: upload
+        if: ${{ github.event.inputs.upload_to_cloud == 'true' }}  # Added condition
         run: |
-          # Get optimal server
+          # Get server list
           SERVERS_JSON=$(curl -s "https://api.gofile.io/servers")
           SERVER_NAME=$(echo "$SERVERS_JSON" | jq -r '
             [.data.servers[] | select(.zone == "ap")][0].name //

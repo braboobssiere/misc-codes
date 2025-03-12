@@ -40,7 +40,7 @@ jobs:
       - name: Setup Environment
         run: |
           sudo apt-get update
-          sudo apt-get install -y ffmpeg wireguard-tools python3-pip
+          sudo apt-get install -y ffmpeg wireguard-tools python3-pip jq curl
           python3 -m pip install --upgrade pip yt-dlp[default,curl-cffi]
 
       - name: VPN Setup
@@ -100,3 +100,43 @@ jobs:
       - name: VPN Cleanup
         if: ${{ always() && github.event.inputs.vpn_enabled == 'true' }}
         run: sudo wg-quick down wg0 || true
+
+      - name: Upload Files to Gofile
+        id: upload
+        run: |
+          # Get optimal server
+          SERVERS_JSON=$(curl -s "https://api.gofile.io/servers")
+          SERVER_NAME=$(echo "$SERVERS_JSON" | jq -r '
+            [.data.servers[] | select(.zone == "ap")][0].name //
+            .data.servers[0].name
+          ')
+
+          if [[ -z "$SERVER_NAME" || "$SERVER_NAME" == "null" ]]; then
+            echo "::error::Failed to retrieve upload server"
+            exit 1
+          fi
+
+          UPLOAD_URL="https://${SERVER_NAME}.gofile.io/contents/uploadfile"
+          UPLOAD_LINKS=""
+
+          # Process files
+          while IFS= read -r -d $'\0' file; do
+            echo "📤 Uploading $(basename "$file")..."
+
+            RESPONSE=$(curl -s -X POST -F "file=@$file" "$UPLOAD_URL")
+            STATUS=$(echo "$RESPONSE" | jq -r '.status')
+
+            if [[ "$STATUS" == "ok" ]]; then
+              LINK=$(echo "$RESPONSE" | jq -r '.data.downloadPage')
+              UPLOAD_LINKS+="- [$(basename "$file")]($LINK)"$'\n'
+            else
+              ERROR=$(echo "$RESPONSE" | jq -r '.data // .status')
+              echo "::error::Upload failed for $file: $ERROR"
+              exit 1
+            fi
+          done < <(find output -type f -print0)
+
+          # Generate summary
+          SUMMARY="### 📁 Upload Results\n**Files uploaded:** $(echo "$UPLOAD_LINKS" | grep -c '^-')"
+          echo -e "$SUMMARY\n\n$UPLOAD_LINKS" >> $GITHUB_STEP_SUMMARY
+          echo "links=$(echo "$UPLOAD_LINKS" | base64 -w 0)" >> $GITHUB_OUTPUT

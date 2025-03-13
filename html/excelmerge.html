@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Merge Excel Files</title>
+  </head>
+  <body>
+    <h1>Merge Excel Files</h1>
+    <p>Select Excel files to merge:</p>
+    <input type="file" id="files" multiple /><br />
+    <label for="sheet">Select sheet number (starting from 1):</label>
+    <input type="number" id="sheet" min="1" value="1" /><br />
+    <label for="range">Select range (e.g. A1:D10):</label>
+    <input type="text" id="range" value="A1:Z100" /><br />
+    <p>Select merge type:</p>
+    <input type="radio" id="vertical" name="mergeType" value="vertical" checked />
+    <label for="vertical">Vertical</label><br />
+    <input type="radio" id="horizontal" name="mergeType" value="horizontal" />
+    <label for="horizontal">Horizontal</label><br />
+    <button onclick="mergeFiles()">Merge Files</button>
+    <div id="output"></div>
+
+    <script src="../lib/xlsx.full.min.js"></script>
+    <script>
+      function s2ab(s) {
+        var buf = new ArrayBuffer(s.length);
+        var view = new Uint8Array(buf);
+        for (var i = 0; i < s.length; i++) view[i] = s.charCodeAt(i) & 0xff;
+        return buf;
+      }
+
+      async function mergeFiles() {
+        const sheetNumber = parseInt(document.getElementById("sheet").value) - 1;
+        const range = document.getElementById("range").value;
+        const files = document.getElementById("files").files;
+        const mergeType = document.querySelector('input[name="mergeType"]:checked').value;
+        const output = document.getElementById("output");
+
+        console.log("range:", range); // log range to check if it's valid
+
+        const workbooks = await Promise.all(
+          Array.from(files).map((file) => {
+            const reader = new FileReader();
+            return new Promise((resolve, reject) => {
+              reader.onload = (e) => {
+                const workbook = XLSX.read(e.target.result, { type: "binary" });
+                resolve(workbook);
+              };
+              reader.readAsBinaryString(file);
+            });
+          })
+        );
+
+        const sheets = workbooks.map((workbook) => workbook.Sheets[workbook.SheetNames[sheetNumber]]);
+        const rows = sheets.map((sheet) => XLSX.utils.sheet_to_json(sheet, { range, header: 1 }));
+
+        let mergedRows;
+        if (mergeType === "vertical") {
+          mergedRows = rows.flat();
+        } else {
+          mergedRows = rows.reduce((acc, cur) => acc.map((v, i) => v.concat(cur[i])), Array(rows[0].length).fill([]));
+        }
+
+        const mergedWorkbook = XLSX.utils.book_new();
+        const mergedSheet = XLSX.utils.aoa_to_sheet(mergedRows);
+        XLSX.utils.book_append_sheet(mergedWorkbook, mergedSheet, "Merged Data");
+        const mergedBlob = new Blob([s2ab(XLSX.write(mergedWorkbook, { bookType: "xlsx", type: "binary" }))], {
+          type: "application/octet-stream",
+        });
+    const downloadLink = URL.createObjectURL(mergedBlob);
+    const fileName = "merged.xlsx";
+    const a = document.createElement("a");
+    a.href = downloadLink;
+    a.download = fileName;
+    a.click();
+    output.innerText = `Merged file "${fileName}" has been downloaded.`;
+  }
+</script>
+  </body>
+</html>

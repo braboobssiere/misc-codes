@@ -1,0 +1,163 @@
+name: Download Video
+
+on:
+  workflow_dispatch:
+    inputs:
+      video_url:
+        description: "Video URL to download"
+        required: true
+        type: string
+      vpn_enabled:
+        description: 'Enable VPN connection?'
+        required: true
+        default: 'true'
+        type: choice
+        options:
+          - 'true'
+          - 'false'
+      resolution:
+        description: "Video resolution (default: 1080p)"
+        required: true
+        default: '1080p'
+        type: choice
+        options:
+          - '1080p'
+          - 'best'
+          - '720p'
+          - '480p'
+      additional_args:
+        description: 'Optional yt-dlp arguments'
+        required: false
+        default: ''
+      upload_to_cloud:  
+        description: 'Upload downloaded video to cloud storage?'
+        required: true
+        default: 'true'
+        type: choice
+        options:
+          - 'true'
+          - 'false'
+
+jobs:
+  download_and_upload:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Environment
+        run: |
+          sudo apt-get update
+          PACKAGES="ffmpeg python3-pip"
+          
+          # Conditional VPN dependencies
+          if [ "${{ github.event.inputs.vpn_enabled }}" = "true" ]; then
+            PACKAGES="$PACKAGES wireguard-tools"
+          fi
+
+          # Conditional Cloud dependencies
+          if [ "${{ github.event.inputs.upload_to_cloud }}" = "true" ]; then
+            PACKAGES="$PACKAGES jq curl"
+          fi
+
+          sudo apt-get install -y $PACKAGES
+          python3 -m pip install --upgrade pip yt-dlp[default,curl-cffi]
+
+      - name: VPN Setup
+        if: ${{ github.event.inputs.vpn_enabled == 'true' }}
+        run: |
+          ORIG_IP=$(curl -s https://api.ipify.org)
+          sudo mkdir -p /etc/wireguard/
+          echo "${{ secrets.WIREGUARD_CONFIG }}" | sudo tee /etc/wireguard/wg0.conf > /dev/null
+          sudo chmod 600 /etc/wireguard/wg0.conf
+          sudo wg-quick up wg0
+          VPN_IP=$(curl -s https://api.ipify.org)
+          if [ "$VPN_IP" == "$ORIG_IP" ]; then
+            echo "VPN connection failed!"
+            exit 1
+          fi
+
+      - name: Download and Process Video
+        run: |
+          mkdir -p output
+          URL="${{ github.event.inputs.video_url }}"
+          RESOLUTION="${{ github.event.inputs.resolution }}"
+
+          # Configure resolution filter
+          if [[ "$RESOLUTION" == "best" ]]; then
+            VIDEO_FILTER="bestvideo"
+          else
+            VIDEO_FILTER="bestvideo[height<=${RESOLUTION//[^0-9]/}]"
+          fi
+
+          # Handle youtube
+          if [[ "$URL" == *"youWtube.com"* || "$URL" == *"youWtu.be"* ]]; then
+            echo "${{ secrets.YT_COOKIES }}" > cookies.txt
+            COOKIE_FLAG="--cookies cookies.txt"
+            LIVE_STATUS=$(yt-dlp --print live_status "$URL")
+            [[ "$LIVE_STATUS" =~ "is_live|post_live" ]] && LIVE_FLAG="--live-from-start"
+          fi
+
+          ADDITIONAL_ARGS="${{ github.event.inputs.additional_args }}"
+
+          # Download command
+          yt-dlp $COOKIE_FLAG $LIVE_FLAG $ADDITIONAL_ARGS \
+            -f "${VIDEO_FILTER}+bestaudio/best" \
+            --merge-output-format mkv \
+            --windows-filenames \
+            -o "output/%(title)s [%(height)sp].%(ext)s" \
+            "$URL"
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: downloaded-video
+          path: output
+          retention-days: 7
+          compression-level: 1
+          if-no-files-found: error
+
+      - name: VPN Cleanup
+        if: ${{ always() && github.event.inputs.vpn_enabled == 'true' }}
+        run: sudo wg-quick down wg0 || true
+
+      - name: Upload Files to Gofile
+        id: upload
+        if: ${{ github.event.inputs.upload_to_cloud == 'true' }}  # Added condition
+        run: |
+          # Get server list
+          SERVERS_JSON=$(curl -s "https://api.gofile.io/servers")
+          SERVER_NAME=$(echo "$SERVERS_JSON" | jq -r '
+            [.data.servers[] | select(.zone == "ap")][0].name //
+            .data.servers[0].name
+          ')
+
+          if [[ -z "$SERVER_NAME" || "$SERVER_NAME" == "null" ]]; then
+            echo "::error::Failed to retrieve upload server"
+            exit 1
+          fi
+
+          UPLOAD_URL="https://${SERVER_NAME}.gofile.io/contents/uploadfile"
+          UPLOAD_LINKS=""
+
+          # Process files
+          while IFS= read -r -d $'\0' file; do
+            echo "📤 Uploading $(basename "$file")..."
+
+            RESPONSE=$(curl -s -X POST -F "file=@$file" "$UPLOAD_URL")
+            STATUS=$(echo "$RESPONSE" | jq -r '.status')
+
+            if [[ "$STATUS" == "ok" ]]; then
+              LINK=$(echo "$RESPONSE" | jq -r '.data.downloadPage')
+              UPLOAD_LINKS+="- [$(basename "$file")]($LINK)"$'\n'
+            else
+              ERROR=$(echo "$RESPONSE" | jq -r '.data // .status')
+              echo "::error::Upload failed for $file: $ERROR"
+              exit 1
+            fi
+          done < <(find output -type f -print0)
+
+          # Generate summary
+          SUMMARY="### 📁 Upload Results\n**Files uploaded:** $(echo "$UPLOAD_LINKS" | grep -c '^-')"
+          echo -e "$SUMMARY\n\n$UPLOAD_LINKS" >> $GITHUB_STEP_SUMMARY
+          echo "links=$(echo "$UPLOAD_LINKS" | base64 -w 0)" >> $GITHUB_OUTPUT

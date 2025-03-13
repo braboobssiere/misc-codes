@@ -1,0 +1,72 @@
+name: Openvpn Speed Test
+on:
+  workflow_dispatch:
+    inputs:
+      vpn_enabled:
+        description: 'Enable VPN connection'
+        required: true
+        default: 'true'
+        type: choice
+        options:
+          - 'true'
+          - 'false'
+
+jobs:
+  speed-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install speedtest-go (Tarball)
+        run: |
+          # Specify version and download
+          VERSION="1.7.10"
+          sudo wget -O /tmp/speedtest.tar.gz \
+            "https://github.com/showwin/speedtest-go/releases/download/v${VERSION}/speedtest-go_${VERSION}_Linux_x86_64.tar.gz"
+          
+          # Extract and install
+          sudo tar -xzf /tmp/speedtest.tar.gz -C /usr/local/bin/
+          sudo chmod +x /usr/local/bin/speedtest-go
+          sudo mv /usr/local/bin/speedtest-go /usr/local/bin/speedtest
+          sudo rm /tmp/speedtest.tar.gz
+
+      - name: Get Non-VPN IP
+        id: check_nonvpn_ip
+        run: |
+          NON_VPN_IP=$(curl -s https://api.ipify.org)
+          echo "Non-VPN IP: ${NON_VPN_IP}"
+          echo "non_vpn_ip=${NON_VPN_IP}" >> $GITHUB_OUTPUT
+
+      - name: VPN Setup
+        if: ${{ github.event.inputs.vpn_enabled == 'true' }}
+        run: |
+          sudo apt-get install -y openvpn
+          echo "${{ secrets.OPENVPN_CONFIG_TEST }}" > vpnconfig.ovpn
+
+      - name: Connect to VPN
+        if: ${{ github.event.inputs.vpn_enabled == 'true' }}
+        uses: kota65535/github-openvpn-connect-action@v3
+        with:
+          config_file: vpnconfig.ovpn
+          username: ${{ secrets.OPENVPN_USERNAME }}
+          password: ${{ secrets.OPENVPN_PASSWORD }}
+
+      - name: Verify VPN IP
+        if: ${{ github.event.inputs.vpn_enabled == 'true' }}
+        run: |
+          VPN_IP=$(curl -s https://api.ipify.org)
+          echo "Current IP: $VPN_IP"
+          if [ "$VPN_IP" == "${{ steps.check_nonvpn_ip.outputs.non_vpn_ip }}" ]; then
+            echo "VPN connection failed!"
+            exit 1
+          fi
+
+      - name: Execute Speed Test
+        run: |
+          echo "### Speed Test Results" >> $GITHUB_STEP_SUMMARY
+          speedtest -m | tee /dev/stderr | awk -F': ' '
+            $1 ~ /Latency/ {sub(/^ /, "", $2); printf "**Latency:** `%s`\n", $2}
+            $1 ~ /Download/ {sub(/^ /, "", $2); split($2,a,/ /); printf "**Download:** `%.2f Mbps`\n", a[1]}
+            $1 ~ /Upload/ {sub(/^ /, "", $2); split($2,a,/ /); printf "**Upload:** `%.2f Mbps`\n", a[1]}
+            $1 ~ /Packet Loss/ {sub(/^ /, "", $2); split($2,a,/ /); printf "**Packet Loss:** `%s`\n", a[1]}' >> $GITHUB_STEP_SUMMARY

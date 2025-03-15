@@ -122,7 +122,7 @@ jobs:
 
       - name: Upload Files to Gofile
         id: upload
-        if: ${{ github.event.inputs.upload_to_cloud == 'true' }}  # Added condition
+        if: ${{ github.event.inputs.upload_to_cloud == 'true' }} 
         run: |
           # Get server list
           SERVERS_JSON=$(curl -s "https://api.gofile.io/servers")

@@ -119,7 +119,7 @@ jobs:
       - name: VPN Cleanup
         if: ${{ always() && github.event.inputs.vpn_enabled == 'true' }}
         run: sudo wg-quick down wg0 || true
-
+        
       - name: Upload Files to Gofile
         id: upload
         if: ${{ github.event.inputs.upload_to_cloud == 'true' }} 
@@ -127,11 +127,10 @@ jobs:
           # Get server list
           SERVERS_JSON=$(curl -s "https://api.gofile.io/servers")
           SERVER_NAME=$(echo "$SERVERS_JSON" | jq -r '
-            [.data.servers[] | select(.zone == "ap")][0].name //
-            .data.servers[0].name
+            [.data.servers[] | select(.zone == "ap")][0].name // .data.servers[0].name
           ')
 
-          if [[ -z "$SERVER_NAME" || "$SERVER_NAME" == "null" ]]; then
+          if [ -z "$SERVER_NAME" ] || [ "$SERVER_NAME" == "null" ]; then
             echo "::error::Failed to retrieve upload server"
             exit 1
           fi
@@ -140,23 +139,23 @@ jobs:
           UPLOAD_LINKS=""
 
           # Process files
-          while IFS= read -r -d $'\0' file; do
+          for file in output/*; do
             echo "📤 Uploading $(basename "$file")..."
 
             RESPONSE=$(curl -s -X POST -F "file=@$file" "$UPLOAD_URL")
             STATUS=$(echo "$RESPONSE" | jq -r '.status')
 
-            if [[ "$STATUS" == "ok" ]]; then
+            if [ "$STATUS" == "ok" ]; then
               LINK=$(echo "$RESPONSE" | jq -r '.data.downloadPage')
-              UPLOAD_LINKS+="- [$(basename "$file")]($LINK)"$'\n'
+              UPLOAD_LINKS+="- [$(basename "$file")]($LINK)\n"
             else
               ERROR=$(echo "$RESPONSE" | jq -r '.data // .status')
               echo "::error::Upload failed for $file: $ERROR"
               exit 1
             fi
-          done < <(find output -type f -print0)
+          done
 
           # Generate summary
-          SUMMARY="### 📁 Upload Results\n**Files uploaded:** $(echo "$UPLOAD_LINKS" | grep -c '^-')"
+          SUMMARY="### 📁 Upload Results\n**Files uploaded:** $(echo -e "$UPLOAD_LINKS" | grep -c '^-')"
           echo -e "$SUMMARY\n\n$UPLOAD_LINKS" >> $GITHUB_STEP_SUMMARY
-          echo "links=$(echo "$UPLOAD_LINKS" | base64 -w 0)" >> $GITHUB_OUTPUT
+          echo "links=$(echo -e "$UPLOAD_LINKS" | base64 -w 0)" >> $GITHUB_OUTPUT

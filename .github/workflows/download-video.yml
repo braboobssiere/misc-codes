@@ -102,8 +102,7 @@ jobs:
 
           # Download command
           yt-dlp $COOKIE_FLAG $LIVE_FLAG $ADDITIONAL_ARGS \
-            -f "${VIDEO_FILTER}+bestaudio/best" \
-            --merge-output-format mkv \
+            -f "${VIDEO_FILTER}+bestaudio" \
             --windows-filenames \
             -o "output/%(title)s [%(height)sp].%(ext)s" \
             "$URL"

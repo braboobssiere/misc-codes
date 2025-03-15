@@ -125,7 +125,7 @@ jobs:
         if: ${{ github.event.inputs.upload_to_cloud == 'true' }} 
         run: |
           # Get server list
-          SERVERS_JSON=$(curl -s "https://api.gofile.io/servers")
+          SERVERS_JSON=$(curl -s "https://api.gofile.io/servers?zone=ap")
           SERVER_NAME=$(echo "$SERVERS_JSON" | jq -r '
             [.data.servers[] | select(.zone == "ap")][0].name // .data.servers[0].name
           ')

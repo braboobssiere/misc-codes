@@ -98,7 +98,7 @@ jobs:
             [[ "$LIVE_STATUS" =~ "is_live|post_live" ]] && LIVE_FLAG="--live-from-start"
           fi
 
-          ADDITIONAL_ARGS=$(printf '%q' "${{ github.event.inputs.additional_args }}")
+          ADDITIONAL_ARGS="${{ github.event.inputs.additional_args }}"
           
           # Download command
           yt-dlp $COOKIE_FLAG $LIVE_FLAG $ADDITIONAL_ARGS \

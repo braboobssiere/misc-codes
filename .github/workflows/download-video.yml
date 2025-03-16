@@ -98,8 +98,8 @@ jobs:
             [[ "$LIVE_STATUS" =~ "is_live|post_live" ]] && LIVE_FLAG="--live-from-start"
           fi
 
-          ADDITIONAL_ARGS="${{ github.event.inputs.additional_args }}"
-
+          ADDITIONAL_ARGS=$(printf '%q' "${{ github.event.inputs.additional_args }}")
+          
           # Download command
           yt-dlp $COOKIE_FLAG $LIVE_FLAG $ADDITIONAL_ARGS \
             -f "${VIDEO_FILTER}+bestaudio" \
@@ -126,10 +126,8 @@ jobs:
         run: |
           # Get server list
           SERVERS_JSON=$(curl -s "https://api.gofile.io/servers?zone=ap")
-          SERVER_NAME=$(echo "$SERVERS_JSON" | jq -r '
-            [.data.servers[] | select(.zone == "ap")][0].name // .data.servers[0].name
-          ')
-
+          SERVER_NAME=$(echo "$SERVERS_JSON" | jq -r '.data.servers[0].name')
+          
           if [ -z "$SERVER_NAME" ] || [ "$SERVER_NAME" == "null" ]; then
             echo "::error::Failed to retrieve upload server"
             exit 1

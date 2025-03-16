@@ -106,6 +106,10 @@ jobs:
             --windows-filenames \
             -o "output/%(title)s [%(height)sp].%(ext)s" \
             "$URL"
+            
+      - name: VPN Cleanup
+        if: ${{ always() && github.event.inputs.vpn_enabled == 'true' }}
+        run: sudo wg-quick down wg0 || true
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
@@ -115,10 +119,6 @@ jobs:
           retention-days: 7
           compression-level: 1
           if-no-files-found: error
-
-      - name: VPN Cleanup
-        if: ${{ always() && github.event.inputs.vpn_enabled == 'true' }}
-        run: sudo wg-quick down wg0 || true
         
       - name: Upload Files to Gofile
         id: upload

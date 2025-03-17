@@ -109,7 +109,7 @@ jobs:
             \"$URL\""
 
           # Print the command to logs and Execute the command 
-          echo "Executing command: ${COMMAND}"
+          echo "::debug::Executing command: ${COMMAND}"
           eval ${COMMAND}
             
       - name: VPN Cleanup

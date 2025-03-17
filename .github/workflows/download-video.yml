@@ -95,7 +95,8 @@ jobs:
             echo "${{ secrets.YT_COOKIES }}" > cookies.txt
             # COOKIE_FLAG="--cookies cookies.txt"
             LIVE_STATUS=$(yt-dlp --print live_status "$URL")
-            [[ "$LIVE_STATUS" =~ "is_live|post_live" ]] && LIVE_FLAG="--live-from-start"
+            echo "Live status: '$LIVE_STATUS'"
+            [[ "$LIVE_STATUS" =~ ^(is_live|post_live)$ ]] && LIVE_FLAG="--live-from-start"
           fi
 
           ADDITIONAL_ARGS="${{ github.event.inputs.additional_args }}"

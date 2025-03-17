@@ -101,11 +101,15 @@ jobs:
           ADDITIONAL_ARGS="${{ github.event.inputs.additional_args }}"
           
           # Download command
-          yt-dlp $COOKIE_FLAG $LIVE_FLAG $ADDITIONAL_ARGS \
-            -f "${VIDEO_FILTER}+bestaudio" \
+          COMMAND="yt-dlp ${COOKIE_FLAG} ${LIVE_FLAG} ${ADDITIONAL_ARGS} \
+            -f \"${VIDEO_FILTER}+bestaudio\" \
             --windows-filenames \
-            -o "output/%(title)s [%(height)sp].%(ext)s" \
-            "$URL"
+            -o \"output/%(title)s [%(height)sp].%(ext)s\" \
+            \"$URL\""
+
+          # Print the command to logs and Execute the command 
+          echo "Executing command: ${COMMAND}"
+          eval ${COMMAND}
             
       - name: VPN Cleanup
         if: ${{ always() && github.event.inputs.vpn_enabled == 'true' }}

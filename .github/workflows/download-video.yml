@@ -91,21 +91,26 @@ jobs:
           fi
 
           # Handle youtube
-          if [[ "$URL" == *"youWtube.com"* || "$URL" == *"youWtu.be"* ]]; then
+          if [[ "$URL" == *"youtube.com"* || "$URL" == *"youtu.be"* ]]; then
             echo "${{ secrets.YT_COOKIES }}" > cookies.txt
-            COOKIE_FLAG="--cookies cookies.txt"
+            # COOKIE_FLAG="--cookies cookies.txt"
             LIVE_STATUS=$(yt-dlp --print live_status "$URL")
-            [[ "$LIVE_STATUS" =~ "is_live|post_live" ]] && LIVE_FLAG="--live-from-start"
+            echo "Live status: '$LIVE_STATUS'"
+            [[ "$LIVE_STATUS" =~ ^(is_live|post_live)$ ]] && LIVE_FLAG="--live-from-start"
           fi
 
           ADDITIONAL_ARGS="${{ github.event.inputs.additional_args }}"
           
           # Download command
-          yt-dlp $COOKIE_FLAG $LIVE_FLAG $ADDITIONAL_ARGS \
-            -f "${VIDEO_FILTER}+bestaudio" \
+          COMMAND="yt-dlp ${COOKIE_FLAG} ${LIVE_FLAG} ${ADDITIONAL_ARGS} \
+            -f \"${VIDEO_FILTER}+bestaudio\" \
             --windows-filenames \
-            -o "output/%(title)s [%(height)sp].%(ext)s" \
-            "$URL"
+            -o \"output/%(title)s [%(height)sp].%(ext)s\" \
+            \"$URL\""
+
+          # Print the command to logs and Execute the command 
+          echo "Executing command: ${COMMAND}"
+          eval ${COMMAND}
             
       - name: VPN Cleanup
         if: ${{ always() && github.event.inputs.vpn_enabled == 'true' }}

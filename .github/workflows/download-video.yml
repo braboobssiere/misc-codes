@@ -82,12 +82,13 @@ jobs:
           mkdir -p output
           URL="${{ github.event.inputs.video_url }}"
           RESOLUTION="${{ github.event.inputs.resolution }}"
+          
 
-          # Configure resolution filter
+          # Configure format filter
           if [[ "$RESOLUTION" == "best" ]]; then
-            VIDEO_FILTER="bestvideo"
+            FORMAT_OPTION=""
           else
-            VIDEO_FILTER="bestvideo[height<=${RESOLUTION//[^0-9]/}]"
+            FORMAT_OPTION="-f \"bestvideo[height<=${RESOLUTION//[^0-9]/}]+bestaudio\""
           fi
 
           # Handle youtube
@@ -103,7 +104,7 @@ jobs:
           
           # Download command
           COMMAND="yt-dlp ${COOKIE_FLAG} ${LIVE_FLAG} ${ADDITIONAL_ARGS} \
-            -f \"${VIDEO_FILTER}+bestaudio\" \
+            ${FORMAT_OPTION} \
             --windows-filenames \
             -o \"output/%(title)s [%(height)sp].%(ext)s\" \
             \"$URL\""

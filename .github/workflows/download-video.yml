@@ -140,7 +140,7 @@ jobs:
 
           # Process files
           for file in output/*; do
-            echo "📤 Uploading $(basename "$file")..."
+            echo "Uploading $(basename "$file")..."
 
             RESPONSE=$(curl -s -X POST -F "file=@$file" "$UPLOAD_URL")
             STATUS=$(echo "$RESPONSE" | jq -r '.status')

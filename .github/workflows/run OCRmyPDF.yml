@@ -18,7 +18,7 @@ jobs:
   process_files:
     runs-on: ubuntu-latest
     env:
-      INPUT_DIR: ./OCRinput
+      INPUT_DIR: ./input/OCRinput
       OUTPUT_DIR: ./output
 
     steps:

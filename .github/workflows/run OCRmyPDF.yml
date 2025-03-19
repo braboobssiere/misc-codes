@@ -62,7 +62,7 @@ jobs:
         extension="${filename##*.}"
         success=false
         
-        if [[ "${extension,,}" =~ ^(jpg|jpeg|png|tiff|bmp)$ ]]; then
+        if [[ "${extension,,}" =~ ^(jpg|jpeg|png|tiff|webp|bmp)$ ]]; then
           output_base="$OUTPUT_DIR/${filename%.*}_$timestamp"
           if tesseract ${{ github.event.inputs.additional_param }} "$filepath" "$output_base" pdf txt; then
             success=true
@@ -94,7 +94,7 @@ jobs:
           success=false
           timestamp=$(date +"%Y%m%d_%H%M%S")
 
-          if [[ "${extension,,}" =~ ^(jpg|jpeg|png|tiff|bmp)$ ]]; then
+          if [[ "${extension,,}" =~ ^(jpg|jpeg|png|tiff|webp|bmp)$ ]]; then
             output_base="$OUTPUT_DIR/${filename%.*}_$timestamp"
             if tesseract ${{ github.event.inputs.additional_param }} "$file" "$output_base" pdf txt; then
               success=true
@@ -115,7 +115,7 @@ jobs:
             echo "Skipped: $filename"
           fi
         done < <(find $INPUT_DIR -type f \( -iname '*.pdf' -o -iname '*.jpg' -o -iname '*.jpeg' \
-          -o -iname '*.png' -o -iname '*.tiff' -o -iname '*.bmp' \) -print0)
+          -o -iname '*.png' -o -iname '*.webp' -o -iname '*.tiff' -o -iname '*.bmp' \) -print0)
 
     - name: Upload artifacts
       uses: actions/upload-artifact@v4

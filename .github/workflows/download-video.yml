@@ -157,6 +157,8 @@ jobs:
             echo "Uploading $(basename "$file")..."
             extra_args=()
             if [ -n "$guest_token" ] && [ "$guest_token" != "null" ] && [ -n "$folder_id" ] && [ "$folder_id" != "null" ]; then
+              echo "::add-mask::$guest_token"
+              echo "::add-mask::$folder_id"
               extra_args=(-H "Authorization: Bearer $guest_token" -F "folderId=$folder_id")
             fi
 
@@ -164,9 +166,11 @@ jobs:
 
             if [ -z "$guest_token" ] || [ "$guest_token" == "null" ]; then
               guest_token=$(echo "$RESPONSE" | jq -r '.data.guestToken')
+              echo "::add-mask::$guest_token"
             fi
             if [ -z "$folder_id" ] || [ "$folder_id" == "null" ]; then
               folder_id=$(echo "$RESPONSE" | jq -r '.data.parentFolder')
+              echo "::add-mask::$folder_id"
             fi
 
             LINK=$(echo "$RESPONSE" | jq -r '.data.downloadPage')

@@ -106,7 +106,7 @@ jobs:
           COMMAND="yt-dlp ${COOKIE_FLAG} ${LIVE_FLAG} ${ADDITIONAL_ARGS} ${FORMAT_OPTION} --windows-filenames -o \"output/%(title)s [%(height)sp].%(ext)s\" \"$URL\""
 
           # Print the command to logs and Execute the command 
-          echo "Download command: ${COMMAND}" 
+          echo "Download command: ${COMMAND}" >> output/command.log
           eval ${COMMAND}
             
       - name: VPN Cleanup
@@ -124,7 +124,7 @@ jobs:
         
       - name: Upload Files to Gofile
         id: upload
-        if: ${{ github.event.inputs.upload_to_cloud == 'true' }} 
+        if: ${{ github.event.inputs.upload_to_cloud == 'true' }}
         run: |
           # Get server list
           SERVERS_JSON=$(curl -s "https://api.gofile.io/servers?zone=ap")
@@ -137,21 +137,56 @@ jobs:
 
           UPLOAD_URL="https://${SERVER_NAME}.gofile.io/contents/uploadfile"
           UPLOAD_LINKS=""
+          guest_token=""
+          folder_id=""
 
           # Process files
           for file in output/*; do
             echo "Uploading $(basename "$file")..."
 
-            RESPONSE=$(curl -s -X POST -F "file=@$file" "$UPLOAD_URL")
-            STATUS=$(echo "$RESPONSE" | jq -r '.status')
+            if [ -z "$guest_token" ]; then
+              # First upload: No token or folder ID
+              RESPONSE=$(curl -s -X POST -F "file=@$file" "$UPLOAD_URL")
+              STATUS=$(echo "$RESPONSE" | jq -r '.status')
 
-            if [ "$STATUS" == "ok" ]; then
-              LINK=$(echo "$RESPONSE" | jq -r '.data.downloadPage')
-              UPLOAD_LINKS+="- [$(basename "$file")]($LINK)\n"
+              if [ "$STATUS" == "ok" ]; then
+                # Extract guest token and folder ID from first response
+                guest_token=$(echo "$RESPONSE" | jq -r '.data.guestToken')
+                folder_id=$(echo "$RESPONSE" | jq -r '.data.parentFolder')
+                LINK=$(echo "$RESPONSE" | jq -r '.data.downloadPage')
+                UPLOAD_LINKS+="- [$(basename "$file")]($LINK)\n"
+
+                # Validate token and folder ID extraction
+                if [ -z "$guest_token" ] || [ "$guest_token" == "null" ]; then
+                  echo "::error::Failed to extract guestToken from first upload"
+                  exit 1
+                fi
+                if [ -z "$folder_id" ] || [ "$folder_id" == "null" ]; then
+                  echo "::error::Failed to extract parentFolder from first upload"
+                  exit 1
+                fi
+              else
+                ERROR=$(echo "$RESPONSE" | jq -r '.data // .status')
+                echo "::error::Upload failed for $file: $ERROR"
+                exit 1
+              fi
             else
-              ERROR=$(echo "$RESPONSE" | jq -r '.data // .status')
-              echo "::error::Upload failed for $file: $ERROR"
-              exit 1
+              # Subsequent uploads: Use extracted token and folder ID
+              RESPONSE=$(curl -s -X POST \
+                -H "Authorization: Bearer $guest_token" \
+                -F "file=@$file" \
+                -F "folderId=$folder_id" \
+                "$UPLOAD_URL")
+              STATUS=$(echo "$RESPONSE" | jq -r '.status')
+
+              if [ "$STATUS" == "ok" ]; then
+                LINK=$(echo "$RESPONSE" | jq -r '.data.downloadPage')
+                UPLOAD_LINKS+="- [$(basename "$file")]($LINK)\n"
+              else
+                ERROR=$(echo "$RESPONSE" | jq -r '.data // .status')
+                echo "::error::Upload failed for $file: $ERROR"
+                exit 1
+              fi
             fi
           done
 

@@ -106,7 +106,7 @@ jobs:
           COMMAND="yt-dlp ${COOKIE_FLAG} ${LIVE_FLAG} ${ADDITIONAL_ARGS} ${FORMAT_OPTION} --windows-filenames -o \"output/%(title)s [%(height)sp].%(ext)s\" \"$URL\""
 
           # Print the command to logs and Execute the command 
-          echo "Download command: ${COMMAND}" >> output/command.log
+          echo "Download command: ${COMMAND}" >> output/run.log
           eval ${COMMAND}
             
       - name: VPN Cleanup

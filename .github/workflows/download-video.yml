@@ -100,6 +100,12 @@ jobs:
             [[ "$LIVE_STATUS" =~ ^(is_live|post_live)$ ]] && LIVE_FLAG="--live-from-start"
           fi
 
+          # Handle twitter
+          if [[ "$URL" == *"twitter.com"* || "$URL" == *"x.com"* ]]; then
+            echo "${{ secrets.TWITTER_COOKIES }}" > cookies.txt
+            COOKIE_FLAG="--cookies cookies.txt"
+          fi
+
           ADDITIONAL_ARGS="${{ github.event.inputs.additional_args }}"
           
           # Download command

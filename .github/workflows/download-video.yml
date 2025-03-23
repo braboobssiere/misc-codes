@@ -97,7 +97,7 @@ jobs:
             COOKIE_FLAG="--cookies yt_cookies.txt"
             LIVE_STATUS=$(yt-dlp --print live_status "$URL")
             echo "Live status: '$LIVE_STATUS'"
-            [[ "$LIVE_STATUS" =~ ^(is_live|post_live)$ ]] && LIVE_FLAG="--live-from-start"
+            [[ "$LIVE_STATUS" =~ ^(is_live|post_live)$ ]] && LIVE_FLAG="-i --live-from-start"
           fi
 
           # Handle twitter

@@ -130,7 +130,6 @@ jobs:
           if-no-files-found: error
         
       - name: Upload Files to Gofile
-        id: upload
         if: ${{ github.event.inputs.upload_to_cloud == 'true' }}
         run: |
           # Retrieve server name

@@ -93,8 +93,8 @@ jobs:
 
           # Handle youtube
           if [[ "$URL" == *"youtube.com"* || "$URL" == *"youtu.be"* ]]; then
-            echo "${{ secrets.YT_COOKIES }}" > cookies.txt
-            # COOKIE_FLAG="--cookies cookies.txt"
+            echo "${{ secrets.YT_COOKIES }}" > yt_cookies.txt
+            COOKIE_FLAG="--cookies yt_cookies.txt"
             LIVE_STATUS=$(yt-dlp --print live_status "$URL")
             echo "Live status: '$LIVE_STATUS'"
             [[ "$LIVE_STATUS" =~ ^(is_live|post_live)$ ]] && LIVE_FLAG="--live-from-start"
@@ -102,8 +102,8 @@ jobs:
 
           # Handle twitter
           if [[ "$URL" == *"twitter.com"* || "$URL" == *"x.com"* ]]; then
-            echo "${{ secrets.TWITTER_COOKIES }}" > cookies.txt
-            COOKIE_FLAG="--cookies cookies.txt"
+            echo "${{ secrets.TWITTER_COOKIES }}" > twitter_cookies.txt
+            COOKIE_FLAG="--cookies twitter_cookies.txt"
           fi
 
           ADDITIONAL_ARGS="${{ github.event.inputs.additional_args }}"

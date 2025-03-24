@@ -163,11 +163,11 @@ jobs:
 
             RESPONSE=$(upload_file "$file" "${extra_args[@]}")
 
-            if [ -z "$guest_token" ] || [ "$guest_token" == "null" ]; then
+            if [ -z "$guest_token" ]; then
               guest_token=$(echo "$RESPONSE" | jq -r '.data.guestToken')
               echo "::add-mask::$guest_token"
             fi
-            if [ -z "$folder_id" ] || [ "$folder_id" == "null" ]; then
+            if [ -z "$folder_id" ]; then
               folder_id=$(echo "$RESPONSE" | jq -r '.data.parentFolder')
               echo "::add-mask::$folder_id"
             fi

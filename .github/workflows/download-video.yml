@@ -134,6 +134,7 @@ jobs:
         run: |
           # Retrieve server name
           SERVER_NAME=$(curl -s "https://api.gofile.io/servers?zone=ap" | jq -r '.data.servers[0].name? // .data.serversAllZone[0].name? // empty')
+          echo "Selected server: $SERVER_NAME"
           if [ -z "$SERVER_NAME" ]; then
             echo "::error::Failed to retrieve upload server"
             exit 1

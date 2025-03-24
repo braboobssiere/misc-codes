@@ -1,8 +1,6 @@
 name: GoFile Upload Service
 on:
   workflow_dispatch:
-  push:
-    branches: [main]
 
 jobs:
   upload:
@@ -18,7 +16,7 @@ jobs:
       id: server-info
       run: |
         # Capture both response and status code
-        RESPONSE=$(curl -s -w "\n%{http_code}" "https://api.gofile.io/servers")
+        RESPONSE=$(curl -w "\n%{http_code}" "https://api.gofile.io/servers")
         HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
         RESPONSE_BODY=$(echo "$RESPONSE" | sed '$d')
 

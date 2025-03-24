@@ -1,0 +1,39 @@
+name: GoFile Upload Service
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Install jq
+      run: sudo apt-get install -y jq
+
+    - name: Get upload server
+      id: server-info
+      run: |
+        # Capture both response and status code
+        RESPONSE=$(curl -s -w "\n%{http_code}" "https://api.gofile.io/servers")
+        HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
+        RESPONSE_BODY=$(echo "$RESPONSE" | sed '$d')
+
+        # Check HTTP status code
+        if [ "$HTTP_CODE" -ne 200 ]; then
+            echo "::error::API request failed | Status: $HTTP_CODE | Response: $RESPONSE_BODY"
+            exit 1
+        fi
+
+        # Parse server name with error logging
+        SERVER_NAME=$(echo "$RESPONSE_BODY" | jq -r '.data.servers[0].name // .data.serversAllZone[0].name')
+        if [ -z "$SERVER_NAME" ] || [ "$SERVER_NAME" = "null" ]; then
+            echo "::error::Invalid server response | Response: $RESPONSE_BODY"
+            exit 1
+        fi
+
+        echo "server_name=$SERVER_NAME" >> $GITHUB_OUTPUT
+        echo "Selected server: $SERVER_NAME"

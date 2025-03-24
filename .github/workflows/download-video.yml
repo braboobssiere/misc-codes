@@ -94,7 +94,7 @@ jobs:
           # Handle youtube
           if [[ "$URL" == *"youtube.com"* || "$URL" == *"youtu.be"* ]]; then
             echo "${{ secrets.YT_COOKIES }}" > yt_cookies.txt
-            COOKIE_FLAG="--cookies yt_cookies.txt"
+            # COOKIE_FLAG="--cookies yt_cookies.txt"
             LIVE_STATUS=$(yt-dlp --print live_status "$URL")
             echo "Live status: '$LIVE_STATUS'"
             [[ "$LIVE_STATUS" =~ ^(is_live|post_live)$ ]] && LIVE_FLAG="-i --live-from-start"

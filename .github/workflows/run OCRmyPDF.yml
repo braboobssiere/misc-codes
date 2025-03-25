@@ -1,4 +1,4 @@
-name: Process Multiple Files with OCRmyPDF
+name: Process Files with OCRmyPDF
 
 on:
   workflow_dispatch:

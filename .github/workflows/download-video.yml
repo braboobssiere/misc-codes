@@ -25,6 +25,14 @@ on:
           - 'best'
           - '720p'
           - '480p'
+      cookies:
+        description: 'Pass cookies to yt-dlp?'
+        required: true
+        default: 'false'
+        type: choice
+        options:
+          - 'true'
+          - 'false'
       additional_args:
         description: 'Optional yt-dlp arguments'
         required: false
@@ -93,15 +101,18 @@ jobs:
 
           # Handle youtube
           if [[ "$URL" == *"youtube.com"* || "$URL" == *"youtu.be"* ]]; then
-            echo "${{ secrets.YT_COOKIES }}" >> yt_cookies.txt
-            # COOKIE_FLAG="--cookies yt_cookies.txt"
-            LIVE_STATUS=$(yt-dlp --print live_status "$URL")
+            if [[ "${{ github.event.inputs.cookies }}" == 'true' ]]; then
+              echo "${{ secrets.YT_COOKIES }}" >> yt_cookies.txt
+              COOKIE_FLAG="--cookies yt_cookies.txt"
+            fi
+            LIVE_STATUS=$(yt-dlp ${COOKIE_FLAG} --print live_status "$URL")
             echo "Live status: '$LIVE_STATUS'"
             [[ "$LIVE_STATUS" =~ ^(is_live|post_live)$ ]] && LIVE_FLAG="-i --live-from-start"
           fi
 
           # Handle twitter
-          if [[ "$URL" == *"twitter.com"* || "$URL" == *"x.com"* ]]; then
+          if [[ "$URL" == *"twitter.com"* || "$URL" == *"x.com"* ]] && 
+             [[ "${{ github.event.inputs.cookies }}" == 'true' ]]; then
             echo "${{ secrets.TWITTER_COOKIES }}" >> twitter_cookies.txt
             COOKIE_FLAG="--cookies twitter_cookies.txt"
           fi

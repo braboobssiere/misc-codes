@@ -150,7 +150,7 @@ jobs:
             shift
             local extra_args=("$@")
 
-            RESPONSE=$(curl -s -X POST -F "file=@$file" "${extra_args[@]}" "$UPLOAD_URL")
+            RESPONSE=$(curl -s -X POST -F "file=@\"$file\"" "${extra_args[@]}" "$UPLOAD_URL")
             STATUS=$(echo "$RESPONSE" | jq -r '.status')
             if [ "$STATUS" != "ok" ]; then
               ERROR=$(echo "$RESPONSE" | jq -r '.data // .status')

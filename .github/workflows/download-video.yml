@@ -86,6 +86,7 @@ jobs:
           fi
 
       - name: Download and Process Video
+        continue-on-error: true
         run: |
           mkdir -p output
           URL="${{ github.event.inputs.video_url }}"

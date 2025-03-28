@@ -78,10 +78,24 @@ jobs:
           sudo mkdir -p /etc/wireguard/
           echo "${{ secrets.WIREGUARD_CONFIG }}" | sudo tee /etc/wireguard/wg0.conf > /dev/null
           sudo chmod 600 /etc/wireguard/wg0.conf
-          sudo wg-quick up wg0
-          VPN_IP=$(curl -s https://api.ipify.org)
+
+          for i in {1..5}; do
+            sudo wg-quick up wg0
+            VPN_IP=$(curl -s https://api.ipify.org)
+            if [ "$VPN_IP" != "$ORIG_IP" ]; then
+              echo "VPN connected successfully on attempt $i"
+              break
+            else
+              echo "VPN connection failed (attempt $i/5)"
+              sudo wg-quick down wg0 >/dev/null 2>&1
+              if [ $i -lt 5 ]; then
+                sleep 3
+              fi
+            fi
+          done
+
           if [ "$VPN_IP" == "$ORIG_IP" ]; then
-            echo "VPN connection failed!"
+            echo "VPN failed to connect after 5 attempts"
             exit 1
           fi
 

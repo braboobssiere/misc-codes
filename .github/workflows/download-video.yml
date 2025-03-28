@@ -135,7 +135,7 @@ jobs:
           ADDITIONAL_ARGS="${{ github.event.inputs.additional_args }}"
           
           # Download command
-          COMMAND="yt-dlp -i --no-progress ${COOKIE_FLAG} ${LIVE_FLAG} ${ADDITIONAL_ARGS} ${FORMAT_OPTION} --windows-filenames -o \"output/%(title).150s [%(height)sp].%(ext)s\" ${URL}"
+          COMMAND="yt-dlp -i --no-progress ${COOKIE_FLAG} ${LIVE_FLAG} ${ADDITIONAL_ARGS} ${FORMAT_OPTION} --windows-filenames -o \"output/%(title).100s [%(height)sp].%(ext)s\" ${URL}"
 
           # Print the command to logs and Execute the command 
           echo "Download command: ${COMMAND}"

@@ -126,6 +126,7 @@ jobs:
           # Print the command to logs and Execute the command 
           echo "Download command: ${COMMAND}"
           eval "${COMMAND}" 2> output/error.log
+          [ ! -s output/error.log ] && rm -f output/error.log
             
       - name: VPN Cleanup
         if: ${{ always() && github.event.inputs.vpn_enabled == 'true' }}

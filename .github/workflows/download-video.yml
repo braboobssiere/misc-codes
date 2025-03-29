@@ -74,8 +74,6 @@ jobs:
       - name: VPN Setup
         if: ${{ github.event.inputs.vpn_enabled == 'true' }}
         run: |
-          ORIG_IP=$(curl -s --max-time 10 https://api.ipify.org || exit 1)
-          VPN_IP=$ORIG_IP
           sudo mkdir -p /etc/wireguard/
           echo "${{ secrets.WIREGUARD_CONFIG }}" | 
           sudo tee /etc/wireguard/wg0.conf > /dev/null
@@ -83,23 +81,23 @@ jobs:
 
           # Attempt VPN connection up to 5 times
           for i in {1..5}; do
-            sudo wg-quick up wg0
-            VPN_IP=$(curl -s https://api.ipify.org)
-            if [ "$VPN_IP" != "$ORIG_IP" ]; then
-              echo "VPN connected successfully on attempt $i"
-              break
-            else
-              echo "VPN connection failed (attempt $i/5)"
-              sudo wg-quick down wg0 >/dev/null 2>&1
-              if [ $i -lt 5 ]; then
-                sleep 1
+              sudo wg-quick up wg0
+              sleep 1 
+              if sudo wg show wg0 >/dev/null 2>&1; then
+                  echo "VPN connected successfully on attempt $i"
+                  break
+              else
+                  echo "VPN connection failed (attempt $i/5)"
+                  sudo wg-quick down wg0 >/dev/null 2>&1
+                  if [ $i -lt 5 ]; then
+                      sleep 1
+                  fi
               fi
-            fi
           done
 
-          if [ "$VPN_IP" == "$ORIG_IP" ]; then
-            echo "VPN failed to connect after 5 attempts"
-            exit 1
+          if ! sudo wg show wg0 >/dev/null 2>&1; then
+              echo "VPN failed to connect after 5 attempts"
+              exit 1
           fi
 
       - name: Download and Process Video

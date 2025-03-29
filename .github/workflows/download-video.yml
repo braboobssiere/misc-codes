@@ -74,7 +74,8 @@ jobs:
       - name: VPN Setup
         if: ${{ github.event.inputs.vpn_enabled == 'true' }}
         run: |
-          ORIG_IP=$(curl -s https://api.ipify.org)
+          ORIG_IP=$(curl -s --max-time 10 https://api.ipify.org || exit 1)
+          VPN_IP=$ORIG_IP
           sudo mkdir -p /etc/wireguard/
           echo "${{ secrets.WIREGUARD_CONFIG }}" | 
           sudo tee /etc/wireguard/wg0.conf > /dev/null

@@ -69,12 +69,13 @@ jobs:
           fi
 
           sudo apt-get install -y $PACKAGES
-          python3 -m pip install --upgrade pip yt-dlp[default,curl-cffi]
+          python3 -m pip install --upgrade pip --pre yt-dlp[default,curl-cffi]
 
       - name: VPN Setup
         if: ${{ github.event.inputs.vpn_enabled == 'true' }}
         run: |
-          ORIG_IP=$(curl -s https://api.ipify.org)
+          ORIG_IP=$(curl -s --max-time 10 https://api.ipify.org || exit 1)
+          VPN_IP=$ORIG_IP
           sudo mkdir -p /etc/wireguard/
           echo "${{ secrets.WIREGUARD_CONFIG }}" | 
           sudo tee /etc/wireguard/wg0.conf > /dev/null
@@ -91,7 +92,7 @@ jobs:
               echo "VPN connection failed (attempt $i/5)"
               sudo wg-quick down wg0 >/dev/null 2>&1
               if [ $i -lt 5 ]; then
-                sleep 3
+                sleep 1
               fi
             fi
           done

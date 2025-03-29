@@ -147,8 +147,8 @@ jobs:
 
           # Log and execute the command
           echo "Download command: ${COMMAND}"
-          eval "${COMMAND}" 2> output/error.log
-          [ ! -s output/error.log ] && rm -f output/error.log
+          eval "${COMMAND}" 2> output/logs.txt
+          [ ! -s output/logs.txt ] && rm -f output/logs.txt
 
       - name: VPN Cleanup
         if: ${{ always() && github.event.inputs.vpn_enabled == 'true' }}
@@ -160,7 +160,6 @@ jobs:
         with:
           name: downloaded-video
           path: output
-          retention-days: 7
           compression-level: 1
           if-no-files-found: error
 

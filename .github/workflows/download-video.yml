@@ -112,7 +112,8 @@ jobs:
           if [[ "$RESOLUTION" == "best" ]]; then
             FORMAT_OPTION=""
           else
-            FORMAT_OPTION="-S \"+res:${RESOLUTION//[^0-9]/},+br,+size\" -f \"bestvideo*+bestaudio/best\""
+            FORMAT_OPTION="-S \"+res:${RESOLUTION//[^0-9]/},+br,+size\" \
+            -f \"bestvideo*+bestaudio/best\""
           fi
 
           # Handle YouTube downloads using cookies if provided
@@ -139,7 +140,9 @@ jobs:
           ADDITIONAL_ARGS="${{ github.event.inputs.additional_args }}"
 
           # Build the download command
-          COMMAND="yt-dlp -i --no-progress ${COOKIE_FLAG} ${LIVE_FLAG} ${ADDITIONAL_ARGS} ${FORMAT_OPTION} --windows-filenames -o \"output/%(title).170B [%(resolution)s].%(ext)s\" ${URL}"
+          COMMAND="yt-dlp -i --no-progress ${COOKIE_FLAG} ${LIVE_FLAG} \
+          ${ADDITIONAL_ARGS} ${FORMAT_OPTION} --windows-filenames \
+          -o \"output/%(title).170B [%(resolution)s].%(ext)s\" ${URL}"
 
           # Log and execute the command
           echo "Download command: ${COMMAND}"
@@ -186,7 +189,8 @@ jobs:
           for file in output/*; do
             echo "Uploading $(basename "$file")..."
             extra_args=()
-            if [ -n "$guest_token" ] && [ "$guest_token" != "null" ] && [ -n "$folder_id" ] && [ "$folder_id" != "null" ]; then
+            if [ -n "$guest_token" ] && [ "$guest_token" != "null" ] && 
+               [ -n "$folder_id" ] && [ "$folder_id" != "null" ]; then
               echo "::add-mask::$guest_token"
               echo "::add-mask::$folder_id"
               extra_args=(-H "Authorization: Bearer $guest_token" -F "folderId=$folder_id")

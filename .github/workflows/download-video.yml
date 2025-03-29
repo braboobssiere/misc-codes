@@ -8,40 +8,40 @@ on:
         required: true
         type: string
       vpn_enabled:
-        description: 'Enable VPN connection?'
+        description: "Enable VPN connection?"
         required: true
-        default: 'true'
         type: choice
+        default: 'true'
         options:
           - 'true'
           - 'false'
       resolution:
         description: "Video resolution (default: 1080p)"
         required: true
-        default: '1080p'
         type: choice
+        default: '1080p'
         options:
           - '1080p'
           - 'best'
           - '720p'
           - '480p'
       cookies:
-        description: 'Pass cookies to yt-dlp?'
+        description: "Pass cookies to yt-dlp?"
         required: true
-        default: 'false'
         type: choice
+        default: 'false'
         options:
           - 'true'
           - 'false'
       additional_args:
-        description: 'Optional yt-dlp arguments'
+        description: "Optional yt-dlp arguments"
         required: false
         default: ''
-      upload_to_cloud:  
-        description: 'Upload downloaded video to cloud storage?'
+      upload_to_cloud:
+        description: "Upload downloaded video to cloud storage?"
         required: true
-        default: 'true'
         type: choice
+        default: 'true'
         options:
           - 'true'
           - 'false'
@@ -57,13 +57,13 @@ jobs:
         run: |
           sudo apt-get update
           PACKAGES="ffmpeg python3-pip"
-          
-          # Conditional VPN dependencies
+
+          # Add VPN dependencies if enabled
           if [ "${{ github.event.inputs.vpn_enabled }}" = "true" ]; then
             PACKAGES="$PACKAGES wireguard-tools"
           fi
 
-          # Conditional Cloud dependencies
+          # Add Cloud dependencies if upload is enabled
           if [ "${{ github.event.inputs.upload_to_cloud }}" = "true" ]; then
             PACKAGES="$PACKAGES jq curl"
           fi
@@ -79,6 +79,7 @@ jobs:
           echo "${{ secrets.WIREGUARD_CONFIG }}" | sudo tee /etc/wireguard/wg0.conf > /dev/null
           sudo chmod 600 /etc/wireguard/wg0.conf
 
+          # Attempt VPN connection up to 5 times
           for i in {1..5}; do
             sudo wg-quick up wg0
             VPN_IP=$(curl -s https://api.ipify.org)
@@ -105,46 +106,49 @@ jobs:
           mkdir -p output
           URL="${{ github.event.inputs.video_url }}"
           RESOLUTION="${{ github.event.inputs.resolution }}"
-          
 
-          # Configure format filter
+          # Configure format filter based on resolution
           if [[ "$RESOLUTION" == "best" ]]; then
             FORMAT_OPTION=""
           else
             FORMAT_OPTION="-S \"+res:${RESOLUTION//[^0-9]/}\""
           fi
 
-          # Handle youtube
+          # Handle YouTube downloads using cookies if provided
           if [[ "$URL" == *"youtube.com"* || "$URL" == *"youtu.be"* ]]; then
             if [[ "${{ github.event.inputs.cookies }}" == 'true' ]]; then
               echo "${{ secrets.YT_COOKIES }}" >> yt_cookies.txt
               COOKIE_FLAG="--cookies yt_cookies.txt"
             fi
+
             LIVE_STATUS=$(yt-dlp ${COOKIE_FLAG} --print live_status "$URL")
             echo "Live status: '$LIVE_STATUS'"
-            [[ "$LIVE_STATUS" =~ ^(is_live|post_live)$ ]] && LIVE_FLAG="--live-from-start"
+            if [[ "$LIVE_STATUS" =~ ^(is_live|post_live)$ ]]; then
+              LIVE_FLAG="--live-from-start"
+            fi
           fi
 
-          # Handle twitter
-          if [[ "$URL" == *"twitter.com"* || "$URL" == *"x.com"* ]] && 
+          # Handle Twitter downloads using cookies if provided
+          if [[ "$URL" == *"twitter.com"* || "$URL" == *"x.com"* ]] && \
              [[ "${{ github.event.inputs.cookies }}" == 'true' ]]; then
             echo "${{ secrets.TWITTER_COOKIES }}" >> twitter_cookies.txt
             COOKIE_FLAG="--cookies twitter_cookies.txt"
           fi
 
           ADDITIONAL_ARGS="${{ github.event.inputs.additional_args }}"
-          
-          # Download command
+
+          # Build the download command
           COMMAND="yt-dlp -i --no-progress ${COOKIE_FLAG} ${LIVE_FLAG} ${ADDITIONAL_ARGS} ${FORMAT_OPTION} --windows-filenames -o \"output/%(title).170B [%(resolution)s].%(ext)s\" ${URL}"
 
-          # Print the command to logs and Execute the command 
+          # Log and execute the command
           echo "Download command: ${COMMAND}"
           eval "${COMMAND}" 2> output/error.log
           [ ! -s output/error.log ] && rm -f output/error.log
-            
+
       - name: VPN Cleanup
         if: ${{ always() && github.event.inputs.vpn_enabled == 'true' }}
-        run: sudo wg-quick down wg0 || true
+        run: |
+          sudo wg-quick down wg0 || true
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
@@ -154,18 +158,10 @@ jobs:
           retention-days: 7
           compression-level: 1
           if-no-files-found: error
-        
+
       - name: Upload Files to Gofile
         if: ${{ github.event.inputs.upload_to_cloud == 'true' }}
         run: |
-          # Retrieve server name
-          # SERVER_NAME=$(curl -s "https://api.gofile.io/servers?zone=ap" | jq -r '.data.servers[0].name? // .data.serversAllZone[0].name? // empty')
-          # echo "Selected server: $SERVER_NAME"
-          # if [ -z "$SERVER_NAME" ]; then
-          #   echo "::error::Failed to retrieve upload server"
-          #   exit 1
-          # fi
-          
           UPLOAD_URL="https://upload.gofile.io/uploadfile"
           UPLOAD_LINKS=""
           guest_token=""
@@ -212,6 +208,7 @@ jobs:
 
           FILE_COUNT=$(echo -e "$UPLOAD_LINKS" | grep -c '^-')
           SUMMARY="### 📁 Upload Results\n**Files uploaded:** $FILE_COUNT"
-          
+
+          # Append the upload summary to GitHub Step Summary
           echo -e "$SUMMARY\n\n$UPLOAD_LINKS" >> $GITHUB_STEP_SUMMARY
           echo "links=$(echo -e "$UPLOAD_LINKS" | base64 -w 0)" >> $GITHUB_OUTPUT

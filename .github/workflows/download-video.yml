@@ -76,7 +76,8 @@ jobs:
         run: |
           ORIG_IP=$(curl -s https://api.ipify.org)
           sudo mkdir -p /etc/wireguard/
-          echo "${{ secrets.WIREGUARD_CONFIG }}" | sudo tee /etc/wireguard/wg0.conf > /dev/null
+          echo "${{ secrets.WIREGUARD_CONFIG }}" | 
+          sudo tee /etc/wireguard/wg0.conf > /dev/null
           sudo chmod 600 /etc/wireguard/wg0.conf
 
           # Attempt VPN connection up to 5 times
@@ -111,7 +112,8 @@ jobs:
           if [[ "$RESOLUTION" == "best" ]]; then
             FORMAT_OPTION=""
           else
-            FORMAT_OPTION="-S \"+res:${RESOLUTION//[^0-9]/}\" -f \"bestvideo*+bestaudio/best\""
+            FORMAT_OPTION="-S \"+res:${RESOLUTION//[^0-9]/}\" \
+            -f \"bestvideo*+bestaudio/best\""
           fi
 
           # Handle YouTube downloads using cookies if provided
@@ -138,7 +140,9 @@ jobs:
           ADDITIONAL_ARGS="${{ github.event.inputs.additional_args }}"
 
           # Build the download command
-          COMMAND="yt-dlp -i --no-progress ${COOKIE_FLAG} ${LIVE_FLAG} ${ADDITIONAL_ARGS} ${FORMAT_OPTION} --windows-filenames -o \"output/%(title).170B [%(resolution)s].%(ext)s\" ${URL}"
+          COMMAND="yt-dlp -i --no-progress ${COOKIE_FLAG} ${LIVE_FLAG} \
+          ${ADDITIONAL_ARGS} ${FORMAT_OPTION} --windows-filenames \
+          -o \"output/%(title).170B [%(resolution)s].%(ext)s\" ${URL}"
 
           # Log and execute the command
           echo "Download command: ${COMMAND}"

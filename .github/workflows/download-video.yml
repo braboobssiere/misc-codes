@@ -112,7 +112,7 @@ jobs:
           if [[ "$RESOLUTION" == "best" ]]; then
             FORMAT_OPTION=""
           else
-            FORMAT_OPTION="-S \"+res:${RESOLUTION//[^0-9]/}\" -f \"bestvideo*+bestaudio/best\""
+            FORMAT_OPTION="-S \"+res:${RESOLUTION//[^0-9]/}\" -f \"bestvideo+bestaudio/best\""
           fi
 
           # Handle YouTube downloads using cookies if provided

@@ -92,7 +92,7 @@ jobs:
               echo "VPN connection failed (attempt $i/5)"
               sudo wg-quick down wg0 >/dev/null 2>&1
               if [ $i -lt 5 ]; then
-                sleep 3
+                sleep 1
               fi
             fi
           done
@@ -113,8 +113,8 @@ jobs:
           if [[ "$RESOLUTION" == "best" ]]; then
             FORMAT_OPTION=""
           else
-            FORMAT_OPTION="-S \"+res:${RESOLUTION//[^0-9]/}\" \
-            -f \"bestvideo*+bestaudio/best\""
+            FORMAT_OPTION="-f \"bestvideo*+bestaudio/best\" \
+            -S \"+res:${RESOLUTION//[^0-9]/}\""
           fi
 
           # Handle YouTube downloads using cookies if provided

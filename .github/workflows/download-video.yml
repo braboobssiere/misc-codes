@@ -141,7 +141,7 @@ jobs:
           COMMAND="yt-dlp -i --no-progress ${COOKIE_FLAG} ${LIVE_FLAG} \
           ${ADDITIONAL_ARGS} ${FORMAT_OPTION} --windows-filenames \
           -o \"output/%(title).170B [%(id)s] (%(resolution)s).%(ext)s\" \
-          --embed-subs --embed-metadata ${URL}"
+          --embed-subs --sub-langs all,-live_chat --embed-metadata ${URL}"
 
           # Log and execute the command
           echo "Download command: ${COMMAND}"

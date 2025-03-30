@@ -140,8 +140,8 @@ jobs:
           # Build the download command
           COMMAND="yt-dlp -i --no-progress ${COOKIE_FLAG} ${LIVE_FLAG} \
           ${ADDITIONAL_ARGS} ${FORMAT_OPTION} --windows-filenames \
-          -o \"output/%(title).170B [%(id)s] %(resolution)s.%(ext)s" \
-          --embed-subs --sub-langs "en" --embed-metadata \" ${URL}"
+          -o \"output/%(title).170B [%(id)s] (%(resolution)s).%(ext)s" \
+          --embed-subs --sub-langs "en" --embed-metadata\" ${URL}"
 
           # Log and execute the command
           echo "Download command: ${COMMAND}"

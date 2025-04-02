@@ -1,5 +1,10 @@
 name: Song Recognition
-on: workflow_dispatch
+
+on: 
+  workflow_dispatch
+
+permissions:
+  contents: write
 
 jobs:
   recognize:
@@ -7,58 +12,56 @@ jobs:
     outputs:
       results: ${{ steps.songrec.outputs.responses }}
     steps:
-    
+
     - name: Checkout code
-      uses: actions/checkout@v4  # Get repository contents
+      uses: actions/checkout@v4
 
     - name: Install dependencies
       run: |
+        # System setup
         sudo apt-get update
         sudo apt-get install -y software-properties-common ffmpeg jq
         
+        # Secure SongRec installation
         wget -qO- 'http://keyserver.ubuntu.com/pks/lookup?op=get&search=0x6888550b2fc77d09' | sudo tee /etc/apt/trusted.gpg.d/songrec.asc
         sudo add-apt-repository ppa:marin-m/songrec -y
         sudo apt-get install -y songrec
-        
+
     - name: Process audio files
       id: songrec
       run: |
         cd input/songrec
-        :> entries.json  # Initialize JSON storage
+        :> entries.json  # Initialize output storage
         
-        # Process files in directory
         for file in *; do
-
             # Skip metadata files
             [[ "$file" == entries.json || "$file" == output.json ]] && continue
             
-            # Detect file type
+            # File type verification
             mime_type=$(file --mime-type -b "$file")
             has_audio=false
             
-            # Audio/video handling
+            # Audio content detection
             if [[ $mime_type == audio/* ]]; then
                 has_audio=true
             elif [[ $mime_type == video/* ]]; then
-                # Check for audio streams
                 ffmpeg -nostdin -i "$file" -hide_banner 2>&1 | grep -qi 'audio' && has_audio=true
             else
-                # Skip unsupported formats
                 echo "::notice:: Skipping non-media file: $file (MIME: $mime_type)"
                 continue
             fi
             
-            [[ $has_audio != true ]] && continue  # No audio content
+            [[ $has_audio != true ]] && continue
 
-            # Attempt recognition with error fallback
+            # Song recognition attempt
             response=$(songrec audio-file-to-recognized-song "$file" 2>&1 || echo '{"error":"no_match"}')
             
-            # Validate JSON structure
+            # JSON validation
             if ! jq -e . >/dev/null 2>&1 <<< "$response"; then
                 response='{"error":"invalid_response"}'
             fi
             
-            # Extract URL or error message
+            # URL extraction
             url=$(jq -r '
                 if .error? then
                     "❌ Error: " + (.error | tostring)
@@ -67,25 +70,41 @@ jobs:
                 else
                     "❌ No match found"
                 end' <<< "$response" 2>/dev/null || echo "🛑 Processing error")
-            
-            # Write to workflow summary
+
+            # Conditional file deletion
+            if [[ "$url" == http* ]]; then
+                rm "$file"
+                echo "🗑️ Deleted successfully matched file: $file"
+            else
+                echo "🔍 Keeping file with result: $url"
+            fi
+
+            # Results documentation
             echo "### \`$file\`" >> $GITHUB_STEP_SUMMARY
             echo "**Track URL**: ${url}" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
             
-            # Build structured JSON output
+            # Structured output
             jq -n \
                 --arg fn "$file" \
                 --arg url "$url" \
                 '{file: $fn, url: $url}' >> entries.json
         done
-        
-        # Finalize outputs
+
+        # Output finalization
         if [ -s entries.json ]; then
-            jq -s '{responses: .}' entries.json > output.json  # Combine entries
+            jq -s '{responses: .}' entries.json > output.json
             echo "results=$(jq -c . output.json)" >> $GITHUB_OUTPUT
         else
             echo "⚠️ No processable files found" >> $GITHUB_STEP_SUMMARY
             echo "results=[]" >> $GITHUB_OUTPUT
         fi
-        rm -f entries.json output.json  # Cleanup
+        rm -f entries.json output.json
+
+    - name: Commit processed file removals
+      run: |
+        git config --local user.name "github-actions"
+        git config --local user.email "github-actions@github.com"
+        git add -A
+        git commit -m "Clear Input" || echo "No changes to commit"
+        git push

@@ -49,22 +49,10 @@ jobs:
                 response='{"error":"invalid_response"}'
             fi
 
-            # URL extraction
-            url=$(jq -r '
-                if .error? then
-                    "❌ Error: " + (.error | tostring)
-                elif .track?.url? then
-                    .track.url
-                else
-                    "❌ No match found"
-                end' <<< "$response" 2>/dev/null || echo "🛑 Processing error")
+            # Extract URL directly from response structure
+            url=$(jq -r '.track.url // "❌ No match found"' <<< "$response" 2>/dev/null || echo "🛑 Processing error")
             
-            # Summary entry (keeping MIME type in logs only)
-            echo "### \`$file\`" >> $GITHUB_STEP_SUMMARY
-            echo "**Track URL**: ${url}" >> $GITHUB_STEP_SUMMARY
-            echo "" >> $GITHUB_STEP_SUMMARY
-            
-            # Simplified JSON output
+            # Create minimal JSON output
             entry=$(jq -n \
                 --arg fn "$file" \
                 --arg url "$url" \
@@ -75,9 +63,8 @@ jobs:
 
         # Final output
         if [ -n "$all_responses" ]; then
-            echo "responses=[${all_responses%,}]" | jq -c '.' > output.json
+            echo "results=[${all_responses%,}]" | jq -c '.' > output.json
             echo "results=$(cat output.json)" >> $GITHUB_OUTPUT
         else
-            echo "⚠️ No processable files found" >> $GITHUB_STEP_SUMMARY
             echo "results=[]" >> $GITHUB_OUTPUT
         fi

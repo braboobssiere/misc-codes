@@ -23,50 +23,57 @@ jobs:
       run: |
         cd input/songrec
         all_responses=""
+        
         for file in *; do
-            # Check if file contains audio (either audio file or video with audio)
+            # File type validation
             mime_type=$(file --mime-type -b "$file")
             has_audio=false
             
             if [[ $mime_type == audio/* ]]; then
                 has_audio=true
             elif [[ $mime_type == video/* ]]; then
-                # Check if video contains audio stream
-                if ffmpeg -i "$file" -hide_banner 2>&1 | grep -qi 'audio'; then
-                    has_audio=true
-                else
-                    echo "⏭️ Skipping video without audio: $file (MIME: $mime_type)" >> $GITHUB_STEP_SUMMARY
-                    continue
-                fi
+                ffmpeg -nostdin -i "$file" -hide_banner 2>&1 | grep -qi 'audio' && has_audio=true
             else
                 echo "⏭️ Skipping non-media file: $file (MIME: $mime_type)" >> $GITHUB_STEP_SUMMARY
                 continue
             fi
 
+            [[ $has_audio != true ]] && continue
+
+            # Get response
             echo "🔊 Processing [$mime_type]: $file" >> $GITHUB_STEP_SUMMARY
-            response=$(songrec audio-file-to-recognized-song "$file" || echo '{"error":"no_match"}')
+            response=$(songrec audio-file-to-recognized-song "$file" 2>&1 || echo '{"error":"no_match"}')
             
-            # Extract track URL or show error
-            url=$(echo "$response" | jq -r '.track.url // "❌ No match found" | select(. != null)' 2>/dev/null || echo "🛑 Processing error")
+            # Validate JSON
+            if ! jq -e . >/dev/null 2>&1 <<< "$response"; then
+                response='{"error":"invalid_response"}'
+            fi
+
+            # URL extraction
+            url=$(jq -r '
+                if .error? then
+                    "❌ Error: " + (.error | tostring)
+                elif .track?.url? then
+                    .track.url
+                else
+                    "❌ No match found"
+                end' <<< "$response" 2>/dev/null || echo "🛑 Processing error")
             
-            # Create summary entry
+            # Summary entry (keeping MIME type in logs only)
             echo "### \`$file\`" >> $GITHUB_STEP_SUMMARY
-            echo "**MIME Type**: \`$mime_type\`" >> $GITHUB_STEP_SUMMARY
-            echo "**Track URL**: $url" >> $GITHUB_STEP_SUMMARY
+            echo "**Track URL**: ${url}" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
             
-            # Build JSON output
+            # Simplified JSON output
             entry=$(jq -n \
                 --arg fn "$file" \
                 --arg url "$url" \
-                --arg mime "$mime_type" \
-                --argjson audio $has_audio \
-                '{file: $fn, mime_type: $mime, has_audio: $audio, url: $url}')
+                '{file: $fn, url: $url}')
                 
-            all_responses="$all_responses$entry,"
+            all_responses+="$entry,"
         done
 
-        # Set final output
+        # Final output
         if [ -n "$all_responses" ]; then
             echo "responses=[${all_responses%,}]" | jq -c '.' > output.json
             echo "results=$(cat output.json)" >> $GITHUB_OUTPUT

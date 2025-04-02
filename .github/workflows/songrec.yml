@@ -26,7 +26,9 @@ jobs:
         :> entries.json  # Initialize temp file
         
         for file in *; do
-            # File type validation
+            # Skip temporary files
+            [[ "$file" == entries.json || "$file" == output.json ]] && continue
+            
             mime_type=$(file --mime-type -b "$file")
             has_audio=false
             
@@ -35,21 +37,19 @@ jobs:
             elif [[ $mime_type == video/* ]]; then
                 ffmpeg -nostdin -i "$file" -hide_banner 2>&1 | grep -qi 'audio' && has_audio=true
             else
-                echo "⏭️ Skipping non-media file: $file (MIME: $mime_type)" >> $GITHUB_STEP_SUMMARY
+                echo "::notice:: Skipping non-media file: $file (MIME: $mime_type)"
                 continue
             fi
-            [[ $has_audio != true ]] && continue
             
-            # Get response
-            echo "🔊 Processing [$mime_type]: $file" >> $GITHUB_STEP_SUMMARY
+            [[ $has_audio != true ]] && continue
+
+            echo "🔊 Processing $file" >> $GITHUB_STEP_SUMMARY
             response=$(songrec audio-file-to-recognized-song "$file" 2>&1 || echo '{"error":"no_match"}')
             
-            # Validate JSON
             if ! jq -e . >/dev/null 2>&1 <<< "$response"; then
                 response='{"error":"invalid_response"}'
             fi
             
-            # URL extraction
             url=$(jq -r '
                 if .error? then
                     "❌ Error: " + (.error | tostring)
@@ -59,19 +59,16 @@ jobs:
                     "❌ No match found"
                 end' <<< "$response" 2>/dev/null || echo "🛑 Processing error")
             
-            # Summary entry
             echo "### \`$file\`" >> $GITHUB_STEP_SUMMARY
             echo "**Track URL**: ${url}" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
             
-            # Write to temp file
             jq -n \
                 --arg fn "$file" \
                 --arg url "$url" \
                 '{file: $fn, url: $url}' >> entries.json
         done
         
-        # Final output processing
         if [ -s entries.json ]; then
             jq -s '{responses: .}' entries.json > output.json
             echo "results=$(jq -c . output.json)" >> $GITHUB_OUTPUT
@@ -79,6 +76,4 @@ jobs:
             echo "⚠️ No processable files found" >> $GITHUB_STEP_SUMMARY
             echo "results=[]" >> $GITHUB_OUTPUT
         fi
-
-        # Cleanup
         rm -f entries.json output.json

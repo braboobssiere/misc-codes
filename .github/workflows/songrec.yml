@@ -23,10 +23,10 @@ jobs:
       id: songrec
       run: |
         cd input/songrec
-        :> entries.json  # Initialize temp file
+        :> entries.json  
         
         for file in *; do
-            # Skip temporary files
+
             [[ "$file" == entries.json || "$file" == output.json ]] && continue
             
             mime_type=$(file --mime-type -b "$file")
@@ -43,7 +43,6 @@ jobs:
             
             [[ $has_audio != true ]] && continue
 
-            echo "🔊 Processing $file" >> $GITHUB_STEP_SUMMARY
             response=$(songrec audio-file-to-recognized-song "$file" 2>&1 || echo '{"error":"no_match"}')
             
             if ! jq -e . >/dev/null 2>&1 <<< "$response"; then
@@ -59,6 +58,7 @@ jobs:
                     "❌ No match found"
                 end' <<< "$response" 2>/dev/null || echo "🛑 Processing error")
             
+            # Only write results to summary
             echo "### \`$file\`" >> $GITHUB_STEP_SUMMARY
             echo "**Track URL**: ${url}" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
@@ -77,3 +77,4 @@ jobs:
             echo "results=[]" >> $GITHUB_OUTPUT
         fi
         rm -f entries.json output.json
+        

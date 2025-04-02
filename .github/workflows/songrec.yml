@@ -25,21 +25,40 @@ jobs:
         all_responses=""
         
         for file in *; do
-          echo "Processing $file..."
-          response=$(songrec audio-file-to-recognized-song "$file")
-          
-          entry=$(jq -n \
-            --arg fn "$file" \
-            --argjson res "$response" \
-            '{file: $fn, result: $res}')
+            # Check if file contains audio
+            mime_type=$(file --mime-type -b "$file")
+            if [[ $mime_type != audio/* ]]; then
+                echo "⏭️ Skipping non-audio file: $file (MIME: $mime_type)" >> $GITHUB_STEP_SUMMARY
+                continue
+            fi
+
+            echo "🔊 Processing audio file: $file" >> $GITHUB_STEP_SUMMARY
+            response=$(songrec audio-file-to-recognized-song "$file" || echo '{"error":"no_match"}')
             
-          all_responses="$all_responses$entry,"
-          
-          echo "### $file" >> $GITHUB_STEP_SUMMARY
-          echo '```json' >> $GITHUB_STEP_SUMMARY
-          echo "$response" >> $GITHUB_STEP_SUMMARY
-          echo '```' >> $GITHUB_STEP_SUMMARY
+            # Extract track URL or show error
+            url=$(echo "$response" | jq -r '.track.url // "❌ No match found" | select(. != null)' 2>/dev/null || echo "🛑 Processing error")
+            
+            # Create summary entry
+            echo "### \`$file\`" >> $GITHUB_STEP_SUMMARY
+            echo "**MIME Type**: \`$mime_type\`" >> $GITHUB_STEP_SUMMARY
+            echo "**Track URL**: $url" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            
+            # Build JSON output
+            entry=$(jq -n \
+                --arg fn "$file" \
+                --arg url "$url" \
+                --arg mime "$mime_type" \
+                '{file: $fn, mime_type: $mime, url: $url}')
+                
+            all_responses="$all_responses$entry,"
         done
 
-        echo "responses=[${all_responses%,}]" | jq -c '.' > output.json
-        echo "results=$(cat output.json)" >> $GITHUB_OUTPUT
+        # Set final output
+        if [ -n "$all_responses" ]; then
+            echo "responses=[${all_responses%,}]" | jq -c '.' > output.json
+            echo "results=$(cat output.json)" >> $GITHUB_OUTPUT
+        else
+            echo "⚠️ No valid audio files found" >> $GITHUB_STEP_SUMMARY
+            echo "results=[]" >> $GITHUB_OUTPUT
+        fi

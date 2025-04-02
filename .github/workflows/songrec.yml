@@ -40,15 +40,16 @@ jobs:
             # Get response
             echo "🔊 Processing [$mime_type]: $file" >> $GITHUB_STEP_SUMMARY
             response=$(songrec audio-file-to-recognized-song "$file" 2>&1 || echo '{"error":"no_match"}')
-
+            
             # Validate JSON
             if ! jq -e . >/dev/null 2>&1 <<< "$response"; then
                 response='{"error":"invalid_response"}'
             fi
-            
             # URL extraction
             url=$(jq -r '
-                if .track?.url? then
+                if .error? then
+                    "❌ Error: " + (.error | tostring)
+                elif .track?.url? then
                     .track.url
                 else
                     "❌ No match found"

@@ -23,16 +23,27 @@ jobs:
       run: |
         cd input/songrec
         all_responses=""
-        
         for file in *; do
-            # Check if file contains audio
+            # Check if file contains audio (either audio file or video with audio)
             mime_type=$(file --mime-type -b "$file")
-            if [[ $mime_type != audio/* ]]; then
-                echo "⏭️ Skipping non-audio file: $file (MIME: $mime_type)" >> $GITHUB_STEP_SUMMARY
+            has_audio=false
+            
+            if [[ $mime_type == audio/* ]]; then
+                has_audio=true
+            elif [[ $mime_type == video/* ]]; then
+                # Check if video contains audio stream
+                if ffmpeg -i "$file" -hide_banner 2>&1 | grep -qi 'audio'; then
+                    has_audio=true
+                else
+                    echo "⏭️ Skipping video without audio: $file (MIME: $mime_type)" >> $GITHUB_STEP_SUMMARY
+                    continue
+                fi
+            else
+                echo "⏭️ Skipping non-media file: $file (MIME: $mime_type)" >> $GITHUB_STEP_SUMMARY
                 continue
             fi
 
-            echo "🔊 Processing audio file: $file" >> $GITHUB_STEP_SUMMARY
+            echo "🔊 Processing [$mime_type]: $file" >> $GITHUB_STEP_SUMMARY
             response=$(songrec audio-file-to-recognized-song "$file" || echo '{"error":"no_match"}')
             
             # Extract track URL or show error
@@ -49,7 +60,8 @@ jobs:
                 --arg fn "$file" \
                 --arg url "$url" \
                 --arg mime "$mime_type" \
-                '{file: $fn, mime_type: $mime, url: $url}')
+                --argjson audio $has_audio \
+                '{file: $fn, mime_type: $mime, has_audio: $audio, url: $url}')
                 
             all_responses="$all_responses$entry,"
         done
@@ -59,6 +71,6 @@ jobs:
             echo "responses=[${all_responses%,}]" | jq -c '.' > output.json
             echo "results=$(cat output.json)" >> $GITHUB_OUTPUT
         else
-            echo "⚠️ No valid audio files found" >> $GITHUB_STEP_SUMMARY
+            echo "⚠️ No processable files found" >> $GITHUB_STEP_SUMMARY
             echo "results=[]" >> $GITHUB_OUTPUT
         fi

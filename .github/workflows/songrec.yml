@@ -1,0 +1,45 @@
+name: Song Recognition
+on: workflow_dispatch
+
+jobs:
+  recognize:
+    runs-on: ubuntu-latest
+    outputs:
+      results: ${{ steps.songrec.outputs.responses }}
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y software-properties-common ffmpeg jq
+        wget -qO- 'http://keyserver.ubuntu.com/pks/lookup?op=get&search=0x6888550b2fc77d09' | sudo tee /etc/apt/trusted.gpg.d/songrec.asc
+        sudo add-apt-repository ppa:marin-m/songrec -y
+        sudo apt-get install -y songrec
+
+    - name: Process audio files
+      id: songrec
+      run: |
+        cd input/songrec
+        all_responses=""
+        
+        for file in *; do
+          echo "Processing $file..."
+          response=$(songrec audio-file-to-recognized-song "$file")
+          
+          entry=$(jq -n \
+            --arg fn "$file" \
+            --argjson res "$response" \
+            '{file: $fn, result: $res}')
+            
+          all_responses="$all_responses$entry,"
+          
+          echo "### $file" >> $GITHUB_STEP_SUMMARY
+          echo '```json' >> $GITHUB_STEP_SUMMARY
+          echo "$response" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+        done
+
+        echo "responses=[${all_responses%,}]" | jq -c '.' > output.json
+        echo "results=$(cat output.json)" >> $GITHUB_OUTPUT

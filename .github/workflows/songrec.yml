@@ -7,6 +7,7 @@ jobs:
     outputs:
       results: ${{ steps.songrec.outputs.responses }}
     steps:
+    
     - name: Checkout code
       uses: actions/checkout@v4
 
@@ -17,11 +18,12 @@ jobs:
         wget -qO- 'http://keyserver.ubuntu.com/pks/lookup?op=get&search=0x6888550b2fc77d09' | sudo tee /etc/apt/trusted.gpg.d/songrec.asc
         sudo add-apt-repository ppa:marin-m/songrec -y
         sudo apt-get install -y songrec
+        
     - name: Process audio files
       id: songrec
       run: |
         cd input/songrec
-        all_responses=""
+        :> entries.json  # Initialize temp file
         
         for file in *; do
             # File type validation
@@ -37,6 +39,7 @@ jobs:
                 continue
             fi
             [[ $has_audio != true ]] && continue
+            
             # Get response
             echo "🔊 Processing [$mime_type]: $file" >> $GITHUB_STEP_SUMMARY
             response=$(songrec audio-file-to-recognized-song "$file" 2>&1 || echo '{"error":"no_match"}')
@@ -45,6 +48,7 @@ jobs:
             if ! jq -e . >/dev/null 2>&1 <<< "$response"; then
                 response='{"error":"invalid_response"}'
             fi
+            
             # URL extraction
             url=$(jq -r '
                 if .error? then
@@ -55,24 +59,26 @@ jobs:
                     "❌ No match found"
                 end' <<< "$response" 2>/dev/null || echo "🛑 Processing error")
             
-            # Summary entry (keeping MIME type in logs only)
+            # Summary entry
             echo "### \`$file\`" >> $GITHUB_STEP_SUMMARY
             echo "**Track URL**: ${url}" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
             
-            # Simplified JSON output
-            entry=$(jq -n \
+            # Write to temp file
+            jq -n \
                 --arg fn "$file" \
                 --arg url "$url" \
-                '{file: $fn, url: $url}')
-                
-            all_responses+="$entry,"
+                '{file: $fn, url: $url}' >> entries.json
         done
-        # Final output
-        if [ -n "$all_responses" ]; then
-            echo "responses=[${all_responses%,}]" | jq -c '.' > output.json
-            echo "results=$(cat output.json)" >> $GITHUB_OUTPUT
+        
+        # Final output processing
+        if [ -s entries.json ]; then
+            jq -s '{responses: .}' entries.json > output.json
+            echo "results=$(jq -c . output.json)" >> $GITHUB_OUTPUT
         else
             echo "⚠️ No processable files found" >> $GITHUB_STEP_SUMMARY
             echo "results=[]" >> $GITHUB_OUTPUT
         fi
+
+        # Cleanup
+        rm -f entries.json output.json

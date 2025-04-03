@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       url:
-        description: 'URL to PDF/image file (leave blank to use file from input)'
+        description: 'URL to PDF/image file'
         required: false
       additional_param:
         description: 'Additional OCR parameters'
@@ -20,6 +20,7 @@ jobs:
     env:
       INPUT_DIR: ./input/OCRinput
       OUTPUT_DIR: ./output
+      URL_INPUT: ${{ github.event.inputs.url }}  # Track URL presence
 
     steps:
     - name: Checkout repository
@@ -36,64 +37,28 @@ jobs:
             sudo apt-get install -y "tesseract-ocr-$lang_code"
           done
         fi
-        mkdir -p $OUTPUT_DIR
-        # Only create input dir if not using URL
-        if [ -z "${{ github.event.inputs.url }}" ]; then
-          [ -d $INPUT_DIR ] || mkdir $INPUT_DIR
-        fi
+        mkdir -p $OUTPUT_DIR $INPUT_DIR
 
-    - name: Process URL input
-      if: ${{ github.event.inputs.url }}
+    - name: Process files
       run: |
         set -eo pipefail
-        DOWNLOAD_DIR="./temp_download"
-        mkdir -p "$DOWNLOAD_DIR"
-        
-        # Extract filename from URL
-        url="${{ github.event.inputs.url }}"
-        filename=$(basename "${url%%\?*}")
-        filepath="$DOWNLOAD_DIR/$filename"
-        
-        # Download file
-        curl -L -o "$filepath" "$url"
-        
-        # Process file
-        timestamp=$(date +"%Y%m%d_%H%M%S")
-        extension="${filename##*.}"
-        success=false
-        
-        if [[ "${extension,,}" =~ ^(jpg|jpeg|png|tiff|webp|bmp)$ ]]; then
-          output_base="$OUTPUT_DIR/${filename%.*}_$timestamp"
-          if tesseract ${{ github.event.inputs.additional_param }} "$filepath" "$output_base" pdf txt; then
-            success=true
-          fi
-        elif [[ "${extension,,}" == "pdf" ]]; then
-          output_pdf="$OUTPUT_DIR/${filename%.*}_$timestamp.pdf"
-          if ocrmypdf ${{ github.event.inputs.additional_param }} --skip-text --clean \
-            --sidecar "${output_pdf}.txt" "$filepath" "$output_pdf"; then
-            success=true
-          fi
-        else
-          echo "Unsupported file type: $extension"
-          exit 1
-        fi
-        
-        if [ "$success" = false ]; then
-          echo "Failed to process URL file"
-          exit 1
-        fi
-        rm -rf "$DOWNLOAD_DIR"
 
-    - name: Process local files
-      if: ${{ !github.event.inputs.url }}
-      run: |
-        set -eo pipefail
+        # Download URL to input directory if provided
+        if [ -n "${{ github.event.inputs.url }}" ]; then
+          url="${{ github.event.inputs.url }}"
+          filename=$(basename "${url%%\?*}")
+          echo "Downloading $url to $INPUT_DIR/$filename"
+          curl -L -o "$INPUT_DIR/$filename" "$url"
+        fi
+
+        # Process all files in input directory
         while IFS= read -rd '' file; do
           filename=$(basename "$file")
           extension="${filename##*.}"
           success=false
           timestamp=$(date +"%Y%m%d_%H%M%S")
 
+          echo "Processing $filename..."
           if [[ "${extension,,}" =~ ^(jpg|jpeg|png|tiff|webp|bmp)$ ]]; then
             output_base="$OUTPUT_DIR/${filename%.*}_$timestamp"
             if tesseract ${{ github.event.inputs.additional_param }} "$file" "$output_base" pdf txt; then
@@ -105,17 +70,24 @@ jobs:
               --sidecar "${output_pdf}.txt" "$file" "$output_pdf"; then
               success=true
             fi
+          else
+            echo "Skipped: $filename (unsupported format)"
+            continue
           fi
 
           if [ "$success" = true ]; then
-            git rm -f --ignore-unmatch "$file"
+            # Remove processed file (git-aware removal)
+            if git ls-files --error-unmatch "$file" >/dev/null 2>&1; then
+              git rm -f --ignore-unmatch "$file"
+            fi
             rm -f "$file"
-            echo "Processed: $filename"
+            echo "✅ Processed: $filename"
           else
-            echo "Skipped: $filename"
+            echo "❌ Failed: $filename (left in input for inspection)"
           fi
         done < <(find $INPUT_DIR -type f \( -iname '*.pdf' -o -iname '*.jpg' -o -iname '*.jpeg' \
           -o -iname '*.png' -o -iname '*.webp' -o -iname '*.tiff' -o -iname '*.bmp' \) -print0)
+
 
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
@@ -124,9 +96,8 @@ jobs:
         path: ${{ env.OUTPUT_DIR }}/
         retention-days: 7
 
-    - name: Delete output directory
-      run: |
-        rm -rf $OUTPUT_DIR
+    - name: Cleanup outputs
+      run: rm -rf $OUTPUT_DIR
 
     - name: Commit changes
       if: ${{ !github.event.inputs.url }}

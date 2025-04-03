@@ -1,7 +1,11 @@
 name: Song Recognition
 
 on: 
-  workflow_dispatch
+  workflow_dispatch:
+    inputs:
+      media_url:
+        description: 'Optional URL to media file for processing'
+        required: false
 
 permissions:
   contents: write
@@ -18,11 +22,8 @@ jobs:
 
     - name: Install dependencies
       run: |
-        # System setup
         sudo apt-get update
-        sudo apt-get install -y software-properties-common ffmpeg jq
-        
-        # Secure SongRec installation
+        sudo apt-get install -y software-properties-common ffmpeg jq curl
         wget -qO- 'http://keyserver.ubuntu.com/pks/lookup?op=get&search=0x6888550b2fc77d09' | sudo tee /etc/apt/trusted.gpg.d/songrec.asc
         sudo add-apt-repository ppa:marin-m/songrec -y
         sudo apt-get install -y songrec
@@ -31,17 +32,24 @@ jobs:
       id: songrec
       run: |
         cd input/songrec
-        :> entries.json  # Initialize output storage
-        
+        :> entries.json
+
+        # Download from URL if provided
+        if [[ -n "${{ inputs.media_url }}" ]]; then
+          echo "Downloading media from URL..."
+          curl -L -o "url_media" "${{ inputs.media_url }}" || {
+            echo "::warning:: Failed to download media from URL"
+            exit 0
+          }
+        fi
+
         for file in *; do
-            # Skip metadata files
             [[ "$file" == entries.json || "$file" == output.json ]] && continue
             
-            # File type verification
+            # File validation
             mime_type=$(file --mime-type -b "$file")
             has_audio=false
             
-            # Audio content detection
             if [[ $mime_type == audio/* ]]; then
                 has_audio=true
             elif [[ $mime_type == video/* ]]; then
@@ -53,15 +61,13 @@ jobs:
             
             [[ $has_audio != true ]] && continue
 
-            # Song recognition attempt
+            # Recognition process
             response=$(songrec audio-file-to-recognized-song "$file" 2>&1 || echo '{"error":"no_match"}')
             
-            # JSON validation
             if ! jq -e . >/dev/null 2>&1 <<< "$response"; then
                 response='{"error":"invalid_response"}'
             fi
             
-            # URL extraction
             url=$(jq -r '
                 if .error? then
                     "❌ Error: " + (.error | tostring)
@@ -71,7 +77,7 @@ jobs:
                     "❌ No match found"
                 end' <<< "$response" 2>/dev/null || echo "🛑 Processing error")
 
-            # Conditional file deletion
+            # File management
             if [[ "$url" == http* ]]; then
                 rm "$file"
                 echo "🗑️ Deleted successfully matched file: $file"
@@ -79,7 +85,7 @@ jobs:
                 echo "🔍 Keeping file with result: $url"
             fi
 
-            # Results documentation
+            # Documentation
             echo "### \`$file\`" >> $GITHUB_STEP_SUMMARY
             echo "**Track URL**: ${url}" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
@@ -91,7 +97,7 @@ jobs:
                 '{file: $fn, url: $url}' >> entries.json
         done
 
-        # Output finalization
+        # Final output
         if [ -s entries.json ]; then
             jq -s '{responses: .}' entries.json > output.json
             echo "results=$(jq -c . output.json)" >> $GITHUB_OUTPUT

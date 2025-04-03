@@ -37,7 +37,7 @@ jobs:
         # Download from URL if provided
         if [[ -n "${{ inputs.media_url }}" ]]; then
           echo "Downloading media from URL..."
-          curl -L -o "url_media" "${{ inputs.media_url }}" || {
+          curl -L -o "url_media_$(date +%s)" "${{ inputs.media_url }}" || {
             echo "::warning:: Failed to download media from URL"
             exit 0
           }

@@ -8,14 +8,14 @@ on:
         required: true
         type: string
       vpn_location:
-        description: 'Select VPN location or disable'
+        description: 'Select VPN location or false'
         required: true
         default: 'TradeWar'
         type: choice
         options:
-          - TradeWar
-          - GrandCentral
-          - Disable
+          - 'TradeWar'
+          - 'GrandCentral'
+          - 'false'
       resolution:
         description: "Video resolution (default: 1080p)"
         required: true
@@ -60,7 +60,7 @@ jobs:
           PACKAGES="ffmpeg python3-pip"
 
           # Add VPN dependencies if enabled
-          if [ "${{ github.event.inputs.vpn_location != 'Disable' ]; then
+          if [ "${{ github.event.inputs.vpn_location != 'false' ]; then
             PACKAGES="$PACKAGES wireguard-tools"
           fi
 
@@ -73,7 +73,7 @@ jobs:
           python3 -m pip install --upgrade pip --pre yt-dlp[default,curl-cffi]
 
       - name: VPN Setup
-        if: ${{ github.event.inputs.vpn_location != 'Disable' }}
+        if: ${{ github.event.inputs.vpn_location != 'false' }}
         env:
           GrandCentral_CONFIG: ${{ secrets.WIREGUARD_GRANDCENTRAL }}
           TradeWar_CONFIG: ${{ secrets.WIREGUARD_TRADEWAR }}

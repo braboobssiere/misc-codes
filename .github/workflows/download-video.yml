@@ -7,13 +7,14 @@ on:
         description: "Video URL to download"
         required: true
         type: string
-      vpn_enabled:
-        description: "Enable VPN connection?"
+      vpn_location:
+        description: 'Select VPN location or false'
         required: true
+        default: 'TradeWar'
         type: choice
-        default: 'true'
         options:
-          - 'true'
+          - 'TradeWar'
+          - 'GrandCentral'
           - 'false'
       resolution:
         description: "Video resolution (default: 1080p)"
@@ -59,7 +60,7 @@ jobs:
           PACKAGES="ffmpeg python3-pip"
 
           # Add VPN dependencies if enabled
-          if [ "${{ github.event.inputs.vpn_enabled }}" = "true" ]; then
+          if [ "${{ github.event.inputs.vpn_location }}" != "false" ]; then
             PACKAGES="$PACKAGES wireguard-tools"
           fi
 
@@ -72,14 +73,30 @@ jobs:
           python3 -m pip install --upgrade pip --pre yt-dlp[default,curl-cffi]
 
       - name: VPN Setup
-        if: ${{ github.event.inputs.vpn_enabled == 'true' }}
+        if: ${{ github.event.inputs.vpn_location != 'false' }}
+        env:
+          GrandCentral_CONFIG: ${{ secrets.WIREGUARD_GRANDCENTRAL }}
+          TradeWar_CONFIG: ${{ secrets.WIREGUARD_TRADEWAR }}
         run: |
           sudo mkdir -p /etc/wireguard/
-          echo "${{ secrets.WIREGUARD_CONFIG }}" | 
-          sudo tee /etc/wireguard/wg0.conf > /dev/null
-          sudo chmod 600 /etc/wireguard/wg0.conf
+          
+          case "${{ github.event.inputs.vpn_location }}" in
+            GrandCentral) CONFIG_VAR="GrandCentral_CONFIG" ;;
+            TradeWar) CONFIG_VAR="TradeWar_CONFIG" ;;
+            *)
+              echo "::error::Invalid location selection"
+              exit 1
+              ;;
+          esac
 
-          # Attempt VPN connection up to 5 times
+          if [ -z "${!CONFIG_VAR}" ]; then
+            echo "::error::No configuration found for ${{ github.event.inputs.vpn_location }}"
+            exit 1
+          fi
+
+          echo "${!CONFIG_VAR}" | sudo tee /etc/wireguard/wg0.conf > /dev/null
+          sudo chmod 600 /etc/wireguard/wg0.conf 
+
           for i in {1..5}; do
               sudo wg-quick up wg0
               sleep 1 
@@ -89,14 +106,12 @@ jobs:
               else
                   echo "VPN connection failed (attempt $i/5)"
                   sudo wg-quick down wg0 >/dev/null 2>&1
-                  if [ $i -lt 5 ]; then
-                      sleep 1
-                  fi
+                  [ $i -lt 5 ] && sleep 1
               fi
           done
 
           if ! sudo wg show wg0 >/dev/null 2>&1; then
-              echo "VPN failed to connect after 5 attempts"
+              echo "::error::VPN failed to connect after 5 attempts"
               exit 1
           fi
 
@@ -145,11 +160,11 @@ jobs:
 
           # Log and execute the command
           echo "Download command: ${COMMAND}"
-          eval "${COMMAND}" 2> output/logs.txt
-          [ ! -s output/logs.txt ] && rm -f output/logs.txt
+          eval "${COMMAND}" # 2> output/logs.txt
+          # [ ! -s output/logs.txt ] && rm -f output/logs.txt
 
       - name: VPN Cleanup
-        if: ${{ always() && github.event.inputs.vpn_enabled == 'true' }}
+        if: ${{ always() && github.event.inputs.vpn_location != 'false' }}
         run: |
           sudo wg-quick down wg0 || true
 

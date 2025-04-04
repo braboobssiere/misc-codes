@@ -8,9 +8,6 @@ on:
         default: 'TradeWar'
         type: choice
         options:
-          - Piedmont
-          - Cub
-          - Wrigley
           - GrandCentral
           - TradeWar
           - Disable
@@ -35,9 +32,6 @@ jobs:
       - name: VPN Setup
         if: ${{ github.event.inputs.vpn_location != 'Disable' }}
         env:
-          Cub_CONFIG: ${{ secrets.WIREGUARD_Cub }}
-          Piedmont_CONFIG: ${{ secrets.WIREGUARD_Piedmont }}
-          Wrigley_CONFIG: ${{ secrets.WIREGUARD_Wrigley }}
           GrandCentral_CONFIG: ${{ secrets.WIREGUARD_GrandCentral }}
           TradeWar_CONFIG: ${{ secrets.WIREGUARD_TradeWar }}
         run: |
@@ -46,9 +40,6 @@ jobs:
           sudo mkdir -p /etc/wireguard/
           
           case "${{ github.event.inputs.vpn_location }}" in
-            Wrigley) CONFIG_VAR="Wrigley_CONFIG" ;;
-            Piedmont) CONFIG_VAR="Piedmont_CONFIG" ;;
-            Cub) CONFIG_VAR="Cub_CONFIG" ;;
             GrandCentral) CONFIG_VAR="GrandCentral_CONFIG" ;;
             TradeWar) CONFIG_VAR="TradeWar_CONFIG" ;;
             *)

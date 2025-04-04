@@ -13,8 +13,8 @@ on:
         default: 'TradeWar'
         type: choice
         options:
-          - GrandCentral
           - TradeWar
+          - GrandCentral
           - Disable
       resolution:
         description: "Video resolution (default: 1080p)"
@@ -75,8 +75,8 @@ jobs:
       - name: VPN Setup
         if: ${{ github.event.inputs.vpn_location != 'Disable' }}
         env:
-          GrandCentral_CONFIG: ${{ secrets.WIREGUARD_GrandCentral }}
-          TradeWar_CONFIG: ${{ secrets.WIREGUARD_TradeWar }}
+          GrandCentral_CONFIG: ${{ secrets.WIREGUARD_GRANDCENTRAL }}
+          TradeWar_CONFIG: ${{ secrets.WIREGUARD_TRADEWAR }}
         run: |
           sudo mkdir -p /etc/wireguard/
           
@@ -94,8 +94,8 @@ jobs:
             exit 1
           fi
 
-          echo "${!CONFIG_VAR}" | sudo tee /etc/wireguard/wg0.conf > /dev/null
-          sudo chmod 600 /etc/wireguard/wg0.conf
+          echo "${!CONFIG_VAR}" | base64 -d | sudo tee /etc/wireguard/wg0.conf 
+          sudo chmod 600 /etc/wireguard/wg0.conf 
 
           for i in {1..5}; do
               sudo wg-quick up wg0

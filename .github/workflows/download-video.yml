@@ -160,11 +160,11 @@ jobs:
 
           # Log and execute the command
           echo "Download command: ${COMMAND}"
-          eval "${COMMAND}" 2> output/logs.txt
-          [ ! -s output/logs.txt ] && rm -f output/logs.txt
+          eval "${COMMAND}" # 2> output/logs.txt
+          # [ ! -s output/logs.txt ] && rm -f output/logs.txt
 
       - name: VPN Cleanup
-        if: ${{ always() && github.event.inputs.vpn_enabled == 'true' }}
+        if: ${{ always() && github.event.inputs.vpn_location != 'false' }}
         run: |
           sudo wg-quick down wg0 || true
 

@@ -60,7 +60,7 @@ jobs:
           PACKAGES="ffmpeg python3-pip"
 
           # Add VPN dependencies if enabled
-          if [ "${{ github.event.inputs.vpn_location != 'false' ]; then
+          if [ "${{ github.event.inputs.vpn_location }}" != "false" ]; then
             PACKAGES="$PACKAGES wireguard-tools"
           fi
 

@@ -8,8 +8,10 @@ on:
         default: 'TradeWar'
         type: choice
         options:
-          - MIT
-          - Ranch
+          - Piedmont
+          - Cub
+          - Wrigley
+          - GrandCentral
           - TradeWar
           - Disable
 
@@ -33,18 +35,22 @@ jobs:
       - name: VPN Setup
         if: ${{ github.event.inputs.vpn_location != 'Disable' }}
         env:
-          MIT_CONFIG: ${{ secrets.WIREGUARD_MIT }}
-          RANCH_CONFIG: ${{ secrets.WIREGUARD_Ranch }}
-          TRADEWAR_CONFIG: ${{ secrets.WIREGUARD_TradeWar }}
+          Cub_CONFIG: ${{ secrets.WIREGUARD_Cub }}
+          Piedmont_CONFIG: ${{ secrets.WIREGUARD_Piedmont }}
+          Wrigley_CONFIG: ${{ secrets.WIREGUARD_Wrigley }}
+          GrandCentral_CONFIG: ${{ secrets.WIREGUARD_GrandCentral }}
+          TradeWar_CONFIG: ${{ secrets.WIREGUARD_TradeWar }}
         run: |
           sudo apt-get update
           sudo apt-get install -y wireguard-tools
           sudo mkdir -p /etc/wireguard/
           
           case "${{ github.event.inputs.vpn_location }}" in
-            MIT) CONFIG_VAR="MIT_CONFIG" ;;
-            Ranch) CONFIG_VAR="RANCH_CONFIG" ;;
-            TradeWar) CONFIG_VAR="TRADEWAR_CONFIG" ;;
+            Wrigley) CONFIG_VAR="Wrigley_CONFIG" ;;
+            Piedmont) CONFIG_VAR="Piedmont_CONFIG" ;;
+            Cub) CONFIG_VAR="Cub_CONFIG" ;;
+            GrandCentral) CONFIG_VAR="GrandCentral_CONFIG" ;;
+            TradeWar) CONFIG_VAR="TradeWar_CONFIG" ;;
             *)
               echo "::error::Invalid location selection"
               exit 1

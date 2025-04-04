@@ -60,7 +60,7 @@ jobs:
           PACKAGES="ffmpeg python3-pip"
 
           # Add VPN dependencies if enabled
-          if [ "${{ github.event.inputs.vpn_enabled }}" = "true" ]; then
+          if [ "${{ github.event.inputs.vpn_location != 'Disable' ]; then
             PACKAGES="$PACKAGES wireguard-tools"
           fi
 
@@ -94,7 +94,7 @@ jobs:
             exit 1
           fi
 
-          echo "${!CONFIG_VAR}" | base64 -d | sudo tee /etc/wireguard/wg0.conf 
+          echo "${!CONFIG_VAR}" | sudo tee /etc/wireguard/wg0.conf > /dev/null
           sudo chmod 600 /etc/wireguard/wg0.conf 
 
           for i in {1..5}; do

@@ -2,22 +2,16 @@ name: Wireguard Speed Test
 on:
   workflow_dispatch:
     inputs:
-      vpn_enabled:
-        description: 'Enable VPN connection'
+      vpn_location:
+        description: 'Select VPN location or disable'
         required: true
-        default: 'true'
-        type: choice
-        options:
-          - 'true'
-          - 'false'
-      location:
-        description: 'VPN location'
-        required: true
+        default: 'TradeWar'
         type: choice
         options:
           - MIT
           - Ranch
           - TradeWar
+          - Disable
 
 jobs:
   speed-test:
@@ -37,7 +31,7 @@ jobs:
           sudo rm /tmp/speedtest.tar.gz
 
       - name: VPN Setup
-        if: ${{ github.event.inputs.vpn_enabled == 'true' }}
+        if: ${{ github.event.inputs.vpn_location != 'Disable' }}
         env:
           MIT_CONFIG: ${{ secrets.WIREGUARD_MIT }}
           RANCH_CONFIG: ${{ secrets.WIREGUARD_Ranch }}
@@ -47,19 +41,18 @@ jobs:
           sudo apt-get install -y wireguard-tools
           sudo mkdir -p /etc/wireguard/
           
-          # Map location input to environment variable name
-          case "${{ github.event.inputs.location }}" in
+          case "${{ github.event.inputs.vpn_location }}" in
             MIT) CONFIG_VAR="MIT_CONFIG" ;;
             Ranch) CONFIG_VAR="RANCH_CONFIG" ;;
             TradeWar) CONFIG_VAR="TRADEWAR_CONFIG" ;;
-            *) 
+            *)
               echo "::error::Invalid location selection"
               exit 1
               ;;
           esac
 
           if [ -z "${!CONFIG_VAR}" ]; then
-            echo "::error::No configuration found for ${{ github.event.inputs.location }}"
+            echo "::error::No configuration found for ${{ github.event.inputs.vpn_location }}"
             exit 1
           fi
 
@@ -86,7 +79,7 @@ jobs:
 
       - name: Execute Speed Test
         run: |
-          echo -e "\n### Speed Test Results - Location: ${{ github.event.inputs.vpn_enabled == 'true' && github.event.inputs.location || 'default' }}" >> $GITHUB_STEP_SUMMARY
+          echo -e "\n### Speed Test Results - Location: ${{ github.event.inputs.vpn_location != 'Disable' && github.event.inputs.vpn_location || 'default' }}" >> $GITHUB_STEP_SUMMARY
           speedtest -m | tee /dev/stderr | awk -F': ' '
             $1 ~ /Latency/ {sub(/^ /, "", $2); printf "**Latency:** `%s`\n", $2}
             $1 ~ /Download/ {sub(/^ /, "", $2); split($2,a,/ /); printf "**Download:** `%.2f Mbps`\n", a[1]}

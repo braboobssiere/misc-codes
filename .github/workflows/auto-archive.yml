@@ -26,37 +26,37 @@ jobs:
         run: |
           FEED_URL="https://raw.githubusercontent.com/braboobssiere/holedex-song-list/main/feeds/holodex.atom"
           CURRENT_TS=$(date +%s)
-          
-          # Process feed with XMLStarlet
-          VALID_ENTRIES=$(curl -sL "$FEED_URL" | xmlstarlet sel -t -m "//feed/entry" -v "
-            concat(
-              substring-before(link[@rel='alternate']/@href, '?'), '|',
-              title, '|',
-              translate(summary, '&lt;t:', '|'), '|'
-            )" -n)
-
           LATEST_URL=""
           LATEST_TS=0
-
-          # Parse all entries
+          
           while IFS= read -r entry; do
-            IFS='|' read -ra PARTS <<< "$entry"
-            URL="${PARTS[0]}"
-            TITLE="${PARTS[1]}"
-            TS=$(echo "${PARTS[3]}" | grep -oE '[0-9]{10}')
+            URL=$(echo "$entry" | xmlstarlet sel -N atom="http://www.w3.org/2005/Atom" \
+              -t -v "//atom:link[@rel='alternate']/@href" 2>/dev/null | tr -d '\n')
+            
+            TITLE=$(echo "$entry" | xmlstarlet sel -N atom="http://www.w3.org/2005/Atom" \
+              -t -v "//atom:title" 2>/dev/null | tr -d '\n')
+            
+            SUMMARY=$(echo "$entry" | xmlstarlet sel -N atom="http://www.w3.org/2005/Atom" \
+              -t -v "//atom:summary" 2>/dev/null | tr -d '\n')
 
-            # Validation checks
+            TS=$(echo "$SUMMARY" | grep -oP 't:\K\d{10}')
+
+            echo "Processing entry:"
+            echo "URL: $URL | Title: $TITLE | TS: $TS"
+
             if [[ -n "$URL" && -n "$TS" ]] && \
                [[ "${TITLE,,}" == *"unarchive"* ]] && \
+               [[ "$URL" == *"youtu.be/"* ]] && \
                [[ $CURRENT_TS -ge $TS && $CURRENT_TS -le $((TS + 3540)) ]]; then
               
-              # Keep only the latest valid entry
               if [[ $TS -gt $LATEST_TS ]]; then
                 LATEST_URL="$URL"
                 LATEST_TS=$TS
+                echo "New valid candidate: $URL (TS: $TS)"
               fi
             fi
-          done <<< "$VALID_ENTRIES"
+          done < <(curl -sL "$FEED_URL" | xmlstarlet sel -N atom="http://www.w3.org/2005/Atom" \
+            -t -m "//atom:entry" -c "." -n 2>/dev/null)
 
           if [[ -n "$LATEST_URL" ]]; then
             echo "url=$LATEST_URL" >> $GITHUB_OUTPUT

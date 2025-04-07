@@ -20,7 +20,6 @@ jobs:
           PACKAGES="ffmpeg python3-pip wireguard-tools jq curl xmlstarlet"
           sudo apt-get install -y $PACKAGES
           python3 -m pip install --upgrade pip --pre yt-dlp[default,curl-cffi]
-
       - name: Parse Atom Feed
         id: feed-parser
         run: |
@@ -28,36 +27,58 @@ jobs:
           CURRENT_TS=$(date +%s)
           LATEST_URL=""
           LATEST_TS=0
-          
-          while IFS= read -r entry; do
-            URL=$(echo "$entry" | xmlstarlet sel -N atom="http://www.w3.org/2005/Atom" \
-              -t -v "//atom:link[@rel='alternate']/@href" 2>/dev/null | tr -d '\n')
-            
-            TITLE=$(echo "$entry" | xmlstarlet sel -N atom="http://www.w3.org/2005/Atom" \
-              -t -v "//atom:title" 2>/dev/null | tr -d '\n')
-            
-            SUMMARY=$(echo "$entry" | xmlstarlet sel -N atom="http://www.w3.org/2005/Atom" \
-              -t -v "//atom:summary" 2>/dev/null | tr -d '\n')
 
-            TS=$(echo "$SUMMARY" | grep -oP 't:\K\d{10}')
+          # Add error handling
+          set -euo pipefail
+
+          # Process entries with proper XML handling
+          while IFS= read -r entry; do
+            # Create temporary file for XML fragment
+            TEMP_XML=$(mktemp)
+            echo "$entry" > "$TEMP_XML"
+
+            # Extract components with error suppression
+            URL=$(xmlstarlet sel -N atom="http://www.w3.org/2005/Atom" \
+              -t -v "/atom:entry/atom:link[@rel='alternate']/@href" "$TEMP_XML" 2>/dev/null || true)
+            
+            TITLE=$(xmlstarlet sel -N atom="http://www.w3.org/2005/Atom" \
+              -t -v "/atom:entry/atom:title" "$TEMP_XML" 2>/dev/null || true)
+            
+            SUMMARY=$(xmlstarlet sel -N atom="http://www.w3.org/2005/Atom" \
+              -t -v "/atom:entry/atom:summary" "$TEMP_XML" 2>/dev/null || true)
+
+            # Clean up temp file
+            rm -f "$TEMP_XML"
+
+            # Improved timestamp extraction
+            TS=$(echo "$SUMMARY" | grep -oP 't:\K\d{10}' || true)
 
             echo "Processing entry:"
-            echo "URL: $URL | Title: $TITLE | TS: $TS"
+            echo "URL: '$URL' | Title: '$TITLE' | TS: '$TS'"
 
+            # Validation checks with error tolerance
             if [[ -n "$URL" && -n "$TS" ]] && \
                [[ "${TITLE,,}" == *"unarchive"* ]] && \
-               [[ "$URL" == *"youtu.be/"* ]] && \
-               [[ $CURRENT_TS -ge $TS && $CURRENT_TS -le $((TS + 3540)) ]]; then
+               [[ "$URL" == *"youtu.be/"* ]]; then
               
-              if [[ $TS -gt $LATEST_TS ]]; then
-                LATEST_URL="$URL"
-                LATEST_TS=$TS
-                echo "New valid candidate: $URL (TS: $TS)"
+              # Time window check
+              if (( CURRENT_TS >= TS && CURRENT_TS <= TS + 3540 )); then
+                echo "Valid time window: $TS -> $((TS + 3540))"
+                if (( TS > LATEST_TS )); then
+                  LATEST_URL="$URL"
+                  LATEST_TS=$TS
+                  echo "New valid candidate: $URL (TS: $TS)"
+                fi
+              else
+                echo "Time window expired: $CURRENT_TS not in [$TS, $((TS + 3540))]"
               fi
+            else
+              echo "Entry failed validation checks"
             fi
           done < <(curl -sL "$FEED_URL" | xmlstarlet sel -N atom="http://www.w3.org/2005/Atom" \
-            -t -m "//atom:entry" -c "." -n 2>/dev/null)
+            -t -m "/atom:feed/atom:entry" -c "." -n 2>/dev/null)
 
+          # Final output
           if [[ -n "$LATEST_URL" ]]; then
             echo "url=$LATEST_URL" >> $GITHUB_OUTPUT
             echo "should_process=true" >> $GITHUB_OUTPUT
@@ -66,6 +87,7 @@ jobs:
             echo "::notice::No valid entries found"
             echo "should_process=false" >> $GITHUB_OUTPUT
           fi
+
 
       - name: VPN Setup (TradeWar)
         if: ${{ steps.feed-parser.outputs.should_process == 'true' }}

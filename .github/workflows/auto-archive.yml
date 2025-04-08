@@ -3,7 +3,7 @@ name: Scheduled Auto-Archive
 on:
   workflow_dispatch:
   schedule:
-    - cron: '35 * * * *'  # Run at 35 minutes past every hour
+    - cron: '35 * * * *'
 
 jobs:
   process_feed_and_download:
@@ -13,81 +13,64 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-
       - name: Setup Environment
         run: |
           sudo apt-get update
-          PACKAGES="ffmpeg python3-pip wireguard-tools jq curl xmlstarlet"
+          PACKAGES="ffmpeg python3-pip wireguard-tools jq curl"
           sudo apt-get install -y $PACKAGES
           python3 -m pip install --upgrade pip --pre yt-dlp[default,curl-cffi]
+
       - name: Parse Atom Feed
         id: feed-parser
         run: |
-          FEED_URL="https://raw.githubusercontent.com/braboobssiere/holedex-song-list/main/feeds/holodex.atom"
-          CURRENT_TS=$(date +%s)
-          LATEST_URL=""
-          LATEST_TS=0
+          import xml.etree.ElementTree as ET
+          import requests
+          import re
+          from datetime import datetime, timedelta
+          import os
 
-          # Add error handling
-          set -euo pipefail
+          feed_url = "https://raw.githubusercontent.com/braboobssiere/holedex-song-list/main/feeds/holodex.atom"
+          response = requests.get(feed_url)
+          root = ET.fromstring(response.content)
 
-          # Process entries with proper XML handling
-          while IFS= read -r entry; do
-            # Create temporary file for XML fragment
-            TEMP_XML=$(mktemp)
-            echo "$entry" > "$TEMP_XML"
+          ns = {'atom': 'http://www.w3.org/2005/Atom'}
+          current_time = datetime.utcnow()
+          time_threshold = current_time - timedelta(minutes=59)
+          matched_entries = []
 
-            # Extract components with error suppression
-            URL=$(xmlstarlet sel -N atom="http://www.w3.org/2005/Atom" \
-              -t -v "/atom:entry/atom:link[@rel='alternate']/@href" "$TEMP_XML" 2>/dev/null || true)
-            
-            TITLE=$(xmlstarlet sel -N atom="http://www.w3.org/2005/Atom" \
-              -t -v "/atom:entry/atom:title" "$TEMP_XML" 2>/dev/null || true)
-            
-            SUMMARY=$(xmlstarlet sel -N atom="http://www.w3.org/2005/Atom" \
-              -t -v "/atom:entry/atom:summary" "$TEMP_XML" 2>/dev/null || true)
-
-            # Clean up temp file
-            rm -f "$TEMP_XML"
-
-            # Improved timestamp extraction
-            TS=$(echo "$SUMMARY" | grep -oP 't:\K\d{10}' || true)
-
-            echo "Processing entry:"
-            echo "URL: '$URL' | Title: '$TITLE' | TS: '$TS'"
-
-            # Validation checks with error tolerance
-            if [[ -n "$URL" && -n "$TS" ]] && \
-               [[ "${TITLE,,}" == *"unarchive"* ]] && \
-               [[ "$URL" == *"youtu.be/"* ]]; then
+          for entry in root.findall('atom:entry', ns):
+              # Check title condition
+              title = entry.find('atom:title', ns).text
+              if 'unarchive' not in title.lower():
+                  continue
+              
+              # Extract timestamp from summary
+              summary = entry.find('atom:summary', ns).text
+              timestamp_match = re.search(r't:(\d+)', summary)
+              if not timestamp_match:
+                  continue
+                  
+              entry_time = datetime.utcfromtimestamp(int(timestamp_match.group(1)))
               
               # Time window check
-              if (( CURRENT_TS >= TS && CURRENT_TS <= TS + 3540 )); then
-                echo "Valid time window: $TS -> $((TS + 3540))"
-                if (( TS > LATEST_TS )); then
-                  LATEST_URL="$URL"
-                  LATEST_TS=$TS
-                  echo "New valid candidate: $URL (TS: $TS)"
-                fi
-              else
-                echo "Time window expired: $CURRENT_TS not in [$TS, $((TS + 3540))]"
-              fi
-            else
-              echo "Entry failed validation checks"
-            fi
-          done < <(curl -sL "$FEED_URL" | xmlstarlet sel -N atom="http://www.w3.org/2005/Atom" \
-            -t -m "/atom:feed/atom:entry" -c "." -n 2>/dev/null)
+              if time_threshold <= entry_time <= current_time:
+                  link = entry.find("atom:link[@rel='alternate']", ns).attrib['href']
+                  matched_entries.append((entry_time, link))
 
-          # Final output
-          if [[ -n "$LATEST_URL" ]]; then
-            echo "url=$LATEST_URL" >> $GITHUB_OUTPUT
-            echo "should_process=true" >> $GITHUB_OUTPUT
-            echo "::notice::Found valid URL: $LATEST_URL"
-          else
-            echo "::notice::No valid entries found"
-            echo "should_process=false" >> $GITHUB_OUTPUT
-          fi
-
+          # Select latest entry if multiple matches
+          output_url = ""
+          if matched_entries:
+              # Sort by timestamp descending and pick latest
+              matched_entries.sort(reverse=True, key=lambda x: x[0])
+              output_url = matched_entries[0][1]
+              print(f"::set-output name=should_process::true")
+              print(f"::set-output name=url::{output_url}")
+          else:
+              print("::set-output name=should_process::false")
+              
+        shell: python
+        env:
+          TZ: UTC  # Ensure consistent timezone
 
       - name: VPN Setup (TradeWar)
         if: ${{ steps.feed-parser.outputs.should_process == 'true' }}
@@ -124,9 +107,9 @@ jobs:
           URL="${{ steps.feed-parser.outputs.url }}"
           
           yt-dlp -i --no-progress \
-            -S \"+res:1080,+vcodec:av01\" --windows-filenames \
-            -o \"output/%(title).170B [%(id)s] (%(resolution)s).%(ext)s\" \
-            --live-from-start --embed-metadata ${URL}
+            -S "+res:1080,+vcodec:av01" --windows-filenames \
+            -o "output/%(title).170B [%(id)s] (%(resolution)s).%(ext)s" \
+            --live-from-start --embed-metadata "${URL}"
 
       - name: VPN Cleanup
         if: ${{ always() && steps.feed-parser.outputs.should_process == 'true' }}

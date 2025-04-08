@@ -119,11 +119,19 @@ jobs:
         run: |
           mkdir -p output
           URL="${{ needs.check-feed.outputs.url }}"
-          
-          yt-dlp -i --no-progress \
-            -S "+res:1080,+vcodec:av01" --windows-filenames \
-            -o "output/%(title).170B [%(id)s] (%(resolution)s).%(ext)s" \
-            --live-from-start --embed-metadata "${URL}"
+            {
+            echo "=== Download Command ==="
+            echo "yt-dlp -i --no-progress -S '+res:1080,+vcodec:av01' \
+              --windows-filenames --live-from-start --embed-metadata \
+              -o \"output/%(title).170B [%(id)s] (%(resolution)s).%(ext)s\" \
+              ${URL}"
+            echo "\n=== Execution Output ==="
+      
+            yt-dlp -i --no-progress -S "+res:1080,+vcodec:av01" \
+              --windows-filenames --live-from-start --embed-metadata \
+              -o "output/%(title).170B [%(id)s] (%(resolution)s).%(ext)s" \
+              "${URL}"
+            } > output/logs.txt 2>&1
 
       - name: VPN Cleanup
         if: ${{ always() }}

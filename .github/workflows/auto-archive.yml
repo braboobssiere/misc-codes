@@ -6,27 +6,29 @@ on:
     - cron: '35 * * * *'
 
 jobs:
-  process_feed_and_download:
+  check-feed:
+    name: Check Feed for Valid Entries
     runs-on: ubuntu-latest
-
+    outputs:
+      should_process: ${{ steps.feed-parser.outputs.should_process }}
+      url: ${{ steps.feed-parser.outputs.url }}
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Setup Environment
-        run: |
-          sudo apt-get update
-          PACKAGES="ffmpeg python3-pip wireguard-tools jq curl"
-          sudo apt-get install -y $PACKAGES
-          python3 -m pip install --upgrade pip --pre yt-dlp[default,curl-cffi]
+      - name: Set up Python
+        uses: actions/setup-python@v5.5.0
 
-      - name: Parse Atom Feed
+      - name: Install minimal parsing dependencies
+        run: pip install lxml requests
+
+      - name: Parse and Validate Feed
         id: feed-parser
         run: |
           import xml.etree.ElementTree as ET
           import requests
           import re
-          from datetime import datetime, timedelta
+          from datetime import datetime, timedelta, UTC
           import os
 
           feed_url = "https://raw.githubusercontent.com/braboobssiere/holedex-song-list/main/feeds/holodex.atom"
@@ -34,46 +36,59 @@ jobs:
           root = ET.fromstring(response.content)
 
           ns = {'atom': 'http://www.w3.org/2005/Atom'}
-          current_time = datetime.utcnow()
+          current_time = datetime.now(UTC)
           time_threshold = current_time - timedelta(minutes=59)
           matched_entries = []
 
           for entry in root.findall('atom:entry', ns):
-              # Check title condition
-              title = entry.find('atom:title', ns).text
+              title = entry.find('atom:title', ns).text or ''
               if 'unarchive' not in title.lower():
                   continue
-              
-              # Extract timestamp from summary
-              summary = entry.find('atom:summary', ns).text
-              timestamp_match = re.search(r't:(\d+)', summary)
-              if not timestamp_match:
+
+              if not (summary := entry.find('atom:summary', ns).text):
                   continue
-                  
-              entry_time = datetime.utcfromtimestamp(int(timestamp_match.group(1)))
-              
-              # Time window check
+
+              if not (timestamp_match := re.search(r't:(\d+)', summary)):
+                  continue
+
+              entry_time = datetime.fromtimestamp(
+                  int(timestamp_match.group(1)), 
+                  tz=UTC
+              )
+
               if time_threshold <= entry_time <= current_time:
                   link = entry.find("atom:link[@rel='alternate']", ns).attrib['href']
                   matched_entries.append((entry_time, link))
 
-          # Select latest entry if multiple matches
-          output_url = ""
-          if matched_entries:
-              # Sort by timestamp descending and pick latest
-              matched_entries.sort(reverse=True, key=lambda x: x[0])
-              output_url = matched_entries[0][1]
-              print(f"::set-output name=should_process::true")
-              print(f"::set-output name=url::{output_url}")
-          else:
-              print("::set-output name=should_process::false")
-              
+          output_path = os.environ['GITHUB_OUTPUT']
+          with open(output_path, 'a') as f:
+              if matched_entries:
+                  matched_entries.sort(reverse=True)
+                  f.write(f'should_process=true\nurl={matched_entries[0][1]}\n')
+              else:
+                  f.write('should_process=false\n')
         shell: python
         env:
-          TZ: UTC  # Ensure consistent timezone
+          TZ: UTC
+
+  process-video:
+    name: Process and Upload Video
+    needs: check-feed
+    if: ${{ needs.check-feed.outputs.should_process == 'true' }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Heavy Dependencies
+        run: |
+          sudo apt-get update
+          PACKAGES="ffmpeg python3-pip wireguard-tools jq curl"
+          sudo apt-get install -y $PACKAGES
+          python3 -m pip install --upgrade pip --pre yt-dlp[default,curl-cffi]
 
       - name: VPN Setup (TradeWar)
-        if: ${{ steps.feed-parser.outputs.should_process == 'true' }}
         env:
           TradeWar_CONFIG: ${{ secrets.WIREGUARD_TRADEWAR }}
         run: |
@@ -100,11 +115,10 @@ jobs:
           fi
 
       - name: Download and Process Video
-        if: ${{ steps.feed-parser.outputs.should_process == 'true' }}
         continue-on-error: true
         run: |
           mkdir -p output
-          URL="${{ steps.feed-parser.outputs.url }}"
+          URL="${{ needs.check-feed.outputs.url }}"
           
           yt-dlp -i --no-progress \
             -S "+res:1080,+vcodec:av01" --windows-filenames \
@@ -112,12 +126,11 @@ jobs:
             --live-from-start --embed-metadata "${URL}"
 
       - name: VPN Cleanup
-        if: ${{ always() && steps.feed-parser.outputs.should_process == 'true' }}
+        if: ${{ always() }}
         run: |
           sudo wg-quick down wg0 || true
 
       - name: Upload Artifact
-        if: ${{ steps.feed-parser.outputs.should_process == 'true' }}
         uses: actions/upload-artifact@v4
         with:
           name: downloaded-video
@@ -126,7 +139,6 @@ jobs:
           if-no-files-found: error
 
       - name: Upload Files to Cloud Storage
-        if: ${{ steps.feed-parser.outputs.should_process == 'true' }}
         run: |
           UPLOAD_URL="https://upload.gofile.io/uploadfile"
           UPLOAD_LINKS=""
@@ -153,8 +165,8 @@ jobs:
             extra_args=()
             if [ -n "$guest_token" ] && [ "$guest_token" != "null" ] && 
                [ -n "$folder_id" ] && [ "$folder_id" != "null" ]; then
-              echo "::add-mask::$guest_token"
-              echo "::add-mask::$folder_id"
+              echo "guest_token=***" >> $GITHUB_OUTPUT
+              echo "folder_id=***" >> $GITHUB_OUTPUT
               extra_args=(-H "Authorization: Bearer $guest_token" -F "folderId=$folder_id")
             fi
 
@@ -162,11 +174,11 @@ jobs:
 
             if [ -z "$guest_token" ]; then
               guest_token=$(echo "$RESPONSE" | jq -r '.data.guestToken')
-              echo "::add-mask::$guest_token"
+              echo "guest_token=$guest_token" >> $GITHUB_OUTPUT
             fi
             if [ -z "$folder_id" ]; then
               folder_id=$(echo "$RESPONSE" | jq -r '.data.parentFolder')
-              echo "::add-mask::$folder_id"
+              echo "folder_id=$folder_id" >> $GITHUB_OUTPUT
             fi
 
             LINK=$(echo "$RESPONSE" | jq -r '.data.downloadPage')
@@ -176,6 +188,5 @@ jobs:
           FILE_COUNT=$(echo -e "$UPLOAD_LINKS" | grep -c '^-')
           SUMMARY="### 📁 Upload Results\n**Files uploaded:** $FILE_COUNT"
 
-          # Append the upload summary to GitHub Step Summary
           echo -e "$SUMMARY\n\n$UPLOAD_LINKS" >> $GITHUB_STEP_SUMMARY
           echo "links=$(echo -e "$UPLOAD_LINKS" | base64 -w 0)" >> $GITHUB_OUTPUT

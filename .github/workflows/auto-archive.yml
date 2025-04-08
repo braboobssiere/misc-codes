@@ -1,4 +1,4 @@
-name: Scheduled Auto-Archive
+name: Auto-Download Video
 
 on:
   workflow_dispatch:

@@ -9,8 +9,6 @@ jobs:
   check-feed:
     name: Check Feed for Valid Entries
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
     outputs:
       should_process: ${{ steps.feed-parser.outputs.should_process }}
       url: ${{ steps.feed-parser.outputs.url }}
@@ -72,15 +70,6 @@ jobs:
         shell: python
         env:
           TZ: UTC
-
-      - name: Disable Self
-        if: ${{ needs.check-feed.outputs.should_process == 'true' }}
-        run: |
-          git config --global user.name "GitHub Actions"
-          git config --global user.email "actions@github.com"
-          git mv .github/workflows/auto-archive.yml .github/workflows/auto-archive.yml.disable
-          git commit -m "Disable workflow during processing"
-          git push
 
   process-video:
     name: Process and Upload Video
@@ -148,15 +137,6 @@ jobs:
         if: ${{ always() }}
         run: |
           sudo wg-quick down wg0 || true
-
-      - name: Re-enable Workflow
-        if: ${{ always() && needs.check-feed.outputs.should_process == 'true' }}
-        run: |
-          git checkout main
-          git pull
-          git mv .github/workflows/auto-archive.yml.disable .github/workflows/auto-archive.yml
-          git commit -m "Re-enable workflow post-processing"
-          git push
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4

@@ -6,7 +6,7 @@ on:
     - cron: '35 * * * *'
 
 concurrency:
-  group: scheduled-auto-archive
+  group: Auto-Download Video
   cancel-in-progress: false
 
 jobs:

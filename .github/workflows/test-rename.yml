@@ -1,0 +1,23 @@
+name: test rename
+on:
+  workflow_dispatch:
+
+jobs:
+  self-modify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+          
+      - name: Rename workflow file
+        run: mv .github/workflows/test-rename.yml .github/workflows/test-rename.yml.d
+        
+      - name: Commit and push
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add .
+          git commit -m "Rename workflow file [skip ci]"
+          git push

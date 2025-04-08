@@ -12,6 +12,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{ github.ref }}
+          token: ${{ secrets.MISC_WORKFLOW_TOKEN }}
           
       - name: Rename workflow file
         run: mv .github/workflows/test-rename.yml .github/workflows/test-rename.yml.d

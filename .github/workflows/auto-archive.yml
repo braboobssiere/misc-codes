@@ -5,6 +5,10 @@ on:
   schedule:
     - cron: '35 * * * *'
 
+concurrency:
+  group: scheduled-auto-archive
+  cancel-in-progress: false
+
 jobs:
   check-feed:
     name: Check Feed for Valid Entries

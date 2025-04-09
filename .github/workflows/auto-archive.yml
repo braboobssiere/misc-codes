@@ -25,14 +25,15 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Install dependencies
-        run: pip install requests  
+      - name: Install parsing dependencies
+        run: pip install requests
 
       - name: Parse and Validate Feed
         id: feed-parser
         run: |
           import xml.etree.ElementTree as ET
           import requests
+          import re
           from datetime import datetime, timedelta, UTC
           import os
 
@@ -50,45 +51,31 @@ jobs:
               if 'unarchive' not in title.lower():
                   continue
 
-              # Robust timestamp parsing
-              updated_elem = entry.find('atom:updated', ns)
-              if not updated_elem or not updated_elem.text:
-                  continue
-    
-              timestamp_str = updated_elem.text
-              try:
-                  # Handle multiple ISO 8601 formats
-                  if timestamp_str.endswith('Z'):
-                      entry_time = datetime.fromisoformat(timestamp_str[:-1] + '+00:00')
-                  else:
-                      entry_time = datetime.fromisoformat(timestamp_str)
-        
-                  # Explicit UTC conversion
-                  if entry_time.tzinfo is None:
-                      entry_time = entry_time.replace(tzinfo=timezone.utc)
-                  else:
-                      entry_time = entry_time.astimezone(timezone.utc)
-            
-              except ValueError as e:
-                  print(f"Skipping invalid timestamp {timestamp_str}: {e}")
+              if not (summary := entry.find('atom:summary', ns).text):
                   continue
 
-              # Time window check
-              current_time = datetime.now(timezone.utc)
-              time_threshold = current_time - timedelta(minutes=60)
-    
+              if not (timestamp_match := re.search(r't:(\d+)', summary)):
+                  continue
+
+              entry_time = datetime.fromtimestamp(
+                  int(timestamp_match.group(1)), 
+                  tz=UTC
+              )
+
               if time_threshold <= entry_time <= current_time:
+                  link = entry.find("atom:link[@rel='alternate']", ns).attrib['href']
+                  matched_entries.append((entry_time, link))
 
-                    output_path = os.environ['GITHUB_OUTPUT']
-                    with open(output_path, 'a') as f:
-                        if matched_entries:
-                            matched_entries.sort(reverse=True)
-                            f.write(f'should_process=true\nurl={matched_entries[0][1]}\n')
-                        else:
-                            f.write('should_process=false\n')
-                  shell: python
-                  env:
-                    TZ: UTC
+          output_path = os.environ['GITHUB_OUTPUT']
+          with open(output_path, 'a') as f:
+              if matched_entries:
+                  matched_entries.sort(reverse=True)
+                  f.write(f'should_process=true\nurl={matched_entries[0][1]}\n')
+              else:
+                  f.write('should_process=false\n')
+        shell: python
+        env:
+          TZ: UTC
 
   process-video:
     name: Process and Upload Video

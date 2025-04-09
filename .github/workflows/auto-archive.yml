@@ -25,14 +25,15 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Install dependencies
-        run: pip install requests  
+      - name: Install parsing dependencies
+        run: pip install requests
 
       - name: Parse and Validate Feed
         id: feed-parser
         run: |
           import xml.etree.ElementTree as ET
           import requests
+          import re
           from datetime import datetime, timedelta, UTC
           import os
 
@@ -50,15 +51,16 @@ jobs:
               if 'unarchive' not in title.lower():
                   continue
 
-              if not (updated_elem := entry.find('atom:updated', ns)):
+              if not (summary := entry.find('atom:summary', ns).text):
                   continue
-              
-              try:
-                  entry_time = datetime.fromisoformat(updated_elem.text)
-              except ValueError:
+
+              if not (timestamp_match := re.search(r't:(\d+)', summary)):
                   continue
-              
-              entry_time = entry_time.astimezone(UTC)
+
+              entry_time = datetime.fromtimestamp(
+                  int(timestamp_match.group(1)), 
+                  tz=UTC
+              )
 
               if time_threshold <= entry_time <= current_time:
                   link = entry.find("atom:link[@rel='alternate']", ns).attrib['href']

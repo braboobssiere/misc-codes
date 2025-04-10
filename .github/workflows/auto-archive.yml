@@ -2,8 +2,8 @@ name: Auto-Download Video
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: '35 * * * *'
+  # schedule: # use cron-job.org instead
+  #   - cron: '35 * * * *'
 
 concurrency:
   group: Auto-Download Video

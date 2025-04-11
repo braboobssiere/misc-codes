@@ -11,7 +11,6 @@ on:
           - GrandCentral
           - TradeWar
           - Shinkansen
-          - Wabisabi
           - Disable
 
 jobs:
@@ -37,7 +36,6 @@ jobs:
           GrandCentral_CONFIG: ${{ secrets.WIREGUARD_GrandCentral }}
           TradeWar_CONFIG: ${{ secrets.WIREGUARD_TradeWar }}
           Shinkansen_CONFIG: ${{ secrets.WIREGUARD_Shinkansen }}
-          Wabisabi_CONFIG: ${{ secrets.WIREGUARD_Wabisabi }}
         run: |
           sudo apt-get update
           sudo apt-get install -y wireguard-tools
@@ -47,7 +45,6 @@ jobs:
             GrandCentral) CONFIG_VAR="GrandCentral_CONFIG" ;;
             TradeWar) CONFIG_VAR="TradeWar_CONFIG" ;;
             Shinkansen) CONFIG_VAR="Shinkansen_CONFIG" ;;
-            Wabisabi) CONFIG_VAR="Wabisabi_CONFIG" ;;
             *)
               echo "::error::Invalid location selection"
               exit 1

@@ -15,6 +15,7 @@ on:
         options:
           - 'TradeWar'
           - 'GrandCentral'
+          - 'Shinkansen'
           - 'false'
       resolution:
         description: "Video resolution (default: 1080p)"
@@ -77,11 +78,13 @@ jobs:
         env:
           GrandCentral_CONFIG: ${{ secrets.WIREGUARD_GRANDCENTRAL }}
           TradeWar_CONFIG: ${{ secrets.WIREGUARD_TRADEWAR }}
+          Shinkansen_CONFIG: ${{ secrets.WIREGUARD_Shinkansen }}
         run: |
           sudo mkdir -p /etc/wireguard/
           
           case "${{ github.event.inputs.vpn_location }}" in
             GrandCentral) CONFIG_VAR="GrandCentral_CONFIG" ;;
+            Shinkansen) CONFIG_VAR="Shinkansen_CONFIG" ;;
             TradeWar) CONFIG_VAR="TradeWar_CONFIG" ;;
             *)
               echo "::error::Invalid location selection"

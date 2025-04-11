@@ -10,6 +10,8 @@ on:
         options:
           - GrandCentral
           - TradeWar
+          - Shinkansen
+          - Wabi-sabi
           - Disable
 
 jobs:
@@ -34,6 +36,8 @@ jobs:
         env:
           GrandCentral_CONFIG: ${{ secrets.WIREGUARD_GrandCentral }}
           TradeWar_CONFIG: ${{ secrets.WIREGUARD_TradeWar }}
+          Shinkansen_CONFIG: ${{ secrets.WIREGUARD_Shinkansen }}
+          Wabi-sabi_CONFIG: ${{ secrets.WIREGUARD_Wabi-sabi }}
         run: |
           sudo apt-get update
           sudo apt-get install -y wireguard-tools
@@ -42,6 +46,8 @@ jobs:
           case "${{ github.event.inputs.vpn_location }}" in
             GrandCentral) CONFIG_VAR="GrandCentral_CONFIG" ;;
             TradeWar) CONFIG_VAR="TradeWar_CONFIG" ;;
+            Shinkansen) CONFIG_VAR="Shinkansen_CONFIG" ;;
+            Wabi-sabi) CONFIG_VAR="Wabi-sabi_CONFIG" ;;
             *)
               echo "::error::Invalid location selection"
               exit 1

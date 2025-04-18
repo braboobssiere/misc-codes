@@ -125,7 +125,7 @@ jobs:
           parallel -j4 \
           "yt-dlp -i --no-progress -S '+res:1080,+vcodec:av01' \
           --windows-filenames --live-from-start --embed-metadata \
-          -o 'output/\"%(title).170B [%(id)s] (%(resolution)s).%(ext)s\"' \
+          -o "output/%(title).170B [%(id)s] (%(resolution)s).%(ext)s" \
           '{}'" ::: $URLS >> output/logs.txt 2>&1
 
       - name: VPN Cleanup

@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       should_process: ${{ steps.feed-parser.outputs.should_process }}
-      url: ${{ steps.feed-parser.outputs.url }}
+      urls: ${{ steps.feed-parser.outputs.urls }}
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -90,9 +90,8 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        entry: ${{ fromJson(needs.check-feed.outputs.urls) }}
+        entry: ${{ fromJson(needs.check-feed.outputs.urls) }}  
       max-parallel: 4
-
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4

@@ -160,10 +160,7 @@ jobs:
             fi
 
             # Upload call with error capture
-            RESPONSE=$(curl -s -X POST \
-              -F "file=@\"$file\"" \
-              "${extra_args[@]}" \
-              "$UPLOAD_URL")
+            RESPONSE=$(curl -s -X POST -F "file=@\"$file\"" "${extra_args[@]}" "$UPLOAD_URL")
 
             # Handle first response credentials
             if [ "$FIRST_FILE" = true ]; then

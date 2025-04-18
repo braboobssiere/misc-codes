@@ -117,15 +117,19 @@ jobs:
           fi
 
       - name: Concurrent Downloads
+        continue-on-error: true
         run: |
           mkdir -p output
           URLS=$(echo '${{ needs.check-feed.outputs.urls }}' | jq -r '.[].url')
           
-          parallel -j4 --progress --tag --joblog output/jobs.log \
+          parallel -j4 \
             yt-dlp -i --no-progress -S "+res:1080,+vcodec:av01" \
             --windows-filenames --live-from-start --embed-metadata \
             -o "output/\"%(title).170B [%(id)s] (%(resolution)s).%(ext)s\"" \
-            ::: $URLS
+            "{1}" \
+            2>&1 | ts "[%Y-%m-%d %H:%M:%S]" >> output/logs.txt' \
+          ::: $URLS
+          echo "[$(date +'%Y-%m-%d %H:%M:%S')] Download batch completed" >> output/logs.txt
 
       - name: VPN Cleanup
         if: ${{ always() }}
@@ -182,5 +186,4 @@ jobs:
           done < <(find output/ -type f -print0)
 
           echo "### File Uploads" >> $GITHUB_STEP_SUMMARY
-          echo "**Folder:** [View All](https://gofile.io/d/$folder_id)" >> $GITHUB_STEP_SUMMARY
           echo -e "\n$UPLOAD_LINKS" >> $GITHUB_STEP_SUMMARY

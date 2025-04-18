@@ -68,18 +68,17 @@ jobs:
                   matched_entries.append((entry_time, link))
 
           # Sort by newest first and keep up to 4 entries
-          matched_entries.sort(reverse=True, key=lambda x: x[0])
-          matched_entries = matched_entries[:4]
+          entries = []
+          if matched_entries:
+              matched_entries.sort(reverse=True, key=lambda x: x[0])
+              entries = [{"url": e[1], "index": i} for i, e in enumerate(matched_entries[:4])]
 
           output_path = os.environ['GITHUB_OUTPUT']
           with open(output_path, 'a') as f:
-              if matched_entries:
-                # Create list of entries with indexes for matrix strategy
-                entries = [{"url": e[1], "index": i} for i, e in enumerate(matched_entries)]
-                f.write(f'should_process=true\nurls={json.dumps(entries)}\n')
-              else:
-                f.write('should_process=false\n')
-                # exit 78
+              f.write(f'should_process={bool(entries)}\n')
+              f.write(f'urls={json.dumps(entries)}\n')
+              if not entries:
+                  exit(78)
         shell: python
         env:
           TZ: UTC

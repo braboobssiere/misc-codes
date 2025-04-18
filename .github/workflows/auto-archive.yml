@@ -79,7 +79,7 @@ jobs:
                 f.write(f'should_process=true\nurls={json.dumps(entries)}\n')
               else:
                 f.write('should_process=false\n')
-                exit 78
+                # exit 78
         shell: python
         env:
           TZ: UTC

@@ -123,14 +123,11 @@ jobs:
           URLS=$(echo '${{ needs.check-feed.outputs.urls }}' | jq -r '.[].url')
           
           parallel -j4 \
-          'echo "Download command: yt-dlp -i --no-progress \
-          -S \"+res:1080,+vcodec:av01\" \
-          --windows-filenames --live-from-start --embed-metadata \
-          -o \"output/%(title).170B [%(id)s] (%(resolution)s).%(ext)s\" {}" \
-          && yt-dlp -i --no-progress -S "+res:1080,+vcodec:av01" \
-          --windows-filenames --live-from-start --embed-metadata \
-          -o "output/%(title).170B [%(id)s] (%(resolution)s).%(ext)s" {}' \
-          ::: "${URLS[@]}" >> output/logs.txt 2>&1
+          'cmd="yt-dlp -i --no-progress -S \"+res:1080,+vcodec:av01\" \
+            --windows-filenames --live-from-start --embed-metadata \
+            -o \"output/%(title,filename).170B [%(id)s] (%(resolution)s).%(ext)s\" {}";
+          echo "Download command: $cmd";
+          eval "$cmd"' ::: "${URLS[@]}" >> output/logs.txt 2>&1
 
       - name: VPN Cleanup
         if: ${{ always() }}

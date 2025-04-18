@@ -139,35 +139,48 @@ jobs:
           compression-level: 1
           if-no-files-found: error
 
-      - name: Upload to Cloud Storage
+      - name: Upload Files to Cloud Storage
         run: |
           UPLOAD_URL="https://upload.gofile.io/uploadfile"
           guest_token=""
           folder_id=""
+          UPLOAD_LINKS=""
+          FIRST_FILE=true
 
-          upload_file() {
-            local file=$1
-            RESPONSE=$(curl -s -X POST -F "file=@$file" "$UPLOAD_URL")
-            echo "$RESPONSE"
-          }
-
+          # Process files with null delimiter for special characters
           while IFS= read -r -d '' file; do
-            echo "Processing $file..."
-            RESPONSE=$(upload_file "$file")
-            
-            if ! echo "$RESPONSE" | jq -e '.status == "ok"' >/dev/null; then
-              echo "::error::Upload failed for $file: $(echo $RESPONSE | jq .)"
-              exit 1
+            echo "▫️ Starting upload: $(basename "$file")"
+      
+            # Set auth headers after first file
+            extra_args=()
+            if [ "$FIRST_FILE" = false ]; then
+              extra_args+=(-H "Authorization: Bearer $guest_token" -F "folderId=$folder_id")
             fi
 
-            guest_token=${guest_token:-$(echo "$RESPONSE" | jq -r '.data.guestToken')}
-            folder_id=${folder_id:-$(echo "$RESPONSE" | jq -r '.data.parentFolder')}
-            LINK=$(echo "$RESPONSE" | jq -r '.data.downloadPage')
-            echo "- [$(basename "$file")]($LINK)" >> upload-links.md
+            # Upload call with error capture
+            RESPONSE=$(curl -s -X POST \
+              -F "file=@\"$file\"" \
+              "${extra_args[@]}" \
+              "$UPLOAD_URL")
+
+            # Handle first response credentials
+            if [ "$FIRST_FILE" = true ]; then
+              guest_token=$(echo "$RESPONSE" | jq -r '.data.guestToken')
+              folder_id=$(echo "$RESPONSE" | jq -r '.data.parentFolder')
+              FIRST_FILE=false
+              echo "🔑 Created folder ID: $folder_id"
+            fi
+
+            # Individual file status check
+            if ! echo "$RESPONSE" | jq -e '.status == "ok"' >/dev/null; then
+              echo "::error file=$file::Upload failed: $(echo "$RESPONSE" | jq -r '.data')"
+            else
+              LINK=$(echo "$RESPONSE" | jq -r '.data.downloadPage')
+              UPLOAD_LINKS+="- $(basename "$file"): $LINK\n"
+              echo "✅ Success: $LINK"
+            fi
           done < <(find output/ -type f -print0)
 
-          echo "### 📥 Download Results" >> $GITHUB_STEP_SUMMARY
-          echo "**Total files uploaded:** $(wc -l < upload-links.md)" >> $GITHUB_STEP_SUMMARY
-          echo -e "\n<details><summary>View download links</summary>\n" >> $GITHUB_STEP_SUMMARY
-          cat upload-links.md >> $GITHUB_STEP_SUMMARY
-          echo -e "\n</details>" >> $GITHUB_STEP_SUMMARY
+          echo "### File Uploads" >> $GITHUB_STEP_SUMMARY
+          echo "**Folder:** [View All](https://gofile.io/d/$folder_id)" >> $GITHUB_STEP_SUMMARY
+          echo -e "\n$UPLOAD_LINKS" >> $GITHUB_STEP_SUMMARY

@@ -36,6 +36,7 @@ jobs:
           import re
           from datetime import datetime, timedelta, UTC
           import os
+          import json
 
           feed_url = "https://raw.githubusercontent.com/braboobssiere/holedex-song-list/main/feeds/holodex.atom"
           response = requests.get(feed_url)
@@ -66,14 +67,19 @@ jobs:
                   link = entry.find("atom:link[@rel='alternate']", ns).attrib['href']
                   matched_entries.append((entry_time, link))
 
+          # Sort by newest first and keep up to 4 entries
+          matched_entries.sort(reverse=True, key=lambda x: x[0])
+          matched_entries = matched_entries[:4]
+
           output_path = os.environ['GITHUB_OUTPUT']
           with open(output_path, 'a') as f:
               if matched_entries:
-                  matched_entries.sort(reverse=True)
-                  f.write(f'should_process=true\nurl={matched_entries[0][1]}\n')
+                # Create list of entries with indexes for matrix strategy
+                entries = [{"url": e[1], "index": i} for i, e in enumerate(matched_entries)]
+                f.write(f'should_process=true\nurls={json.dumps(entries)}\n')
               else:
-                  f.write('should_process=false\n')
-                  exit 78
+                f.write('should_process=false\n')
+                exit 78
         shell: python
         env:
           TZ: UTC
@@ -83,6 +89,10 @@ jobs:
     needs: check-feed
     if: ${{ needs.check-feed.outputs.should_process == 'true' }}
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        entry: ${{ fromJson(needs.check-feed.outputs.urls) }}
+      max-parallel: 4
 
     steps:
       - name: Checkout Repository
@@ -124,21 +134,17 @@ jobs:
       - name: Download and Process Video
         continue-on-error: true
         run: |
-          mkdir -p output
-          URL="${{ needs.check-feed.outputs.url }}"
-            {
-            echo "=== Download Command ==="
-            echo "yt-dlp -i --no-progress -S '+res:1080,+vcodec:av01' \
-              --windows-filenames --live-from-start --embed-metadata \
-              -o \"output/%(title).170B [%(id)s] (%(resolution)s).%(ext)s\" \
-              ${URL}"
-            echo "\n=== Execution Output ==="
-      
-            yt-dlp -i --no-progress -S "+res:1080,+vcodec:av01" \
-              --windows-filenames --live-from-start --embed-metadata \
-              -o "output/%(title).170B [%(id)s] (%(resolution)s).%(ext)s" \
-              "${URL}"
-            } > output/logs.txt 2>&1
+          OUTPUT_DIR="output/${{ matrix.entry.index }}"
+          mkdir -p "${OUTPUT_DIR}"
+          URL="${{ matrix.entry.url }}"
+          
+          {
+          echo "=== Processing URL ${{ matrix.entry.url }} ==="
+          yt-dlp -i --no-progress -S "+res:1080,+vcodec:av01" \
+            --windows-filenames --live-from-start --embed-metadata \
+            -o "${OUTPUT_DIR}/%(title).170B [%(id)s] (%(resolution)s).%(ext)s" \
+            "${URL}"
+          } > "${OUTPUT_DIR}/logs.txt" 2>&1
 
       - name: VPN Cleanup
         if: ${{ always() }}
@@ -159,6 +165,7 @@ jobs:
           UPLOAD_LINKS=""
           guest_token=""
           folder_id=""
+          OUTPUT_DIR="output/${{ matrix.entry.index }}"
 
           upload_file() {
             local file=$1
@@ -175,7 +182,7 @@ jobs:
             echo "$RESPONSE"
           }
 
-          for file in output/*; do
+          for file in "${OUTPUT_DIR}"/*; do
             echo "Uploading $(basename "$file")..."
             extra_args=()
             if [ -n "$guest_token" ] && [ "$guest_token" != "null" ] && 

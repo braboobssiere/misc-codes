@@ -67,11 +67,10 @@ jobs:
                   link = entry.find("atom:link[@rel='alternate']", ns).attrib['href']
                   matched_entries.append((entry_time, link))
 
-          # Sort by newest first and keep up to 4 entries
           entries = []
           if matched_entries:
               matched_entries.sort(reverse=True, key=lambda x: x[0])
-              entries = [{"url": e[1], "index": i} for i, e in enumerate(matched_entries[:4])]
+              entries = [{"url": e[1]} for e in matched_entries[:4]]
 
           output_path = os.environ['GITHUB_OUTPUT']
           with open(output_path, 'a') as f:
@@ -84,23 +83,18 @@ jobs:
           TZ: UTC
 
   process-video:
-    name: Process and Upload Video
+    name: Process and Upload Videos
     needs: check-feed
     if: ${{ needs.check-feed.outputs.should_process == 'true' }}
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        entry: ${{ fromJson(needs.check-feed.outputs.urls) }}  
-      max-parallel: 4
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Setup Heavy Dependencies
+      - name: Setup Dependencies
         run: |
           sudo apt-get update
-          PACKAGES="ffmpeg python3-pip wireguard-tools jq curl"
-          sudo apt-get install -y $PACKAGES
+          sudo apt-get install -y ffmpeg wireguard-tools jq curl parallel
           python3 -m pip install --upgrade pip --pre yt-dlp[default,curl-cffi]
 
       - name: VPN Setup (TradeWar)
@@ -112,16 +106,9 @@ jobs:
           sudo chmod 600 /etc/wireguard/wg0.conf
 
           for i in {1..5}; do
-              sudo wg-quick up wg0
-              sleep 1 
-              if sudo wg show wg0 >/dev/null 2>&1; then
-                  echo "VPN connected successfully on attempt $i"
-                  break
-              else
-                  echo "VPN connection failed (attempt $i/5)"
-                  sudo wg-quick down wg0 >/dev/null 2>&1
-                  [ $i -lt 5 ] && sleep 1
-              fi
+              sudo wg-quick up wg0 && break
+              sleep 1
+              echo "VPN connection attempt $i/5 failed"
           done
 
           if ! sudo wg show wg0 >/dev/null 2>&1; then
@@ -129,84 +116,58 @@ jobs:
               exit 1
           fi
 
-      - name: Download and Process Video
-        continue-on-error: true
+      - name: Concurrent Downloads
         run: |
-          OUTPUT_DIR="output/${{ matrix.entry.index }}"
-          mkdir -p "${OUTPUT_DIR}"
-          URL="${{ matrix.entry.url }}"
+          mkdir -p output
+          URLS=$(echo '${{ needs.check-feed.outputs.urls }}' | jq -r '.[].url')
           
-          {
-          echo "=== Processing URL ${{ matrix.entry.url }} ==="
-          yt-dlp -i --no-progress -S "+res:1080,+vcodec:av01" \
+          parallel -j4 --progress --tag --joblog output/jobs.log \
+            yt-dlp -i --no-progress -S "+res:1080,+vcodec:av01" \
             --windows-filenames --live-from-start --embed-metadata \
-            -o "${OUTPUT_DIR}/%(title).170B [%(id)s] (%(resolution)s).%(ext)s" \
-            "${URL}"
-          } > "${OUTPUT_DIR}/logs.txt" 2>&1
+            -o 'output/%(title).170B [%(id)s] (%(resolution)s).%(ext)s' \
+            ::: $URLS
 
       - name: VPN Cleanup
         if: ${{ always() }}
-        run: |
-          sudo wg-quick down wg0 || true
+        run: sudo wg-quick down wg0 || true
 
-      - name: Upload Artifact
+      - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: downloaded-video-${{ matrix.entry.index }}
-          path: output/${{ matrix.entry.index }}
+          name: downloaded-videos
+          path: output/
           compression-level: 1
           if-no-files-found: error
 
-      - name: Upload Files to Cloud Storage
+      - name: Upload to Cloud Storage
         run: |
           UPLOAD_URL="https://upload.gofile.io/uploadfile"
-          UPLOAD_LINKS=""
           guest_token=""
           folder_id=""
-          OUTPUT_DIR="output/${{ matrix.entry.index }}"
 
           upload_file() {
             local file=$1
-            shift
-            local extra_args=("$@")
-
-            RESPONSE=$(curl -s -X POST -F "file=@\"$file\"" "${extra_args[@]}" "$UPLOAD_URL")
-            STATUS=$(echo "$RESPONSE" | jq -r '.status')
-            if [ "$STATUS" != "ok" ]; then
-              ERROR=$(echo "$RESPONSE" | jq -r '.data // .status')
-              echo "::error::Upload failed for $file: $ERROR"
-              exit 1
-            fi
+            RESPONSE=$(curl -s -X POST -F "file=@$file" "$UPLOAD_URL")
             echo "$RESPONSE"
           }
 
-          for file in "${OUTPUT_DIR}"/*; do
-            echo "Uploading $(basename "$file")..."
-            extra_args=()
-            if [ -n "$guest_token" ] && [ "$guest_token" != "null" ] && 
-               [ -n "$folder_id" ] && [ "$folder_id" != "null" ]; then
-              echo "guest_token=***" >> $GITHUB_OUTPUT
-              echo "folder_id=***" >> $GITHUB_OUTPUT
-              extra_args=(-H "Authorization: Bearer $guest_token" -F "folderId=$folder_id")
+          while IFS= read -r -d '' file; do
+            echo "Processing $file..."
+            RESPONSE=$(upload_file "$file")
+            
+            if ! echo "$RESPONSE" | jq -e '.status == "ok"' >/dev/null; then
+              echo "::error::Upload failed for $file: $(echo $RESPONSE | jq .)"
+              exit 1
             fi
 
-            RESPONSE=$(upload_file "$file" "${extra_args[@]}")
-
-            if [ -z "$guest_token" ]; then
-              guest_token=$(echo "$RESPONSE" | jq -r '.data.guestToken')
-              echo "guest_token=$guest_token" >> $GITHUB_OUTPUT
-            fi
-            if [ -z "$folder_id" ]; then
-              folder_id=$(echo "$RESPONSE" | jq -r '.data.parentFolder')
-              echo "folder_id=$folder_id" >> $GITHUB_OUTPUT
-            fi
-
+            guest_token=${guest_token:-$(echo "$RESPONSE" | jq -r '.data.guestToken')}
+            folder_id=${folder_id:-$(echo "$RESPONSE" | jq -r '.data.parentFolder')}
             LINK=$(echo "$RESPONSE" | jq -r '.data.downloadPage')
-            UPLOAD_LINKS+="- [$(basename "$file")]($LINK)\n"
-          done
+            echo "- [$(basename "$file")]($LINK)" >> upload-links.md
+          done < <(find output/ -type f -print0)
 
-          FILE_COUNT=$(echo -e "$UPLOAD_LINKS" | grep -c '^-')
-          SUMMARY="### 📁 Upload Results\n**Files uploaded:** $FILE_COUNT"
-
-          echo -e "$SUMMARY\n\n$UPLOAD_LINKS" >> $GITHUB_STEP_SUMMARY
-          echo "links=$(echo -e "$UPLOAD_LINKS" | base64 -w 0)" >> $GITHUB_OUTPUT
+          echo "### 📥 Download Results" >> $GITHUB_STEP_SUMMARY
+          echo "**Total files uploaded:** $(wc -l < upload-links.md)" >> $GITHUB_STEP_SUMMARY
+          echo -e "\n<details><summary>View download links</summary>\n" >> $GITHUB_STEP_SUMMARY
+          cat upload-links.md >> $GITHUB_STEP_SUMMARY
+          echo -e "\n</details>" >> $GITHUB_STEP_SUMMARY

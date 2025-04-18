@@ -154,8 +154,8 @@ jobs:
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: downloaded-video
-          path: output
+          name: downloaded-video-${{ matrix.entry.index }}
+          path: output/${{ matrix.entry.index }}
           compression-level: 1
           if-no-files-found: error
 

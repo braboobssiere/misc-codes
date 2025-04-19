@@ -175,10 +175,10 @@ jobs:
               echo "::error file=$file::Upload failed: $(echo "$RESPONSE" | jq -r '.data')"
             else
               LINK=$(echo "$RESPONSE" | jq -r '.data.downloadPage')
-              UPLOAD_LINKS+="- $(basename "$file"): $LINK\n"
+              UPLOAD_LINKS+="- $(basename "$file")\n"
               echo "✅ Success: $LINK"
             fi
           done < <(find output/ -type f -print0)
 
-          echo "### File Uploads" >> $GITHUB_STEP_SUMMARY
+          echo "### File Uploads: $LINK" >> $GITHUB_STEP_SUMMARY
           echo -e "\n$UPLOAD_LINKS" >> $GITHUB_STEP_SUMMARY

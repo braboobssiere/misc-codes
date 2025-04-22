@@ -1,36 +1,51 @@
 name: Cleanup Short Runs
 
-
 on:
   workflow_dispatch:
   schedule:
     - cron: '30 4 * * *'
-
 
 jobs:
   cleanup:
     runs-on: ubuntu-latest
     permissions:
       actions: write
+      contents: read
       
     steps:
     - name: Delete short runs
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        # Get workflow runs
-        curl -s -H "Authorization: Bearer $GH_TOKEN" \
-          "https://api.github.com/repos/${{ github.repository }}/actions/runs?status=completed&per_page=100" > runs.json
+        REPO="${{ github.repository }}"
+        PAGE=1
+        
+        while true; do
+          echo "Processing page $PAGE"
+          
+          # Get paginated results
+          curl -s -H "Authorization: Bearer $GH_TOKEN" \
+            "https://api.github.com/repos/$REPO/actions/runs?status=completed&per_page=100&page=$PAGE" > page.json
+          
+          # Exit loop if no more results
+          if [ $(jq '.workflow_runs | length' page.json) -eq 0 ]; then
+            break
+          fi
 
+          # Process current page
+          jq -r '
+            .workflow_runs[] | 
+            select(
+              ( (.updated_at | fromdateiso8601) - (.created_at | fromdateiso8601) ) < 60
+            ) | .id
+          ' page.json | while read -r run_id; do
+            echo "Deleting run $run_id"
+            curl -s -X DELETE -H "Authorization: Bearer $GH_TOKEN" \
+              "https://api.github.com/repos/$REPO/actions/runs/$run_id"
+            sleep 1  # Rate limit protection
+          done
 
-        # Filter and delete runs with duration < 60s
-        jq -r '
-          .workflow_runs[] | 
-          select(
-            ( (.updated_at | fromdateiso8601) - (.created_at | fromdateiso8601) ) < 60
-          ) | .id
-        ' runs.json | while read -r run_id; do
-          echo "Deleting run $run_id"
-          curl -s -X DELETE -H "Authorization: Bearer $GH_TOKEN" \
-            "https://api.github.com/repos/${{ github.repository }}/actions/runs/$run_id"
+          ((PAGE++))
         done
+
+        echo "Cleanup complete"

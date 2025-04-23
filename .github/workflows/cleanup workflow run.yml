@@ -3,8 +3,8 @@ name: Cleanup Short Runs
 
 on:
   workflow_dispatch:
-  # schedule:
-  #  - cron: '0/20 * * * *'
+  schedule:
+    - cron: '12 3 * * *'
 
 
 jobs:

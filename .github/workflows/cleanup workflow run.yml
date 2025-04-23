@@ -27,7 +27,7 @@ jobs:
           exit 1
         fi
 
-        # Filter and delete runs with duration < 300s
+        # Filter and delete runs with duration < 120s
         jq -r '
           .workflow_runs[] | 
           select(

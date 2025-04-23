@@ -106,7 +106,7 @@ jobs:
           sudo chmod 600 /etc/wireguard/wg0.conf
 
           for i in {1..5}; do
-              sudo wg-quick up wg0 && break
+              timeout 60 sudo wg-quick up wg0 && break
               sleep 1
               echo "VPN connection attempt $i/5 failed"
           done

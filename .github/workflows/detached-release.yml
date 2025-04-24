@@ -39,8 +39,9 @@ jobs:
 
           SHA=$(git rev-parse HEAD)
           git tag "$TAG" "$SHA"
+          git push origin "$BR"  
           git push origin --tags
-          git push origin --delete "$BR"
+          git push origin --delete "$BR" || true  
 
           echo "TAG=$TAG" >> $GITHUB_OUTPUT
           echo "SHA=$SHA" >> $GITHUB_OUTPUT

@@ -26,7 +26,7 @@ jobs:
         run: |
           # Generate 16-character random hex string (8 bytes)
           RAND_HEX=$(openssl rand -hex 8)
-          TAG="orphan-${RAND_HEX}"
+          TAG="${RAND_HEX}"
           
           BR="tmp-${{ github.run_id }}"
 

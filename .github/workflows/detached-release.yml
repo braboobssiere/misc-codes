@@ -1,4 +1,4 @@
-name: Orphaned Draft Release
+name: Orphaned Draft Release Test
 
 on:
   workflow_dispatch:
@@ -14,17 +14,19 @@ permissions:
 jobs:
   orphaned-draft:
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with: 
-          fetch-depth: 0
 
+    steps:
+      # 1️⃣ Checkout & Git identity
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - name: Configure Git user
         run: |
-          git config user.name "github-actions[bot]"
+          git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Prepare orphaned tag
+      # 2️⃣ Prep commit, temp branch, tag, push & delete branch
+      - name: Prepare commit & tag
         id: prep
         run: |
           TAG="${{ github.event.inputs.tag_name }}"
@@ -33,28 +35,34 @@ jobs:
           git checkout -b "$BR"
           echo "Hello World" > hello-world.txt
           git add hello-world.txt
-          git commit -m "chore: hello-world for orphaned draft"
+          git commit -m "chore: add hello-world for orphaned draft"
 
           SHA=$(git rev-parse HEAD)
           git tag "$TAG" "$SHA"
-
-          # ← push branch *and* tags so deletion works
-          git push origin "$BR" --tags
+          git push origin --tags
           git push origin --delete "$BR"
 
-          echo "sha=$SHA" >> $GITHUB_OUTPUT
-          echo "tag=$TAG" >> $GITHUB_OUTPUT
+          echo "TAG=$TAG" >> $GITHUB_OUTPUT
+          echo "SHA=$SHA" >> $GITHUB_OUTPUT
 
+      # 3️⃣ Create the hidden (draft) Release & upload the asset
       - name: Create orphaned draft Release
+        id: release
         uses: softprops/action-gh-release@v2
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          tag_name: ${{ steps.prep.outputs.tag }}
-          name: "Orphaned Draft ${{ steps.prep.outputs.tag }}"
+          tag_name: ${{ steps.prep.outputs.TAG }}
+          name: "Orphaned Draft ${{ steps.prep.outputs.TAG }}"
           body: |
-            This is an orphaned, draft release.
-            The temp branch has already been deleted.
+            This is truly orphaned—no branch remains.
           draft: true
           prerelease: false
+          target_commitish: ${{ steps.prep.outputs.SHA }}
           files: hello-world.txt
-          target_commitish: ${{ steps.prep.outputs.sha }}
+
+      # 4️⃣ Immediately delete the remote tag via Git
+      - name: Delete remote tag
+        run: |
+          TAG="${{ steps.prep.outputs.TAG }}"
+          # remove the tag ref so it never appears in your Tags list
+          git push origin --delete "$TAG"

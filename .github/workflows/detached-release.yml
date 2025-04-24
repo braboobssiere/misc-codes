@@ -15,40 +15,36 @@ jobs:
   orphaned-draft:
     runs-on: ubuntu-latest
     steps:
-      # 1️⃣ Checkout full history & set Git identity
       - uses: actions/checkout@v4
-        with:
+        with: 
           fetch-depth: 0
+
       - name: Configure Git user
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-      # 2️⃣ Create temp branch, commit + tag, push & delete
       - name: Prepare orphaned tag
         id: prep
         run: |
           TAG="${{ github.event.inputs.tag_name }}"
           BR="tmp-${{ github.run_id }}"
 
-          # make branch + commit
           git checkout -b "$BR"
           echo "Hello World" > hello-world.txt
           git add hello-world.txt
           git commit -m "chore: hello-world for orphaned draft"
 
-          # tag the commit
           SHA=$(git rev-parse HEAD)
           git tag "$TAG" "$SHA"
 
-          # push tag and then delete branch
-          git push origin --tags
+          # ← push branch *and* tags so deletion works
+          git push origin "$BR" --tags
           git push origin --delete "$BR"
 
           echo "sha=$SHA" >> $GITHUB_OUTPUT
           echo "tag=$TAG" >> $GITHUB_OUTPUT
 
-      # 3️⃣ Create a hidden (draft) Release pointing at that tag
       - name: Create orphaned draft Release
         uses: softprops/action-gh-release@v2
         with:

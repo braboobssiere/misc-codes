@@ -12,35 +12,53 @@ permissions:
   contents: write
 
 jobs:
-  draft-release:
+  orphaned-draft:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout full history
-        uses: actions/checkout@v4
+      # 1️⃣ Checkout full history & set Git identity
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
-      - name: Commit hello-world.txt on temp branch
+      - name: Configure Git user
         run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      # 2️⃣ Create temp branch, commit + tag, push & delete
+      - name: Prepare orphaned tag
+        id: prep
+        run: |
+          TAG="${{ github.event.inputs.tag_name }}"
           BR="tmp-${{ github.run_id }}"
+
+          # make branch + commit
           git checkout -b "$BR"
           echo "Hello World" > hello-world.txt
           git add hello-world.txt
-          git commit -m "feat: add hello-world for draft release"
-          git push origin "$BR"
-          echo "## Deleting temporary branch"
+          git commit -m "chore: hello-world for orphaned draft"
+
+          # tag the commit
+          SHA=$(git rev-parse HEAD)
+          git tag "$TAG" "$SHA"
+
+          # push tag and then delete branch
+          git push origin --tags
           git push origin --delete "$BR"
 
+          echo "sha=$SHA" >> $GITHUB_OUTPUT
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+
+      # 3️⃣ Create a hidden (draft) Release pointing at that tag
       - name: Create orphaned draft Release
         uses: softprops/action-gh-release@v2
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          tag_name: ${{ github.event.inputs.tag_name }}
-          name: "Orphaned Draft ${{ github.event.inputs.tag_name }}"
+          tag_name: ${{ steps.prep.outputs.tag }}
+          name: "Orphaned Draft ${{ steps.prep.outputs.tag }}"
           body: |
-            This release is truly orphaned—
-            the temporary branch has been deleted.
+            This is an orphaned, draft release.
+            The temp branch has already been deleted.
           draft: true
           prerelease: false
           files: hello-world.txt
-          target_commitish: ${{ steps.commit.outputs.sha }}
+          target_commitish: ${{ steps.prep.outputs.sha }}

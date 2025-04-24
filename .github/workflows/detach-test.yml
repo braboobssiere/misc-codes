@@ -1,0 +1,36 @@
+name: Simple Release Demo
+
+on:
+  push:
+    tags:
+      - v0.1  # Triggers on any version tag
+
+jobs:
+  create-release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Create version file
+      run: |
+        echo "Hello World! 🚀" > hello-world.txt
+        echo "Release Version: ${GITHUB_REF#refs/tags/}" >> hello-world.txt
+        echo "Build Date: $(date)" >> hello-world.txt
+
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v2
+      with:
+        tag_name: ${{ github.ref_name }}
+        name: Release ${{ github.ref_name }}
+        body: | 
+          ### Hello World Release
+          Contains a sample text file with:
+          - Greeting message
+          - Version number
+          - Build timestamp
+        files: |
+          hello-world.txt

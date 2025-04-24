@@ -28,7 +28,7 @@ jobs:
           
           BR="tmp-${{ github.run_id }}"
 
-          git checkout --orphan -b "$BR"
+          git checkout --orphan "$BR"
           echo "Hello World" > hello-world.txt
           git add hello-world.txt
           git commit -m "chore: add hello-world for orphaned draft"

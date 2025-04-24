@@ -1,12 +1,7 @@
 name: Orphaned Draft Release Test
 
 on:
-  workflow_dispatch:
-    inputs:
-      tag_name:
-        description: 'Release tag'
-        required: true
-        default: 'v-orphaned-draft-1.0.0'
+  workflow_dispatch:  
 
 permissions:
   contents: write
@@ -25,11 +20,14 @@ jobs:
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-      # 2️⃣ Prep commit, temp branch, tag, push & delete branch
-      - name: Prepare commit & tag
+      # 2️⃣ Generate random tag and prepare commit
+      - name: Generate tag & prep commit
         id: prep
         run: |
-          TAG="${{ github.event.inputs.tag_name }}"
+          # Generate 16-character random hex string (8 bytes)
+          RAND_HEX=$(openssl rand -hex 8)
+          TAG="orphan-${RAND_HEX}"
+          
           BR="tmp-${{ github.run_id }}"
 
           git checkout -b "$BR"
@@ -46,24 +44,20 @@ jobs:
           echo "TAG=$TAG" >> $GITHUB_OUTPUT
           echo "SHA=$SHA" >> $GITHUB_OUTPUT
 
-      # 3️⃣ Create the hidden (draft) Release & upload the asset
+      # 3️⃣ Create hidden release
       - name: Create orphaned draft Release
-        id: release
         uses: softprops/action-gh-release@v2
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           tag_name: ${{ steps.prep.outputs.TAG }}
           name: "Orphaned Draft ${{ steps.prep.outputs.TAG }}"
           body: |
-            This is truly orphaned—no branch remains.
+            Randomly tagged release - ${{ steps.prep.outputs.TAG }}
           draft: true
-          prerelease: false
           target_commitish: ${{ steps.prep.outputs.SHA }}
           files: hello-world.txt
 
-      # 4️⃣ Immediately delete the remote tag via Git
+      # 4️⃣ Cleanup tag
       - name: Delete remote tag
         run: |
-          TAG="${{ steps.prep.outputs.TAG }}"
-          # remove the tag ref so it never appears in your Tags list
-          git push origin --delete "$TAG"
+          git push origin --delete "${{ steps.prep.outputs.TAG }}" || echo "Tag already removed"

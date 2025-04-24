@@ -71,7 +71,7 @@ jobs:
           target_commitish: ${{ steps.prep.outputs.SHA }}
           files: ${{ steps.file_handler.outputs.UPLOAD_FILE }}
 
-      # 4️⃣ Cleanup tag
+      # Cleanup tag
       - name: Delete remote tag
         run: |
           git push origin --delete "${{ steps.prep.outputs.TAG }}" || echo "Tag already removed"

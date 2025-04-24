@@ -1,37 +1,60 @@
-name: Simple Release Demo
+name: Detached Branch Release
 
 on:
   workflow_dispatch:
-  push:
-    tags:
-      - v0.1  # Triggers on any version tag
+    inputs:
+      version:
+        description: 'Release version (format vX.Y.Z)'
+        required: true
+        default: 'v1.0.0'
 
 jobs:
-  create-release:
+  detached-release:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-    
+      
     steps:
-    - name: Checkout code
+    - name: Checkout empty base
       uses: actions/checkout@v4
+      with:
+        path: detached-release
 
-    - name: Create version file
+    - name: Initialize orphan commit
       run: |
+        cd detached-release
+        git checkout --orphan temp-release
+        git rm -rf .
+        echo "# Detached Release" > README.md
+        git add README.md
+        git commit -m "Initial commit"
+
+    - name: Create release file
+      run: |
+        cd detached-release
         echo "Hello World! 🚀" > hello-world.txt
-        echo "Release Version: ${GITHUB_REF#refs/tags/}" >> hello-world.txt
+        echo "Release Version: ${{ inputs.version }}" >> hello-world.txt
         echo "Build Date: $(date)" >> hello-world.txt
+        git add hello-world.txt
+        git commit -m "Add release artifacts"
+
+    - name: Tag and push
+      run: |
+        cd detached-release
+        git tag ${{ inputs.version }}
+        git push origin ${{ inputs.version }}
 
     - name: Create GitHub Release
       uses: softprops/action-gh-release@v2
       with:
-        tag_name: ${{ github.ref_name }}
-        name: Release ${{ github.ref_name }}
-        body: | 
-          ### Hello World Release
-          Contains a sample text file with:
-          - Greeting message
-          - Version number
-          - Build timestamp
+        tag_name: ${{ inputs.version }}
+        name: Release ${{ inputs.version }}
+        body: |
+          ### Completely Detached Release
+          - No branch association
+          - Exists only as a tag reference
         files: |
-          hello-world.txt
+          detached-release/hello-world.txt
+
+    - name: Cleanup temporary files
+      run: rm -rf detached-release

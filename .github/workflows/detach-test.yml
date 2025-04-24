@@ -1,6 +1,7 @@
 name: Simple Release Demo
 
 on:
+  workflow_dispatch:
   push:
     tags:
       - v0.1  # Triggers on any version tag

@@ -1,82 +1,46 @@
-# .github/workflows/detached-release.yml
-name: Detached “Orphaned” Release
+name: Orphaned Draft Release
 
 on:
   workflow_dispatch:
     inputs:
       tag_name:
-        description: 'Release tag (e.g. v1.0.0)'
+        description: 'Release tag'
         required: true
-        default: 'v-orphaned-1.0.0'
+        default: 'v-orphaned-draft-1.0.0'
+
+permissions:
+  contents: write
 
 jobs:
-  make-release:
+  draft-release:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+      - name: Checkout full history
+        uses: actions/checkout@v4
         with:
-          fetch-depth: 0          # so we have full history & can tag
+          fetch-depth: 0
 
-      - name: Configure Git user
+      - name: Commit hello-world.txt on temp branch
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-
-      - name: Create temporary branch
-        id: branch
-        run: |
-          TMP="tmp-${{ github.run_id }}-${{ github.run_number }}"
-          git checkout -b "$TMP"
-          echo "branch=$TMP" >> $GITHUB_OUTPUT
-
-      - name: Add hello-world.txt & commit
-        id: commit
-        run: |
+          BR="tmp-${{ github.run_id }}"
+          git checkout -b "$BR"
           echo "Hello World" > hello-world.txt
           git add hello-world.txt
-          git commit -m "chore: add hello-world.txt for detached release"
-          echo "sha=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
+          git commit -m "feat: add hello-world for draft release"
+          git push origin "$BR"
+          echo "## Deleting temporary branch"
+          git push origin --delete "$BR"
 
-      - name: Tag that commit
-        id: tag
-        run: |
-          TAG="${{ github.event.inputs.tag_name }}"
-          git tag "$TAG" ${{ steps.commit.outputs.sha }}
-          echo "tag=$TAG" >> $GITHUB_OUTPUT
-
-      - name: Push branch and tag
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          git push origin "${{ steps.branch.outputs.branch }}"
-          git push origin "${{ steps.tag.outputs.tag }}"
-
-      - name: Delete temporary branch
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          git push origin --delete "${{ steps.branch.outputs.branch }}"
-
-      - name: Create GitHub Release
-        id: create_release
-        uses: actions/create-release@v1
+      - name: Create Draft Release
+        id: draft
+        uses: actions/create-release@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ steps.tag.outputs.tag }}
-          commitish: ${{ steps.commit.outputs.sha }}
-          release_name: "Orphaned Release ${{ steps.tag.outputs.tag }}"
+          tag_name: ${{ github.event.inputs.tag_name }}
+          release_name: "Orphaned Draft ${{ github.event.inputs.tag_name }}"
           body: |
-            This release is truly “orphaned”—
-            the temporary branch has already been deleted.
-          draft: false
+            This is an “orphaned” draft release.
+            The temp branch has been deleted.
+          draft: true             
           prerelease: false
-
-      - name: Upload hello-world.txt as asset
-        uses: actions/upload-release-asset@v1
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: hello-world.txt
-          asset_name: hello-world.txt
-          asset_content_type: text/plain

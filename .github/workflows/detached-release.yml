@@ -24,9 +24,9 @@ jobs:
       - name: Generate tag & prep commit
         id: prep
         run: |
-          # Generate 16-character random hex string (8 bytes)
-          RAND_HEX=$(openssl rand -hex 8)
-          TAG="${RAND_HEX}"
+          # Generate UTC timestamp in format YYYYMMDD-HHMMSS as tag
+          TIMESTAMP=$(date -u +%Y%m%d-%H%M%S)
+          TAG="${TIMESTAMP}"
           
           BR="tmp-${{ github.run_id }}"
 

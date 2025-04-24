@@ -1,0 +1,82 @@
+# .github/workflows/detached-release.yml
+name: Detached “Orphaned” Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: 'Release tag (e.g. v1.0.0)'
+        required: true
+        default: 'v-orphaned-1.0.0'
+
+jobs:
+  make-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0          # so we have full history & can tag
+
+      - name: Configure Git user
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Create temporary branch
+        id: branch
+        run: |
+          TMP="tmp-${{ github.run_id }}-${{ github.run_number }}"
+          git checkout -b "$TMP"
+          echo "branch=$TMP" >> $GITHUB_OUTPUT
+
+      - name: Add hello-world.txt & commit
+        id: commit
+        run: |
+          echo "Hello World" > hello-world.txt
+          git add hello-world.txt
+          git commit -m "chore: add hello-world.txt for detached release"
+          echo "sha=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
+
+      - name: Tag that commit
+        id: tag
+        run: |
+          TAG="${{ github.event.inputs.tag_name }}"
+          git tag "$TAG" ${{ steps.commit.outputs.sha }}
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+
+      - name: Push branch and tag
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git push origin "${{ steps.branch.outputs.branch }}"
+          git push origin "${{ steps.tag.outputs.tag }}"
+
+      - name: Delete temporary branch
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git push origin --delete "${{ steps.branch.outputs.branch }}"
+
+      - name: Create GitHub Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.tag.outputs.tag }}
+          commitish: ${{ steps.commit.outputs.sha }}
+          release_name: "Orphaned Release ${{ steps.tag.outputs.tag }}"
+          body: |
+            This release is truly “orphaned”—
+            the temporary branch has already been deleted.
+          draft: false
+          prerelease: false
+
+      - name: Upload hello-world.txt as asset
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: hello-world.txt
+          asset_name: hello-world.txt
+          asset_content_type: text/plain

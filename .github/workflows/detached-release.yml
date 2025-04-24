@@ -13,8 +13,6 @@ jobs:
     steps:
       # Checkout & Git identity
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
       - name: Configure Git user
         run: |
           git config user.name  "github-actions[bot]"
@@ -30,7 +28,7 @@ jobs:
           
           BR="tmp-${{ github.run_id }}"
 
-          git checkout -b "$BR"
+          git checkout --orphan -b "$BR"
           echo "Hello World" > hello-world.txt
           git add hello-world.txt
           git commit -m "chore: add hello-world for orphaned draft"

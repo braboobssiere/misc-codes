@@ -4,7 +4,7 @@ on:
   schedule:
     # Every week at 3am
     - cron: '0 3 * * 3'
-  # workflow_dispatch:
+  workflow_dispatch:
 
 jobs:
   remove-old-artifacts:

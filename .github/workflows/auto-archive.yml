@@ -210,12 +210,12 @@ jobs:
         id: process_files
         run: |
           cd release-assets
-          find . -type f -size +1G -exec sh -c '
-            for file do
-              split -b 1G -d --numeric-suffixes=1 --suffix-length=3 "$file" "${file}.part."
-              rm "$file"
+          find . -type f -size +1G -exec bash -c '
+            for file; do
+              zip -s 1g -r "${file}.zip" "${file}"
+              rm "${file}"
             done
-          ' sh {} +
+          ' bash {} +
 
       - name: Create draft release
         uses: softprops/action-gh-release@v2
@@ -226,7 +226,6 @@ jobs:
           draft: true
           files: |
             release-assets/**
-            release-assets/*.part.*
 
       - name: Cleanup tag
         run: git push --delete origin "${{ steps.prep.outputs.TAG }}" || true

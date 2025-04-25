@@ -207,30 +207,32 @@ jobs:
           echo "TAG=$TAG" >> $GITHUB_OUTPUT
           echo "SHA=$SHA" >> $GITHUB_OUTPUT
 
-      - name: Process and upload files
+      - name: Prepare Release Files
         id: file_handler
         run: |
+          # Preserve files after cloud upload
+          mkdir -p release_files
+          cp output/* release_files/
+    
+          # Process files with proper paths
+          cd release_files
           UPLOAD_FILES=""
-          cd output
-          
+    
           for file in *; do
             if [ -f "$file" ]; then
               FILE_SIZE=$(stat -c %s "$file")
-              
-              if [ $FILE_SIZE -gt 10485760 ]; then
+        
+              if [ $FILE_SIZE -gt 1073741824 ]; then
                 echo "Splitting $file"
-                zip -s 10m "${file}.zip" "$file"
+                zip -s 1g "${file}.zip" "$file"
                 rm "$file"
-                UPLOAD_FILES+="${file}.zip.* "
+                UPLOAD_FILES+="release_files/${file}.zip.* "
               else
-                UPLOAD_FILES+="${file} "
+                UPLOAD_FILES+="release_files/${file} "
               fi
             fi
           done
-          
-          cd ..
-          echo "UPLOAD_FILES=${UPLOAD_FILES%% }" >> $GITHUB_OUTPUT
-
+    
       - name: Create hidden release
         uses: softprops/action-gh-release@v2
         with:

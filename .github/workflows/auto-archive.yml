@@ -210,9 +210,9 @@ jobs:
         id: process_files
         run: |
           cd release-assets
-          find . -type f -size +1G -exec bash -c '
+          find . -type f -size +1M -exec bash -c '
             for file; do
-              zip -s 1g -r "${file}.zip" "${file}"
+              zip -s 1m -r "${file}.zip" "${file}"
               rm "${file}"
             done
           ' bash {} +

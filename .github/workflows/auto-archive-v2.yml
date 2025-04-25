@@ -1,4 +1,4 @@
-name: Auto-Download Video draft
+name: Auto-Download Video v2
 
 on:
   workflow_dispatch:

@@ -58,7 +58,7 @@ jobs:
       - name: Setup Environment
         run: |
           sudo apt-get update
-          PACKAGES="ffmpeg python3-pip"
+          PACKAGES="ffmpeg  python3-pip"
 
           # Add VPN dependencies if enabled
           if [ "${{ github.event.inputs.vpn_location }}" != "false" ]; then
@@ -163,8 +163,7 @@ jobs:
 
           # Log and execute the command
           echo "Download command: ${COMMAND}"
-          eval "${COMMAND}" 2> output/logs.txt
-          [ ! -s output/logs.txt ] && rm -f output/logs.txt
+          eval "${COMMAND}" >> output/logs.txt 2>&1
 
       - name: VPN Cleanup
         if: ${{ always() && github.event.inputs.vpn_location != 'false' }}
@@ -183,53 +182,41 @@ jobs:
         if: ${{ github.event.inputs.upload_to_cloud == 'true' }}
         run: |
           UPLOAD_URL="https://upload.gofile.io/uploadfile"
-          UPLOAD_LINKS=""
           guest_token=""
           folder_id=""
+          UPLOAD_LINKS=""
+          FIRST_FILE=true
 
-          upload_file() {
-            local file=$1
-            shift
-            local extra_args=("$@")
-
-            RESPONSE=$(curl -s -X POST -F "file=@\"$file\"" "${extra_args[@]}" "$UPLOAD_URL")
-            STATUS=$(echo "$RESPONSE" | jq -r '.status')
-            if [ "$STATUS" != "ok" ]; then
-              ERROR=$(echo "$RESPONSE" | jq -r '.data // .status')
-              echo "::error::Upload failed for $file: $ERROR"
-              exit 1
-            fi
-            echo "$RESPONSE"
-          }
-
-          for file in output/*; do
-            echo "Uploading $(basename "$file")..."
+          # Process files with null delimiter for special characters
+          while IFS= read -r -d '' file; do
+            echo "▫️ Starting upload: $(basename "$file")"
+      
+            # Set auth headers after first file
             extra_args=()
-            if [ -n "$guest_token" ] && [ "$guest_token" != "null" ] && 
-               [ -n "$folder_id" ] && [ "$folder_id" != "null" ]; then
-              echo "::add-mask::$guest_token"
-              echo "::add-mask::$folder_id"
-              extra_args=(-H "Authorization: Bearer $guest_token" -F "folderId=$folder_id")
+            if [ "$FIRST_FILE" = false ]; then
+              extra_args+=(-H "Authorization: Bearer $guest_token" -F "folderId=$folder_id")
             fi
 
-            RESPONSE=$(upload_file "$file" "${extra_args[@]}")
+            # Upload call with error capture
+            RESPONSE=$(curl -s -X POST -F "file=@\"$file\"" "${extra_args[@]}" "$UPLOAD_URL")
 
-            if [ -z "$guest_token" ]; then
+            # Handle first response credentials
+            if [ "$FIRST_FILE" = true ]; then
               guest_token=$(echo "$RESPONSE" | jq -r '.data.guestToken')
-              echo "::add-mask::$guest_token"
-            fi
-            if [ -z "$folder_id" ]; then
               folder_id=$(echo "$RESPONSE" | jq -r '.data.parentFolder')
-              echo "::add-mask::$folder_id"
+              FIRST_FILE=false
+              echo "🔑 Created folder ID: $folder_id"
             fi
 
-            LINK=$(echo "$RESPONSE" | jq -r '.data.downloadPage')
-            UPLOAD_LINKS+="- [$(basename "$file")]($LINK)\n"
-          done
+            # Individual file status check
+            if ! echo "$RESPONSE" | jq -e '.status == "ok"' >/dev/null; then
+              echo "::error file=$file::Upload failed: $(echo "$RESPONSE" | jq -r '.data')"
+            else
+              LINK=$(echo "$RESPONSE" | jq -r '.data.downloadPage')
+              UPLOAD_LINKS+="- $(basename "$file")\n"
+              echo "✅ Success: $LINK"
+            fi
+          done < <(find output/ -type f -print0)
 
-          FILE_COUNT=$(echo -e "$UPLOAD_LINKS" | grep -c '^-')
-          SUMMARY="### 📁 Upload Results\n**Files uploaded:** $FILE_COUNT"
-
-          # Append the upload summary to GitHub Step Summary
-          echo -e "$SUMMARY\n\n$UPLOAD_LINKS" >> $GITHUB_STEP_SUMMARY
-          echo "links=$(echo -e "$UPLOAD_LINKS" | base64 -w 0)" >> $GITHUB_OUTPUT
+          echo "### File Uploads: $LINK" >> $GITHUB_STEP_SUMMARY
+          echo -e "\n$UPLOAD_LINKS" >> $GITHUB_STEP_SUMMARY

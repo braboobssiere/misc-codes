@@ -188,6 +188,12 @@ jobs:
           echo "### File Uploads: $LINK" >> $GITHUB_STEP_SUMMARY
           echo -e "\n$UPLOAD_LINKS" >> $GITHUB_STEP_SUMMARY
 
+      - name: Preserve output files
+        run: |
+          mkdir -p /tmp/release_files
+          cp -r output/* /tmp/release_files/
+          echo "Files preserved: $(ls /tmp/release_files | wc -l)"
+
       - name: Generate tag & prep commit
         id: prep
         run: |
@@ -195,53 +201,48 @@ jobs:
           TAG="${TIMESTAMP}"
           BR="tmp-${{ github.run_id }}"
           
+          # Create orphan branch without touching working tree
           git checkout --orphan "$BR"
-          git commit -m "Initial commit for orphaned draft"
-
+          git commit --allow-empty -m "Empty commit for release"
+          
           SHA=$(git rev-parse HEAD)
           git tag "$TAG" "$SHA"
           git push origin "$BR"  
           git push origin --tags
-          git push origin --delete "$BR" || true  
+          git push origin --delete "$BR" || true
 
           echo "TAG=$TAG" >> $GITHUB_OUTPUT
           echo "SHA=$SHA" >> $GITHUB_OUTPUT
 
-      - name: Prepare Release Files
+      - name: Process release files
         id: file_handler
         run: |
-          # Preserve files after cloud upload
-          mkdir -p release_files
-          cp output/* release_files/
-    
-          # Process files with proper paths
-          cd release_files
+          cd /tmp/release_files
           UPLOAD_FILES=""
-    
+          
+          # Split large files
           for file in *; do
             if [ -f "$file" ]; then
               FILE_SIZE=$(stat -c %s "$file")
-        
               if [ $FILE_SIZE -gt 1073741824 ]; then
-                echo "Splitting $file"
                 zip -s 1g "${file}.zip" "$file"
                 rm "$file"
-                UPLOAD_FILES+="release_files/${file}.zip.* "
+                UPLOAD_FILES+="${file}.zip.* "
               else
-                UPLOAD_FILES+="release_files/${file} "
+                UPLOAD_FILES+="${file} "
               fi
             fi
           done
-    
+
       - name: Create hidden release
         uses: softprops/action-gh-release@v2
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           tag_name: ${{ steps.prep.outputs.TAG }}
           name: "Archived Video: ${{ steps.prep.outputs.TAG }}"
+          files: ${{ steps.file_handler.outputs.UPLOAD_FILES }}
           draft: true
           target_commitish: ${{ steps.prep.outputs.SHA }}
-          files: ${{ steps.file_handler.outputs.UPLOAD_FILES }}
 
       - name: Cleanup tag
         run: |

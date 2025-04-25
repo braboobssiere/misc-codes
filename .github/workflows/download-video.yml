@@ -162,8 +162,10 @@ jobs:
           --embed-subs --sub-langs all,-live_chat --write-thumbnail ${URL}"
 
           # Log and execute the command
-          echo "Download command: ${COMMAND}"
-          eval "${COMMAND}" >> output/logs.txt 2>&1
+          {
+            echo "Download command: ${COMMAND}" 
+            eval "${COMMAND}"
+          } >> output/logs.txt 2>&1
 
       - name: VPN Cleanup
         if: ${{ always() && github.event.inputs.vpn_location != 'false' }}

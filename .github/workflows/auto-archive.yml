@@ -5,6 +5,9 @@ on:
   # schedule: # use cron-job.org instead
   #   - cron: '35 * * * *'
 
+permissions:
+  contents: write
+
 concurrency:
   group: Auto-Download Video
   cancel-in-progress: false
@@ -19,6 +22,11 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
+
+      - name: Set up Git user
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
 
       - name: Set up Python
         uses: actions/setup-python@v5.5.0
@@ -94,7 +102,7 @@ jobs:
       - name: Setup Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y ffmpeg wireguard-tools jq curl parallel
+          sudo apt-get install -y ffmpeg wireguard-tools jq curl zip parallel
           python3 -m pip install --upgrade pip --pre yt-dlp[default,curl-cffi]
 
       - name: VPN Setup (TradeWar)
@@ -132,14 +140,6 @@ jobs:
       - name: VPN Cleanup
         if: ${{ always() }}
         run: sudo wg-quick down wg0 || true
-
-      - name: Upload Artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: downloaded-videos
-          path: output/
-          compression-level: 1
-          if-no-files-found: error
 
       - name: Upload Files to Cloud Storage
         run: |
@@ -182,3 +182,60 @@ jobs:
 
           echo "### File Uploads: $LINK" >> $GITHUB_STEP_SUMMARY
           echo -e "\n$UPLOAD_LINKS" >> $GITHUB_STEP_SUMMARY
+
+      - name: Generate tag & prep commit
+        id: prep
+        run: |
+          TIMESTAMP=$(date -u +%Y%m%d-%H%M%S)
+          TAG="${TIMESTAMP}"
+          BR="tmp-${{ github.run_id }}"
+          
+          git checkout --orphan "$BR"
+          git commit -m "Initial commit for orphaned draft"
+
+          SHA=$(git rev-parse HEAD)
+          git tag "$TAG" "$SHA"
+          git push origin "$BR"  
+          git push origin --tags
+          git push origin --delete "$BR" || true  
+
+          echo "TAG=$TAG" >> $GITHUB_OUTPUT
+          echo "SHA=$SHA" >> $GITHUB_OUTPUT
+
+      - name: Process and upload files
+        id: file_handler
+        run: |
+          UPLOAD_FILES=""
+          cd output
+          
+          for file in *; do
+            if [ -f "$file" ]; then
+              FILE_SIZE=$(stat -c %s "$file")
+              
+              if [ $FILE_SIZE -gt 10485760 ]; then
+                echo "Splitting $file"
+                zip -s 10m "${file}.zip" "$file"
+                rm "$file"
+                UPLOAD_FILES+="${file}.zip.* "
+              else
+                UPLOAD_FILES+="${file} "
+              fi
+            fi
+          done
+          
+          cd ..
+          echo "UPLOAD_FILES=${UPLOAD_FILES%% }" >> $GITHUB_OUTPUT
+
+      - name: Create hidden release
+        uses: softprops/action-gh-release@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          tag_name: ${{ steps.prep.outputs.TAG }}
+          name: "Archived Video: ${{ steps.prep.outputs.TAG }}"
+          draft: true
+          target_commitish: ${{ steps.prep.outputs.SHA }}
+          files: ${{ steps.file_handler.outputs.UPLOAD_FILES }}
+
+      - name: Cleanup tag
+        run: |
+          git push origin --delete "${{ steps.prep.outputs.TAG }}" || echo "Tag already removed"

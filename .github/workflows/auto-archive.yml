@@ -208,23 +208,23 @@ jobs:
       - name: Process files
         id: file_handler
         run: |
+          shopt -s nullglob
           UPLOAD_FILES=""
-          cd output || exit 1
 
-          for file in *; do
+          for file in output/*; do
             if [ -f "$file" ]; then
               FILE_SIZE=$(stat -c %s "$file")
               if [ $FILE_SIZE -lt 1073741824 ]; then
-                UPLOAD_FILES="$UPLOAD_FILES output/$file"
+                      UPLOAD_FILES="$UPLOAD_FILES '$file'"
               else
+                # Split in place with proper path handling
                 split -b 1G -d --numeric-suffixes=1 --suffix-length=3 "$file" "$file.zip."
                 rm "$file"
-                UPLOAD_FILES="$UPLOAD_FILES output/$file.zip.*"
+                UPLOAD_FILES="$UPLOAD_FILES '$file.zip.'*"
               fi
             fi
           done
-
-          echo "UPLOAD_FILE=${UPLOAD_FILES}" >> $GITHUB_OUTPUT
+          echo "UPLOAD_FILE=$UPLOAD_FILES" >> $GITHUB_OUTPUT
 
       - name: Create draft release
         uses: softprops/action-gh-release@v2

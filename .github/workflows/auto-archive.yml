@@ -99,17 +99,14 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Set up Git user
-        run: |
-          git config --global user.name 'github-actions[bot]'
-          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-
       - name: Setup Dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y ffmpeg wireguard-tools jq curl zip parallel
           python3 -m pip install --upgrade pip --pre yt-dlp[default,curl-cffi]
-
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          
       - name: VPN Setup (TradeWar)
         env:
           TradeWar_CONFIG: ${{ secrets.WIREGUARD_TRADEWAR }}
@@ -188,62 +185,58 @@ jobs:
           echo "### File Uploads: $LINK" >> $GITHUB_STEP_SUMMARY
           echo -e "\n$UPLOAD_LINKS" >> $GITHUB_STEP_SUMMARY
 
-      - name: Preserve output files
-        run: |
-          mkdir -p /tmp/release_files
-          cp -r output/* /tmp/release_files/
-          echo "Files preserved: $(ls /tmp/release_files | wc -l)"
-
       - name: Generate tag & prep commit
         id: prep
         run: |
           TIMESTAMP=$(date -u +%Y%m%d-%H%M%S)
           TAG="${TIMESTAMP}"
-          BR="tmp-${{ github.run_id }}"
-          
-          # Create orphan branch without touching working tree
-          git checkout --orphan "$BR"
-          git commit --allow-empty -m "Empty commit for release"
-          
+          BRANCH="tmp-${{ github.run_id }}"
+
+          git checkout --orphan "$BRANCH"
+          git add output/
+          git commit -m "chore: add output files for draft release"
+
           SHA=$(git rev-parse HEAD)
           git tag "$TAG" "$SHA"
-          git push origin "$BR"  
+          git push origin "$BRANCH"
           git push origin --tags
-          git push origin --delete "$BR" || true
+          git push origin --delete "$BRANCH" || true
 
           echo "TAG=$TAG" >> $GITHUB_OUTPUT
           echo "SHA=$SHA" >> $GITHUB_OUTPUT
 
-      - name: Process release files
+      - name: Process files
         id: file_handler
         run: |
-          cd /tmp/release_files
           UPLOAD_FILES=""
-          
-          # Split large files
+          cd output || exit 1
+
           for file in *; do
             if [ -f "$file" ]; then
               FILE_SIZE=$(stat -c %s "$file")
-              if [ $FILE_SIZE -gt 1073741824 ]; then
-                zip -s 1g "${file}.zip" "$file"
-                rm "$file"
-                UPLOAD_FILES+="${file}.zip.* "
+              if [ $FILE_SIZE -lt 1073741824 ]; then
+                UPLOAD_FILES="$UPLOAD_FILES output/$file"
               else
-                UPLOAD_FILES+="${file} "
+                split -b 1G -d --numeric-suffixes=1 --suffix-length=3 "$file" "$file.zip."
+                rm "$file"
+                UPLOAD_FILES="$UPLOAD_FILES output/$file.zip.*"
               fi
             fi
           done
 
-      - name: Create hidden release
+          echo "UPLOAD_FILE=${UPLOAD_FILES}" >> $GITHUB_OUTPUT
+
+      - name: Create draft release
         uses: softprops/action-gh-release@v2
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           tag_name: ${{ steps.prep.outputs.TAG }}
-          name: "Archived Video: ${{ steps.prep.outputs.TAG }}"
-          files: ${{ steps.file_handler.outputs.UPLOAD_FILES }}
+          name: "Release ${{ steps.prep.outputs.TAG }}"
+          body: "Automated draft release"
           draft: true
           target_commitish: ${{ steps.prep.outputs.SHA }}
+          files: ${{ steps.file_handler.outputs.UPLOAD_FILE }}
 
       - name: Cleanup tag
         run: |
-          git push origin --delete "${{ steps.prep.outputs.TAG }}" || echo "Tag already removed"
+          git push origin --delete "${{ steps.prep.outputs.TAG }}" || echo "Tag cleanup skipped"

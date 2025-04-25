@@ -77,7 +77,7 @@ jobs:
               f.write(f'should_process={bool(entries)}\n')
               f.write(f'urls={json.dumps(entries)}\n')
               if not entries:
-                  exit(78)
+                  exit(0)
         shell: python
         env:
           TZ: UTC

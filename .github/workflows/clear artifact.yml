@@ -3,7 +3,7 @@ name: Remove old artifacts
 on:
   schedule:
     # Every week at 3am
-    - cron: '0 3 * * 3'
+    - cron: '33 3 * * 3'
   workflow_dispatch:
 
 jobs:

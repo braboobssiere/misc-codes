@@ -193,50 +193,40 @@ jobs:
           BRANCH="tmp-${{ github.run_id }}"
 
           git checkout --orphan "$BRANCH"
-          git add output/
-          git commit -m "chore: add output files for draft release"
+          mkdir -p release-assets
+          cp -r output/* release-assets/
+          git add release-assets/
+          git commit -m "chore: add release assets"
 
           SHA=$(git rev-parse HEAD)
           git tag "$TAG" "$SHA"
-          git push origin "$BRANCH"
-          git push origin --tags
+          git push origin "$BRANCH" --tags
           git push origin --delete "$BRANCH" || true
 
           echo "TAG=$TAG" >> $GITHUB_OUTPUT
           echo "SHA=$SHA" >> $GITHUB_OUTPUT
 
-      - name: Process files
-        id: file_handler
+      - name: Process and split large files
+        id: process_files
         run: |
-          shopt -s nullglob
-          UPLOAD_FILES=""
-
-          for file in output/*; do
-            if [ -f "$file" ]; then
-              FILE_SIZE=$(stat -c %s "$file")
-              if [ $FILE_SIZE -lt 1073741824 ]; then
-                      UPLOAD_FILES="$UPLOAD_FILES '$file'"
-              else
-                # Split in place with proper path handling
-                split -b 1G -d --numeric-suffixes=1 --suffix-length=3 "$file" "$file.zip."
-                rm "$file"
-                UPLOAD_FILES="$UPLOAD_FILES '$file.zip.'*"
-              fi
-            fi
-          done
-          echo "UPLOAD_FILE=$UPLOAD_FILES" >> $GITHUB_OUTPUT
+          cd release-assets
+          find . -type f -size +1G -exec sh -c '
+            for file do
+              split -b 1G -d --numeric-suffixes=1 --suffix-length=3 "$file" "${file}.part."
+              rm "$file"
+            done
+          ' sh {} +
 
       - name: Create draft release
         uses: softprops/action-gh-release@v2
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
           tag_name: ${{ steps.prep.outputs.TAG }}
-          name: "Release ${{ steps.prep.outputs.TAG }}"
-          body: "Automated draft release"
-          draft: true
           target_commitish: ${{ steps.prep.outputs.SHA }}
-          files: ${{ steps.file_handler.outputs.UPLOAD_FILE }}
+          name: "Release ${{ steps.prep.outputs.TAG }}"
+          draft: true
+          files: |
+            release-assets/**
+            release-assets/*.part.*
 
       - name: Cleanup tag
-        run: |
-          git push origin --delete "${{ steps.prep.outputs.TAG }}" || echo "Tag cleanup skipped"
+        run: git push --delete origin "${{ steps.prep.outputs.TAG }}" || true

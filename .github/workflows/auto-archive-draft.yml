@@ -1,0 +1,231 @@
+name: Auto-Download Video draft
+
+on:
+  workflow_dispatch:
+  # schedule: # use cron-job.org instead
+  #   - cron: '35 * * * *'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: Auto-Download Video
+  cancel-in-progress: false
+
+jobs:
+  check-feed:
+    name: Check Feed for Valid Entries
+    runs-on: ubuntu-latest
+    outputs:
+      should_process: ${{ steps.feed-parser.outputs.should_process }}
+      urls: ${{ steps.feed-parser.outputs.urls }}
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Git user
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+
+      - name: Set up Python
+        uses: actions/setup-python@v5.5.0
+        with:
+          python-version: '3.11'
+
+      - name: Install parsing dependencies
+        run: pip install requests
+
+      - name: Parse and Validate Feed
+        id: feed-parser
+        run: |
+          import xml.etree.ElementTree as ET
+          import requests
+          import re
+          from datetime import datetime, timedelta, UTC
+          import os
+          import json
+
+          feed_url = "https://raw.githubusercontent.com/braboobssiere/holedex-song-list/main/feeds/holodex.atom"
+          response = requests.get(feed_url)
+          root = ET.fromstring(response.content)
+
+          ns = {'atom': 'http://www.w3.org/2005/Atom'}
+          current_time = datetime.now(UTC)
+          time_threshold = current_time - timedelta(minutes=60)
+          matched_entries = []
+
+          for entry in root.findall('atom:entry', ns):
+              title = entry.find('atom:title', ns).text or ''
+              if 'unarchive' not in title.lower():
+                  continue
+
+              if not (summary := entry.find('atom:summary', ns).text):
+                  continue
+
+              if not (timestamp_match := re.search(r't:(\d+)', summary)):
+                  continue
+
+              entry_time = datetime.fromtimestamp(
+                  int(timestamp_match.group(1)), 
+                  tz=UTC
+              )
+
+              if time_threshold <= entry_time <= current_time:
+                  link = entry.find("atom:link[@rel='alternate']", ns).attrib['href']
+                  matched_entries.append((entry_time, link))
+
+          entries = []
+          if matched_entries:
+              matched_entries.sort(reverse=True, key=lambda x: x[0])
+              entries = [{"url": e[1]} for e in matched_entries[:4]]
+
+          output_path = os.environ['GITHUB_OUTPUT']
+          with open(output_path, 'a') as f:
+              f.write(f'should_process={bool(entries)}\n')
+              f.write(f'urls={json.dumps(entries)}\n')
+              if not entries:
+                  exit(0)
+        shell: python
+        env:
+          TZ: UTC
+
+  process-video:
+    name: Process and Upload Videos
+    needs: check-feed
+    if: ${{ needs.check-feed.outputs.should_process == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg wireguard-tools jq curl zip parallel
+          python3 -m pip install --upgrade pip --pre yt-dlp[default,curl-cffi]
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          
+      - name: VPN Setup (TradeWar)
+        env:
+          TradeWar_CONFIG: ${{ secrets.WIREGUARD_TRADEWAR }}
+        run: |
+          sudo mkdir -p /etc/wireguard/
+          echo "$TradeWar_CONFIG" | sudo tee /etc/wireguard/wg0.conf > /dev/null
+          sudo chmod 600 /etc/wireguard/wg0.conf
+
+          for i in {1..5}; do
+              timeout 60 sudo wg-quick up wg0 && break
+              sleep 1
+              echo "VPN connection attempt $i/5 failed"
+          done
+
+          if ! sudo wg show wg0 >/dev/null 2>&1; then
+              echo "::error::VPN failed to connect after 5 attempts"
+              exit 1
+          fi
+
+      - name: Concurrent Downloads
+        continue-on-error: true
+        run: |
+          mkdir -p output
+          URLS=$(echo '${{ needs.check-feed.outputs.urls }}' | jq -r '.[].url')
+          
+          parallel -j4 \
+          'cmd="yt-dlp -i --no-progress -S \"+res:1080,+vcodec:av01\" \
+            --windows-filenames --live-from-start --write-thumbnail --write-info-json \
+            -o \"output/%(title).170B [%(id)s] (%(resolution)s).%(ext)s\" {}";
+          echo "Download command: $cmd";
+          eval "$cmd"' ::: "${URLS[@]}" >> output/logs.txt 2>&1
+
+      - name: VPN Cleanup
+        if: ${{ always() }}
+        run: sudo wg-quick down wg0 || true
+
+      - name: Upload Files to Cloud Storage
+        run: |
+          UPLOAD_URL="https://upload.gofile.io/uploadfile"
+          guest_token=""
+          folder_id=""
+          UPLOAD_LINKS=""
+          FIRST_FILE=true
+
+          # Process files with null delimiter for special characters
+          while IFS= read -r -d '' file; do
+            echo "▫️ Starting upload: $(basename "$file")"
+      
+            # Set auth headers after first file
+            extra_args=()
+            if [ "$FIRST_FILE" = false ]; then
+              extra_args+=(-H "Authorization: Bearer $guest_token" -F "folderId=$folder_id")
+            fi
+
+            # Upload call with error capture
+            RESPONSE=$(curl -s -X POST -F "file=@\"$file\"" "${extra_args[@]}" "$UPLOAD_URL")
+
+            # Handle first response credentials
+            if [ "$FIRST_FILE" = true ]; then
+              guest_token=$(echo "$RESPONSE" | jq -r '.data.guestToken')
+              folder_id=$(echo "$RESPONSE" | jq -r '.data.parentFolder')
+              FIRST_FILE=false
+              echo "🔑 Created folder ID: $folder_id"
+            fi
+
+            # Individual file status check
+            if ! echo "$RESPONSE" | jq -e '.status == "ok"' >/dev/null; then
+              echo "::error file=$file::Upload failed: $(echo "$RESPONSE" | jq -r '.data')"
+            else
+              LINK=$(echo "$RESPONSE" | jq -r '.data.downloadPage')
+              UPLOAD_LINKS+="- $(basename "$file")\n"
+              echo "✅ Success: $LINK"
+            fi
+          done < <(find output/ -type f -print0)
+
+          echo "### File Uploads: $LINK" >> $GITHUB_STEP_SUMMARY
+          echo -e "\n$UPLOAD_LINKS" >> $GITHUB_STEP_SUMMARY
+
+      - name: Generate tag & prep commit
+        id: prep
+        run: |
+          TIMESTAMP=$(date -u +%Y%m%d-%H%M%S)
+          TAG="${TIMESTAMP}"
+          BRANCH="tmp-${{ github.run_id }}"
+
+          git checkout --orphan "$BRANCH"
+          mkdir -p release-assets
+          cp -r output/* release-assets/
+          git add release-assets/
+          git commit -m "chore: add release assets"
+
+          SHA=$(git rev-parse HEAD)
+          git tag "$TAG" "$SHA"
+          git push origin "$BRANCH" --tags
+          git push origin --delete "$BRANCH" || true
+
+          echo "TAG=$TAG" >> $GITHUB_OUTPUT
+          echo "SHA=$SHA" >> $GITHUB_OUTPUT
+
+      - name: Process and split large files
+        id: process_files
+        run: |
+          cd release-assets
+          find . -type f -size +1G -exec bash -c '
+            for file; do
+              zip -s 1g -r "${file}.zip" "${file}"
+              rm "${file}"
+            done
+          ' bash {} +
+
+      - name: Create draft release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.prep.outputs.TAG }}
+          target_commitish: ${{ steps.prep.outputs.SHA }}
+          name: "Release ${{ steps.prep.outputs.TAG }}"
+          draft: true
+          files: |
+            release-assets/**
+
+      - name: Cleanup tag
+        run: git push --delete origin "${{ steps.prep.outputs.TAG }}" || true

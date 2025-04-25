@@ -159,12 +159,12 @@ jobs:
           COMMAND="yt-dlp -i --no-progress ${COOKIE_FLAG} ${LIVE_FLAG} \
           ${ADDITIONAL_ARGS} ${FORMAT_OPTION} --windows-filenames \
           -o \"output/%(title).170B [%(id)s] (%(resolution)s).%(ext)s\" \
-          --embed-subs --sub-langs all,-live_chat --embed-metadata ${URL}"
+          --embed-subs --sub-langs all,-live_chat --write-thumbnail ${URL}"
 
           # Log and execute the command
           echo "Download command: ${COMMAND}"
-          eval "${COMMAND}" # 2> output/logs.txt
-          # [ ! -s output/logs.txt ] && rm -f output/logs.txt
+          eval "${COMMAND}" 2> output/logs.txt
+          [ ! -s output/logs.txt ] && rm -f output/logs.txt
 
       - name: VPN Cleanup
         if: ${{ always() && github.event.inputs.vpn_location != 'false' }}

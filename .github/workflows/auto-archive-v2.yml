@@ -23,18 +23,14 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Set up Git user
-        run: |
-          git config --global user.name 'github-actions[bot]'
-          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-
       - name: Set up Python
         uses: actions/setup-python@v5.5.0
         with:
           python-version: '3.11'
 
-      - name: Install parsing dependencies
-        run: pip install requests
+      - name: Set up parsing dependencies
+        run: |
+          pip install requests
 
       - name: Parse and Validate Feed
         id: feed-parser
@@ -57,7 +53,7 @@ jobs:
 
           for entry in root.findall('atom:entry', ns):
               title = entry.find('atom:title', ns).text or ''
-              if 'unarchive' not in title.lower():
+              if 'unarchive' not in title.lower() and 'アーカイブなし' not in title:
                   continue
 
               if not (summary := entry.find('atom:summary', ns).text):
@@ -104,15 +100,13 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y ffmpeg wireguard-tools jq curl zip parallel
           python3 -m pip install --upgrade pip --pre yt-dlp[default,curl-cffi]
-          git config --global user.name 'github-actions[bot]'
-          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
           
       - name: VPN Setup (TradeWar)
         env:
-          TradeWar_CONFIG: ${{ secrets.WIREGUARD_TRADEWAR }}
+          TRADEWAR_CONFIG: ${{ secrets.WIREGUARD_TRADEWAR }}
         run: |
           sudo mkdir -p /etc/wireguard/
-          echo "$TradeWar_CONFIG" | sudo tee /etc/wireguard/wg0.conf > /dev/null
+          echo "$TRADEWAR_CONFIG" | sudo tee /etc/wireguard/wg0.conf > /dev/null
           sudo chmod 600 /etc/wireguard/wg0.conf
 
           for i in {1..5}; do
@@ -134,7 +128,7 @@ jobs:
           
           parallel -j4 \
           'cmd="yt-dlp -i --no-progress -S \"+res:1080,+vcodec:av01\" \
-            --windows-filenames --live-from-start --write-thumbnail --write-info-json \
+            --windows-filenames --live-from-start --write-thumbnail \
             -o \"output/%(title).170B [%(id)s] (%(resolution)s).%(ext)s\" {}";
           echo "Download command: $cmd";
           eval "$cmd"' ::: "${URLS[@]}" >> output/logs.txt 2>&1
@@ -142,6 +136,16 @@ jobs:
       - name: VPN Cleanup
         if: ${{ always() }}
         run: sudo wg-quick down wg0 || true
+
+      - name: Verify output file 
+        run: |
+          # Count files in output directory (including hidden files)
+          FILE_COUNT=$(find output/ -type f | wc -l)
+          
+          if [ $FILE_COUNT -lt 2 ]; then
+            echo "Error: yt-dlp have a problem downloading video (found $FILE_COUNT)"
+            exit 1
+          fi
 
       - name: Upload Files to Cloud Storage
         run: |
@@ -185,31 +189,13 @@ jobs:
           echo "### File Uploads: $LINK" >> $GITHUB_STEP_SUMMARY
           echo -e "\n$UPLOAD_LINKS" >> $GITHUB_STEP_SUMMARY
 
-      - name: Generate tag & prep commit
+      - name: Generate tag and split large files
         id: prep
         run: |
           TIMESTAMP=$(date -u +%Y%m%d-%H%M%S)
           TAG="${TIMESTAMP}"
-          BRANCH="tmp-${{ github.run_id }}"
-
-          git checkout --orphan "$BRANCH"
-          mkdir -p release-assets
-          cp -r output/* release-assets/
-          git add release-assets/
-          git commit -m "chore: add release assets"
-
-          SHA=$(git rev-parse HEAD)
-          git tag "$TAG" "$SHA"
-          git push origin "$BRANCH" --tags
-          git push origin --delete "$BRANCH" || true
-
-          echo "TAG=$TAG" >> $GITHUB_OUTPUT
-          echo "SHA=$SHA" >> $GITHUB_OUTPUT
-
-      - name: Process and split large files
-        id: process_files
-        run: |
-          cd release-assets
+          echo "TAG=$TAG" >> $GITHUB_OUTPUT          
+          cd output
           find . -type f -size +1G -exec bash -c '
             for file; do
               zip -s 1g -r "${file}.zip" "${file}"
@@ -221,11 +207,11 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.prep.outputs.TAG }}
-          target_commitish: ${{ steps.prep.outputs.SHA }}
           name: "Release ${{ steps.prep.outputs.TAG }}"
           draft: true
           files: |
-            release-assets/**
+            output/**
 
       - name: Cleanup tag
         run: git push --delete origin "${{ steps.prep.outputs.TAG }}" || true
+        

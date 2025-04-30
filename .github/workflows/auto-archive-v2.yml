@@ -140,7 +140,7 @@ jobs:
           
           parallel -j4 \
           'cmd="yt-dlp -i --no-progress -S \"+res:1080,+vcodec:av01\" \
-            --windows-filenames --live-from-start --write-thumbnail \
+            --windows-filenames --live-from-start -N 4 --write-thumbnail \
             -o \"output/%(title).170B [%(id)s] (%(resolution)s).%(ext)s\" {}";
           echo "Download command: $cmd";
           eval "$cmd"' ::: "${URLS[@]}" >> output/logs.txt 2>&1

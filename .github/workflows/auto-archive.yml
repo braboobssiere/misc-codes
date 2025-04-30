@@ -21,7 +21,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v5.5.0
+        uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
@@ -33,36 +33,32 @@ jobs:
         run: |
           import xml.etree.ElementTree as ET
           import requests
-          import re
-          from datetime import datetime, timedelta, UTC
+          from datetime import datetime, timedelta, timezone
           import os
           import json
 
           feed_url = "https://raw.githubusercontent.com/braboobssiere/holedex-song-list/main/feeds/holodex.atom"
           response = requests.get(feed_url)
+          response.raise_for_status()
           root = ET.fromstring(response.content)
 
           ns = {'atom': 'http://www.w3.org/2005/Atom'}
-          current_time = datetime.now(UTC)
+          current_time = datetime.now(timezone.utc)
           time_threshold = current_time - timedelta(minutes=60)
           matched_entries = []
 
           for entry in root.findall('atom:entry', ns):
               title = entry.find('atom:title', ns).text or ''
-              if 'unarchive' not in title.lower():
+              
+              if 'unarchive' not in title.lower() and 'アーカイブなし' not in title:
                   continue
-
-              if not (summary := entry.find('atom:summary', ns).text):
+              
+              updated_elem = entry.find('atom:updated', ns)
+              if updated_elem is None or not updated_elem.text.strip():
                   continue
-
-              if not (timestamp_match := re.search(r't:(\d+)', summary)):
-                  continue
-
-              entry_time = datetime.fromtimestamp(
-                  int(timestamp_match.group(1)), 
-                  tz=UTC
-              )
-
+                  
+              entry_time = datetime.fromisoformat(updated_elem.text).astimezone(timezone.utc)
+              
               if time_threshold <= entry_time <= current_time:
                   link = entry.find("atom:link[@rel='alternate']", ns).attrib['href']
                   matched_entries.append((entry_time, link))
@@ -79,8 +75,6 @@ jobs:
               if not entries:
                   exit(0)
         shell: python
-        env:
-          TZ: UTC
 
   process-video:
     name: Process and Upload Videos

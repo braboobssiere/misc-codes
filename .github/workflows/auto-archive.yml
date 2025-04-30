@@ -47,7 +47,7 @@ jobs:
           time_threshold = current_time - timedelta(minutes=60)
           matched_entries = []
 
-          for index, entry in enumerate(root.findall('atom:entry', ns), 1):
+          for entry in root.findall('atom:entry', ns):
               title = entry.find('atom:title', ns).text or ''
               
               if 'unarchive' not in title.lower() and 'アーカイブなし' not in title:
@@ -56,13 +56,8 @@ jobs:
               updated_elem = entry.find('atom:updated', ns)
               if updated_elem is None or not updated_elem.text.strip():
                   continue
-              raw_time = updated_elem.text
-              
-              try:
-                  # normalized_time = raw_time.replace('Z', '+00:00').split('.')[0]
-                  entry_time = datetime.fromisoformat(raw_time).astimezone(timezone.utc)
-              except Exception as e:
-                  continue
+                  
+              entry_time = datetime.fromisoformat(updated_elem.text).astimezone(timezone.utc)
               
               if time_threshold <= entry_time <= current_time:
                   link = entry.find("atom:link[@rel='alternate']", ns).attrib['href']
@@ -79,9 +74,7 @@ jobs:
               f.write(f'urls={json.dumps(entries)}\n')
               if not entries:
                   exit(0)
-        shell: python {0}
-        # env:
-          # TZ: UTC
+        shell: python
 
   process-video:
     name: Process and Upload Videos

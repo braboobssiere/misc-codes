@@ -21,7 +21,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v5.5.0
+        uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
@@ -33,53 +33,40 @@ jobs:
         run: |
           import xml.etree.ElementTree as ET
           import requests
-          from datetime import datetime, timedelta, UTC, timezone
+          from datetime import datetime, timedelta, timezone
           import os
           import json
 
           feed_url = "https://raw.githubusercontent.com/braboobssiere/holedex-song-list/main/feeds/holodex-test.atom"
           response = requests.get(feed_url)
+          response.raise_for_status()
           root = ET.fromstring(response.content)
 
           ns = {'atom': 'http://www.w3.org/2005/Atom'}
-          current_time = datetime.now(UTC)
+          current_time = datetime.now(timezone.utc)
           time_threshold = current_time - timedelta(minutes=60)
           matched_entries = []
 
-          print(f"Current UTC time: {current_time.isoformat()}")
-          print(f"Time threshold (last 60 min): {time_threshold.isoformat()}\n")
-
           for index, entry in enumerate(root.findall('atom:entry', ns), 1):
-              print(f"Processing entry {index}")
               title = entry.find('atom:title', ns).text or ''
               
-              if 'unarchive' not in title.lower():
-                  print(f"  Skipped - no 'unarchive' in title: {title[:50]}...")
+              if 'unarchive' not in title.lower() and 'アーカイブなし' not in title:
                   continue
               
               updated_elem = entry.find('atom:updated', ns)
               if updated_elem is None or not updated_elem.text.strip():
-                  print("  Skipped - missing <updated> element")
                   continue
-              
               raw_time = updated_elem.text
-              print(f"  Raw updated time: {raw_time}")
               
               try:
-                  normalized_time = raw_time.replace('Z', '+00:00').split('.')[0]
-                  entry_time = datetime.fromisoformat(normalized_time).astimezone(timezone.utc)
-                  print(f"  Parsed UTC time: {entry_time.isoformat()}")
+                  # normalized_time = raw_time.replace('Z', '+00:00').split('.')[0]
+                  entry_time = datetime.fromisoformat(raw_time).astimezone(timezone.utc)
               except Exception as e:
-                  print(f"  Failed to parse time: {str(e)}")
                   continue
               
               if time_threshold <= entry_time <= current_time:
                   link = entry.find("atom:link[@rel='alternate']", ns).attrib['href']
                   matched_entries.append((entry_time, link))
-                  print("  ✅ Within time range - entry matched")
-              else:
-                  print("  ❌ Outside time range - entry rejected")
-              print()
 
           entries = []
           if matched_entries:
@@ -93,8 +80,8 @@ jobs:
               if not entries:
                   exit(0)
         shell: python {0}
-        env:
-          TZ: UTC
+        # env:
+          # TZ: UTC
 
   process-video:
     name: Process and Upload Videos

@@ -33,12 +33,11 @@ jobs:
         run: |
           import xml.etree.ElementTree as ET
           import requests
-          import re
           from datetime import datetime, timedelta, UTC
           import os
           import json
 
-          feed_url = "https://raw.githubusercontent.com/braboobssiere/holedex-song-list/main/feeds/holodex.atom"
+          feed_url = "https://raw.githubusercontent.com/braboobssiere/holedex-song-list/main/feeds/holodex-test.atom"
           response = requests.get(feed_url)
           root = ET.fromstring(response.content)
 
@@ -52,17 +51,17 @@ jobs:
               if 'unarchive' not in title.lower():
                   continue
 
-              if not (summary := entry.find('atom:summary', ns).text):
+              updated_elem = entry.find('atom:updated', ns)
+              if not updated_elem or not updated_elem.text:
                   continue
-
-              if not (timestamp_match := re.search(r't:(\d+)', summary)):
+    
+              # Parse ISO 8601 timestamp and handle timezone
+              updated_str = updated_elem.text.replace('Z', '+00:00')
+              try:
+                  entry_time = datetime.fromisoformat(updated_str).astimezone(UTC)
+              except ValueError:
                   continue
-
-              entry_time = datetime.fromtimestamp(
-                  int(timestamp_match.group(1)), 
-                  tz=UTC
-              )
-
+    
               if time_threshold <= entry_time <= current_time:
                   link = entry.find("atom:link[@rel='alternate']", ns).attrib['href']
                   matched_entries.append((entry_time, link))

@@ -92,6 +92,9 @@ jobs:
               f.write(f'urls={json.dumps(entries)}\n')
               if not entries:
                   exit(0)
+        shell: python {0}
+        env:
+          TZ: UTC
 
   process-video:
     name: Process and Upload Videos

@@ -58,7 +58,7 @@ jobs:
                   continue
               
               updated_elem = entry.find('atom:updated', ns)
-              if not updated_elem or not updated_elem.text:
+              if updated_elem is None or not updated_elem.text.strip():
                   print("  Skipped - missing <updated> element")
                   continue
               
@@ -67,7 +67,7 @@ jobs:
               
               try:
                   normalized_time = raw_time.replace('Z', '+00:00').split('.')[0]
-                  entry_time = datetime.fromisoformat(normalized_time).astimezone(UTC)
+                  entry_time = datetime.fromisoformat(normalized_time).astimezone(timezone.utc)
                   print(f"  Parsed UTC time: {entry_time.isoformat()}")
               except Exception as e:
                   print(f"  Failed to parse time: {str(e)}")

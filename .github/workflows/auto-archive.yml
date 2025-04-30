@@ -33,7 +33,7 @@ jobs:
         run: |
           import xml.etree.ElementTree as ET
           import requests
-          from datetime import datetime, timedelta, UTC
+          from datetime import datetime, timedelta, UTC, timezone
           import os
           import json
 

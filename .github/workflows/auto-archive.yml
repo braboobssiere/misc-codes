@@ -46,25 +46,40 @@ jobs:
           time_threshold = current_time - timedelta(minutes=60)
           matched_entries = []
 
-          for entry in root.findall('atom:entry', ns):
-              title = entry.find('atom:title', ns).text or ''
-              if 'unarchive' not in title.lower():
-                  continue
+          print(f"Current UTC time: {current_time.isoformat()}")
+          print(f"Time threshold (last 60 min): {time_threshold.isoformat()}\n")
 
+          for index, entry in enumerate(root.findall('atom:entry', ns), 1):
+              print(f"Processing entry {index}")
+              title = entry.find('atom:title', ns).text or ''
+              
+              if 'unarchive' not in title.lower():
+                  print(f"  Skipped - no 'unarchive' in title: {title[:50]}...")
+                  continue
+              
               updated_elem = entry.find('atom:updated', ns)
               if not updated_elem or not updated_elem.text:
+                  print("  Skipped - missing <updated> element")
                   continue
-    
-              # Parse ISO 8601 timestamp and handle timezone
-              updated_str = updated_elem.text.replace('Z', '+00:00')
+              
+              raw_time = updated_elem.text
+              print(f"  Raw updated time: {raw_time}")
+              
               try:
-                  entry_time = datetime.fromisoformat(updated_str).astimezone(UTC)
-              except ValueError:
+                  normalized_time = raw_time.replace('Z', '+00:00').split('.')[0]
+                  entry_time = datetime.fromisoformat(normalized_time).astimezone(UTC)
+                  print(f"  Parsed UTC time: {entry_time.isoformat()}")
+              except Exception as e:
+                  print(f"  Failed to parse time: {str(e)}")
                   continue
-    
+              
               if time_threshold <= entry_time <= current_time:
                   link = entry.find("atom:link[@rel='alternate']", ns).attrib['href']
                   matched_entries.append((entry_time, link))
+                  print("  ✅ Within time range - entry matched")
+              else:
+                  print("  ❌ Outside time range - entry rejected")
+              print()
 
           entries = []
           if matched_entries:
@@ -77,9 +92,6 @@ jobs:
               f.write(f'urls={json.dumps(entries)}\n')
               if not entries:
                   exit(0)
-        shell: python
-        env:
-          TZ: UTC
 
   process-video:
     name: Process and Upload Videos

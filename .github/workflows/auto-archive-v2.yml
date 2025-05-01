@@ -208,9 +208,9 @@ jobs:
           TAG="${TIMESTAMP}"
           echo "TAG=$TAG" >> $GITHUB_OUTPUT          
           cd output
-          find . -type f -size +1.9G -exec bash -c '
+          find . -type f -size +1.75G -exec bash -c '
             for file; do
-              zip -s 1.9g -r "${file}.zip" "${file}"
+              zip -s 1.75g -r "${file}.zip" "${file}"
               rm "${file}"
             done
           ' bash {} +

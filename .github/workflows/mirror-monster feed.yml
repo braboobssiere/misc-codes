@@ -3,7 +3,7 @@ name: Mirror Monster Feed
 on:
   schedule:
     - cron: '0 */6 * * *'
-  # workflow_dispatch:  # Allows manual triggering
+  workflow_dispatch:  # Allows manual triggering
 
 permissions:
   contents: write

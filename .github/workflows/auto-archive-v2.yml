@@ -123,13 +123,13 @@ jobs:
             echo "::warning::Primary failed - Trying secondary"
             if ! handle_vpn_attempt "$SECONDARY_CONFIG" "secondary"; then
               echo "::error::All VPN configurations failed after 3 attempts each"
-              exit 1
+              exit 11
             fi
           fi
 
           if ! sudo wg show wg0 >/dev/null 2>&1; then
             echo "::error::VPN connection verification failed"
-            exit 1
+            exit 12
           fi
 
       - name: Concurrent Downloads
@@ -156,7 +156,7 @@ jobs:
           
           if [ $FILE_COUNT -lt 2 ]; then
             echo "Error: yt-dlp have a problem downloading video (found $FILE_COUNT)"
-            exit 1
+            exit 13
           fi
 
       - name: Upload Files to Cloud Storage

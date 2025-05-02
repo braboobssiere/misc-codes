@@ -129,7 +129,8 @@ jobs:
           if [[ "$RESOLUTION" == "best" ]]; then
             FORMAT_OPTION=""
           else
-            FORMAT_OPTION="-S \"+res:${RESOLUTION//[^0-9]/},+vcodec:av01\""
+            FORMAT_OPTION="-S \"+res:${RESOLUTION//[^0-9]/}\""
+            # remove +vcodec:av01 from -S until youtube fixed it
           fi
 
           # Handle YouTube downloads using cookies if provided

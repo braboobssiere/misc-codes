@@ -146,9 +146,10 @@ jobs:
           URLS=$(echo '${{ needs.check-feed.outputs.urls }}' | jq -r '.[].url')
           
           parallel -j4 \
-          'cmd="yt-dlp -i --no-progress -S \"+res:1080,+vcodec:av01\" \
+          'cmd="yt-dlp -i --no-progress -S \"+res:1080\" \
             --windows-filenames --live-from-start -N 4 --write-thumbnail \
             -o \"output/%(title).170B [%(id)s] (%(resolution)s).%(ext)s\" {}";
+          # remove +vcodec:av01 from -S until youtube fixed it
           echo "Download command: $cmd";
           eval "$cmd"' ::: "${URLS[@]}" >> output/logs.txt 2>&1
 

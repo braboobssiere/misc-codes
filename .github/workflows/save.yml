@@ -1,0 +1,18 @@
+name: Save YouTube RSS Feed
+
+on:
+  workflow_dispatch:
+
+jobs:
+  save-rss:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fetch RSS feed
+        run: |
+          curl -sS "https://www.youtube.com/feeds/videos.xml?channel_id=UCa9Y57gfeY0Zro_noHRVrnw" -o videos.xml
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: youtube-rss-feed
+          path: videos.xml

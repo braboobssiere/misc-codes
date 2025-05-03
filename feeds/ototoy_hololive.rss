@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<rss version="2.0">
+<rss xmlns:ns0="http://www.w3.org/2005/Atom" version="2.0">
   <channel>
     <title>ホロライブ, ロスレス - OTOTOY</title>
     <link>https://ototoy.jp/tags/%E3%83%9B%E3%83%AD%E3%83%A9%E3%82%A4%E3%83%96*%E3%83%AD%E3%82%B9%E3%83%AC%E3%82%B9/orderby/releasedate-desc</link>
@@ -7,6 +7,7 @@
 Source page: https://ototoy.jp/tags/%E3%83%9B%E3%83%AD%E3%83%A9%E3%82%A4%E3%83%96*%E3%83%AD%E3%82%B9%E3%83%AC%E3%82%B9/orderby/releasedate-desc</description>
     <language>en</language>
     <lastBuildDate>Fri, 02 May 2025 18:29:07 -0000</lastBuildDate>
+    <ns0:link href="https://politepol.com/fd/fOrdd29ndzQa.xml" rel="self" type="application/rss+xml"/>
     <item>
       <title>もうどうなってもいいや / 星街すいせい</title>
       <link>https://ototoy.jp/_/default/p/2688497</link>
@@ -43,13 +44,6 @@ Source page: https://ototoy.jp/tags/%E3%83%9B%E3%83%AD%E3%83%A9%E3%82%A4%E3%83%9
       <guid isPermaLink="true">https://ototoy.jp/_/default/p/2628001</guid>
     </item>
     <item>
-      <title>もうどうなってもいいや - Movie edition - / 星街すいせい</title>
-      <link>https://ototoy.jp/_/default/p/2548986</link>
-      <description>https://youtube.com/results?search_query=%E3%82%82%E3%81%86%E3%81%A9%E3%81%86%E3%81%AA%E3%81%A3%E3%81%A6%E3%82%82%E3%81%84%E3%81%84%E3%82%84%20-%20Movie%20edition%20-%20/%20%E6%98%9F%E8%A1%97%E3%81%99%E3%81%84%E3%81%9B%E3%81%84</description>
-      <pubDate>Sun, 02 Feb 2025 16:25:57 -0000</pubDate>
-      <guid isPermaLink="true">https://ototoy.jp/_/default/p/2548986</guid>
-    </item>
-    <item>
       <title>Pleiades / 大空スバル</title>
       <link>https://ototoy.jp/_/default/p/2614721</link>
       <description>https://youtube.com/results?search_query=Pleiades%20/%20%E5%A4%A7%E7%A9%BA%E3%82%B9%E3%83%90%E3%83%AB</description>
@@ -64,11 +58,25 @@ Source page: https://ototoy.jp/tags/%E3%83%9B%E3%83%AD%E3%83%A9%E3%82%A4%E3%83%9
       <guid isPermaLink="true">https://ototoy.jp/_/default/p/2722646</guid>
     </item>
     <item>
+      <title>もうどうなってもいいや - Movie edition - / 星街すいせい</title>
+      <link>https://ototoy.jp/_/default/p/2548986</link>
+      <description>https://youtube.com/results?search_query=%E3%82%82%E3%81%86%E3%81%A9%E3%81%86%E3%81%AA%E3%81%A3%E3%81%A6%E3%82%82%E3%81%84%E3%81%84%E3%82%84%20-%20Movie%20edition%20-%20/%20%E6%98%9F%E8%A1%97%E3%81%99%E3%81%84%E3%81%9B%E3%81%84</description>
+      <pubDate>Sun, 02 Feb 2025 16:25:57 -0000</pubDate>
+      <guid isPermaLink="true">https://ototoy.jp/_/default/p/2548986</guid>
+    </item>
+    <item>
       <title>24K GOLD / FLOW GLOW</title>
       <link>https://ototoy.jp/_/default/p/2635083</link>
       <description>https://youtube.com/results?search_query=24K%20GOLD%20/%20FLOW%20GLOW</description>
       <pubDate>Mon, 17 Mar 2025 18:27:08 -0000</pubDate>
       <guid isPermaLink="true">https://ototoy.jp/_/default/p/2635083</guid>
+    </item>
+    <item>
+      <title>夜に咲く / 星街すいせい</title>
+      <link>https://ototoy.jp/_/default/p/2719869</link>
+      <description>https://youtube.com/results?search_query=%E5%A4%9C%E3%81%AB%E5%92%B2%E3%81%8F%20/%20%E6%98%9F%E8%A1%97%E3%81%99%E3%81%84%E3%81%9B%E3%81%84</description>
+      <pubDate>Thu, 24 Apr 2025 18:28:52 -0000</pubDate>
+      <guid isPermaLink="true">https://ototoy.jp/_/default/p/2719869</guid>
     </item>
     <item>
       <title>GREATEST / 音乃瀬奏</title>
@@ -85,25 +93,11 @@ Source page: https://ototoy.jp/tags/%E3%83%9B%E3%83%AD%E3%83%A9%E3%82%A4%E3%83%9
       <guid isPermaLink="true">https://ototoy.jp/_/default/p/2602855</guid>
     </item>
     <item>
-      <title>夜に咲く / 星街すいせい</title>
-      <link>https://ototoy.jp/_/default/p/2719869</link>
-      <description>https://youtube.com/results?search_query=%E5%A4%9C%E3%81%AB%E5%92%B2%E3%81%8F%20/%20%E6%98%9F%E8%A1%97%E3%81%99%E3%81%84%E3%81%9B%E3%81%84</description>
-      <pubDate>Thu, 24 Apr 2025 18:28:52 -0000</pubDate>
-      <guid isPermaLink="true">https://ototoy.jp/_/default/p/2719869</guid>
-    </item>
-    <item>
       <title>My Abyss / 常闇トワ</title>
       <link>https://ototoy.jp/_/default/p/2614719</link>
       <description>https://youtube.com/results?search_query=My%20Abyss%20/%20%E5%B8%B8%E9%97%87%E3%83%88%E3%83%AF</description>
       <pubDate>Sat, 08 Mar 2025 04:21:50 -0000</pubDate>
       <guid isPermaLink="true">https://ototoy.jp/_/default/p/2614719</guid>
-    </item>
-    <item>
-      <title>Filmy Funny / 尾丸ポルカ</title>
-      <link>https://ototoy.jp/_/default/p/2547745</link>
-      <description>https://youtube.com/results?search_query=Filmy%20Funny%20/%20%E5%B0%BE%E4%B8%B8%E3%83%9D%E3%83%AB%E3%82%AB</description>
-      <pubDate>Tue, 18 Feb 2025 04:26:22 -0000</pubDate>
-      <guid isPermaLink="true">https://ototoy.jp/_/default/p/2547745</guid>
     </item>
     <item>
       <title>Break It Down / Vestia Zeta</title>
@@ -113,11 +107,11 @@ Source page: https://ototoy.jp/tags/%E3%83%9B%E3%83%AD%E3%83%A9%E3%82%A4%E3%83%9
       <guid isPermaLink="true">https://ototoy.jp/_/default/p/2641395</guid>
     </item>
     <item>
-      <title>WHAT A MESS!!! / 角巻わため</title>
-      <link>https://ototoy.jp/_/default/p/2502212</link>
-      <description>https://youtube.com/results?search_query=WHAT%20A%20MESS%21%21%21%20/%20%E8%A7%92%E5%B7%BB%E3%82%8F%E3%81%9F%E3%82%81</description>
-      <pubDate>Sun, 29 Dec 2024 16:25:03 -0000</pubDate>
-      <guid isPermaLink="true">https://ototoy.jp/_/default/p/2502212</guid>
+      <title>Filmy Funny / 尾丸ポルカ</title>
+      <link>https://ototoy.jp/_/default/p/2547745</link>
+      <description>https://youtube.com/results?search_query=Filmy%20Funny%20/%20%E5%B0%BE%E4%B8%B8%E3%83%9D%E3%83%AB%E3%82%AB</description>
+      <pubDate>Tue, 18 Feb 2025 04:26:22 -0000</pubDate>
+      <guid isPermaLink="true">https://ototoy.jp/_/default/p/2547745</guid>
     </item>
     <item>
       <title>PANDORA / Moona Hoshinova</title>
@@ -148,6 +142,13 @@ Source page: https://ototoy.jp/tags/%E3%83%9B%E3%83%AD%E3%83%A9%E3%82%A4%E3%83%9
       <guid isPermaLink="true">https://ototoy.jp/_/default/p/2044541</guid>
     </item>
     <item>
+      <title>WHAT A MESS!!! / 角巻わため</title>
+      <link>https://ototoy.jp/_/default/p/2502212</link>
+      <description>https://youtube.com/results?search_query=WHAT%20A%20MESS%21%21%21%20/%20%E8%A7%92%E5%B7%BB%E3%82%8F%E3%81%9F%E3%82%81</description>
+      <pubDate>Sun, 29 Dec 2024 16:25:03 -0000</pubDate>
+      <guid isPermaLink="true">https://ototoy.jp/_/default/p/2502212</guid>
+    </item>
+    <item>
       <title>LOVE受信、ヒクツ発信 / 桃鈴ねね</title>
       <link>https://ototoy.jp/_/default/p/2603681</link>
       <description>https://youtube.com/results?search_query=LOVE%E5%8F%97%E4%BF%A1%E3%80%81%E3%83%92%E3%82%AF%E3%83%84%E7%99%BA%E4%BF%A1%20/%20%E6%A1%83%E9%88%B4%E3%81%AD%E3%81%AD</description>
@@ -155,18 +156,18 @@ Source page: https://ototoy.jp/tags/%E3%83%9B%E3%83%AD%E3%83%A9%E3%82%A4%E3%83%9
       <guid isPermaLink="true">https://ototoy.jp/_/default/p/2603681</guid>
     </item>
     <item>
-      <title>Colorful Universe / 大神ミオ</title>
-      <link>https://ototoy.jp/_/default/p/2537545</link>
-      <description>https://youtube.com/results?search_query=Colorful%20Universe%20/%20%E5%A4%A7%E7%A5%9E%E3%83%9F%E3%82%AA</description>
-      <pubDate>Thu, 30 Jan 2025 16:28:06 -0000</pubDate>
-      <guid isPermaLink="true">https://ototoy.jp/_/default/p/2537545</guid>
-    </item>
-    <item>
       <title>ラヴレター / 夏色まつり</title>
       <link>https://ototoy.jp/_/default/p/2627999</link>
       <description>https://youtube.com/results?search_query=%E3%83%A9%E3%83%B4%E3%83%AC%E3%82%BF%E3%83%BC%20/%20%E5%A4%8F%E8%89%B2%E3%81%BE%E3%81%A4%E3%82%8A</description>
       <pubDate>Sat, 29 Mar 2025 06:26:44 -0000</pubDate>
       <guid isPermaLink="true">https://ototoy.jp/_/default/p/2627999</guid>
+    </item>
+    <item>
+      <title>Colorful Universe / 大神ミオ</title>
+      <link>https://ototoy.jp/_/default/p/2537545</link>
+      <description>https://youtube.com/results?search_query=Colorful%20Universe%20/%20%E5%A4%A7%E7%A5%9E%E3%83%9F%E3%82%AA</description>
+      <pubDate>Thu, 30 Jan 2025 16:28:06 -0000</pubDate>
+      <guid isPermaLink="true">https://ototoy.jp/_/default/p/2537545</guid>
     </item>
     <item>
       <title>きゅーぴっど。 / 天音かなた</title>
@@ -218,13 +219,6 @@ Source page: https://ototoy.jp/tags/%E3%83%9B%E3%83%AD%E3%83%A9%E3%82%A4%E3%83%9
       <guid isPermaLink="true">https://ototoy.jp/_/default/p/2582520</guid>
     </item>
     <item>
-      <title>混ざる鈍色 / 沙花叉クロヱ</title>
-      <link>https://ototoy.jp/_/default/p/2528384</link>
-      <description>https://youtube.com/results?search_query=%E6%B7%B7%E3%81%96%E3%82%8B%E9%88%8D%E8%89%B2%20/%20%E6%B2%99%E8%8A%B1%E5%8F%89%E3%82%AF%E3%83%AD%E3%83%B1</description>
-      <pubDate>Tue, 28 Jan 2025 16:27:28 -0000</pubDate>
-      <guid isPermaLink="true">https://ototoy.jp/_/default/p/2528384</guid>
-    </item>
-    <item>
       <title>Countach / 轟はじめ</title>
       <link>https://ototoy.jp/_/default/p/2522333</link>
       <description>https://youtube.com/results?search_query=Countach%20/%20%E8%BD%9F%E3%81%AF%E3%81%98%E3%82%81</description>
@@ -274,11 +268,11 @@ Source page: https://ototoy.jp/tags/%E3%83%9B%E3%83%AD%E3%83%A9%E3%82%A4%E3%83%9
       <guid isPermaLink="true">https://ototoy.jp/_/default/p/2577095</guid>
     </item>
     <item>
-      <title>FG ROADSTER / FLOW GLOW</title>
-      <link>https://ototoy.jp/_/default/p/2428756</link>
-      <description>https://youtube.com/results?search_query=FG%20ROADSTER%20/%20FLOW%20GLOW</description>
-      <pubDate>Mon, 11 Nov 2024 10:00:56 -0000</pubDate>
-      <guid isPermaLink="true">https://ototoy.jp/_/default/p/2428756</guid>
+      <title>混ざる鈍色 / 沙花叉クロヱ</title>
+      <link>https://ototoy.jp/_/default/p/2528384</link>
+      <description>https://youtube.com/results?search_query=%E6%B7%B7%E3%81%96%E3%82%8B%E9%88%8D%E8%89%B2%20/%20%E6%B2%99%E8%8A%B1%E5%8F%89%E3%82%AF%E3%83%AD%E3%83%B1</description>
+      <pubDate>Tue, 28 Jan 2025 16:27:28 -0000</pubDate>
+      <guid isPermaLink="true">https://ototoy.jp/_/default/p/2528384</guid>
     </item>
     <item>
       <title>PERFUME / 小鳥遊キアラ</title>
@@ -323,18 +317,18 @@ Source page: https://ototoy.jp/tags/%E3%83%9B%E3%83%AD%E3%83%A9%E3%82%A4%E3%83%9
       <guid isPermaLink="true">https://ototoy.jp/_/default/p/2499310</guid>
     </item>
     <item>
+      <title>FG ROADSTER / FLOW GLOW</title>
+      <link>https://ototoy.jp/_/default/p/2428756</link>
+      <description>https://youtube.com/results?search_query=FG%20ROADSTER%20/%20FLOW%20GLOW</description>
+      <pubDate>Mon, 11 Nov 2024 10:00:56 -0000</pubDate>
+      <guid isPermaLink="true">https://ototoy.jp/_/default/p/2428756</guid>
+    </item>
+    <item>
       <title>ReGLOSS / ReGLOSS</title>
       <link>https://ototoy.jp/_/default/p/2401437</link>
       <description>https://youtube.com/results?search_query=ReGLOSS%20/%20ReGLOSS</description>
       <pubDate>Fri, 08 Nov 2024 03:21:14 -0000</pubDate>
       <guid isPermaLink="true">https://ototoy.jp/_/default/p/2401437</guid>
-    </item>
-    <item>
-      <title>守護ってルーナイト / 姫森ルーナ</title>
-      <link>https://ototoy.jp/_/default/p/2371373</link>
-      <description>https://youtube.com/results?search_query=%E5%AE%88%E8%AD%B7%E3%81%A3%E3%81%A6%E3%83%AB%E3%83%BC%E3%83%8A%E3%82%A4%E3%83%88%20/%20%E5%A7%AB%E6%A3%AE%E3%83%AB%E3%83%BC%E3%83%8A</description>
-      <pubDate>Fri, 08 Nov 2024 01:06:14 -0000</pubDate>
-      <guid isPermaLink="true">https://ototoy.jp/_/default/p/2371373</guid>
     </item>
     <item>
       <title>Fake.Fake.Fake / AZKi</title>
@@ -379,25 +373,18 @@ Source page: https://ototoy.jp/tags/%E3%83%9B%E3%83%AD%E3%83%A9%E3%82%A4%E3%83%9
       <guid isPermaLink="true">https://ototoy.jp/_/default/p/2674118</guid>
     </item>
     <item>
+      <title>守護ってルーナイト / 姫森ルーナ</title>
+      <link>https://ototoy.jp/_/default/p/2371373</link>
+      <description>https://youtube.com/results?search_query=%E5%AE%88%E8%AD%B7%E3%81%A3%E3%81%A6%E3%83%AB%E3%83%BC%E3%83%8A%E3%82%A4%E3%83%88%20/%20%E5%A7%AB%E6%A3%AE%E3%83%AB%E3%83%BC%E3%83%8A</description>
+      <pubDate>Fri, 08 Nov 2024 01:06:14 -0000</pubDate>
+      <guid isPermaLink="true">https://ototoy.jp/_/default/p/2371373</guid>
+    </item>
+    <item>
       <title>天界弩級オシゴトロード / かなけん</title>
       <link>https://ototoy.jp/_/default/p/2499312</link>
       <description>https://youtube.com/results?search_query=%E5%A4%A9%E7%95%8C%E5%BC%A9%E7%B4%9A%E3%82%AA%E3%82%B7%E3%82%B4%E3%83%88%E3%83%AD%E3%83%BC%E3%83%89%20/%20%E3%81%8B%E3%81%AA%E3%81%91%E3%82%93</description>
       <pubDate>Mon, 23 Dec 2024 10:24:32 -0000</pubDate>
       <guid isPermaLink="true">https://ototoy.jp/_/default/p/2499312</guid>
-    </item>
-    <item>
-      <title>ビビデバ / 星街すいせい</title>
-      <link>https://ototoy.jp/_/default/p/2055648</link>
-      <description>https://youtube.com/results?search_query=%E3%83%93%E3%83%93%E3%83%87%E3%83%90%20/%20%E6%98%9F%E8%A1%97%E3%81%99%E3%81%84%E3%81%9B%E3%81%84</description>
-      <pubDate>Fri, 17 Jan 2025 03:56:23 -0000</pubDate>
-      <guid isPermaLink="true">https://ototoy.jp/_/default/p/2055648</guid>
-    </item>
-    <item>
-      <title>AWAKE / 星街すいせい</title>
-      <link>https://ototoy.jp/_/default/p/2434769</link>
-      <description>https://youtube.com/results?search_query=AWAKE%20/%20%E6%98%9F%E8%A1%97%E3%81%99%E3%81%84%E3%81%9B%E3%81%84</description>
-      <pubDate>Thu, 14 Nov 2024 17:46:27 -0000</pubDate>
-      <guid isPermaLink="true">https://ototoy.jp/_/default/p/2434769</guid>
     </item>
     <item>
       <title>Multiverse / Moona Hoshinova</title>
@@ -414,11 +401,11 @@ Source page: https://ototoy.jp/tags/%E3%83%9B%E3%83%AD%E3%83%A9%E3%82%A4%E3%83%9
       <guid isPermaLink="true">https://ototoy.jp/_/default/p/2183792</guid>
     </item>
     <item>
-      <title>I I I / 宝鐘マリン</title>
-      <link>https://ototoy.jp/_/default/p/2085441</link>
-      <description>https://youtube.com/results?search_query=I%20I%20I%20/%20%E5%AE%9D%E9%90%98%E3%83%9E%E3%83%AA%E3%83%B3</description>
-      <pubDate>Fri, 17 Jan 2025 01:56:23 -0000</pubDate>
-      <guid isPermaLink="true">https://ototoy.jp/_/default/p/2085441</guid>
+      <title>ビビデバ / 星街すいせい</title>
+      <link>https://ototoy.jp/_/default/p/2055648</link>
+      <description>https://youtube.com/results?search_query=%E3%83%93%E3%83%93%E3%83%87%E3%83%90%20/%20%E6%98%9F%E8%A1%97%E3%81%99%E3%81%84%E3%81%9B%E3%81%84</description>
+      <pubDate>Fri, 17 Jan 2025 03:56:23 -0000</pubDate>
+      <guid isPermaLink="true">https://ototoy.jp/_/default/p/2055648</guid>
     </item>
     <item>
       <title>mumei / Nanashi Mumei</title>
@@ -426,6 +413,20 @@ Source page: https://ototoy.jp/tags/%E3%83%9B%E3%83%AD%E3%83%A9%E3%82%A4%E3%83%9
       <description>https://youtube.com/results?search_query=mumei%20/%20Nanashi%20Mumei</description>
       <pubDate>Fri, 02 May 2025 18:29:07 -0000</pubDate>
       <guid isPermaLink="true">https://ototoy.jp/_/default/p/1845779</guid>
+    </item>
+    <item>
+      <title>Our Bright Parade / hololive IDOL PROJECT</title>
+      <link>https://ototoy.jp/_/default/p/1577165</link>
+      <description>https://youtube.com/results?search_query=Our%20Bright%20Parade%20/%20hololive%20IDOL%20PROJECT</description>
+      <pubDate>Fri, 28 Feb 2025 04:27:46 -0000</pubDate>
+      <guid isPermaLink="true">https://ototoy.jp/_/default/p/1577165</guid>
+    </item>
+    <item>
+      <title>SPARKS / 小鳥遊キアラ</title>
+      <link>https://ototoy.jp/_/default/p/839312</link>
+      <description>https://youtube.com/results?search_query=SPARKS%20/%20%E5%B0%8F%E9%B3%A5%E9%81%8A%E3%82%AD%E3%82%A2%E3%83%A9</description>
+      <pubDate>Fri, 14 Mar 2025 18:27:04 -0000</pubDate>
+      <guid isPermaLink="true">https://ototoy.jp/_/default/p/839312</guid>
     </item>
   </channel>
 </rss>

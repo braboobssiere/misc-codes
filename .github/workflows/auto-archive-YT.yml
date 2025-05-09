@@ -1,4 +1,4 @@
-name: Auto-Download YT Video
+name: Auto-Download YT Video 
 
 on:
   workflow_dispatch:
@@ -37,14 +37,15 @@ jobs:
           import os
           import json
 
-          feed_url = "https://www.youtube.com/feeds/videos.xml?channel_id=UCSl5Uxu2LyaoAoMMGp6oTJA"
+          feed_url = "https://www.youtube.com/feeds/videos.xml?channel_id=UCoiEtD4v1qMAqHV5MDI5Qpg"
+          # channel: 9arm
           response = requests.get(feed_url)
           response.raise_for_status()
           root = ET.fromstring(response.content)
 
           ns = {'atom': 'http://www.w3.org/2005/Atom'}
           current_time = datetime.now(timezone.utc)
-          time_threshold = current_time - timedelta(minutes=180)
+          time_threshold = current_time - timedelta(minutes=45)
           matched_entries = []
 
           for entry in root.findall('atom:entry', ns):

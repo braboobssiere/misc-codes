@@ -37,7 +37,7 @@ jobs:
           import os
           import json
 
-          feed_url = "https://www.youtube.com/feeds/videos.xml?channel_id=UCGzTVXqMQHa4AgJVJIVvtDQ"
+          feed_url = "https://www.youtube.com/feeds/videos.xml?channel_id=UCSl5Uxu2LyaoAoMMGp6oTJA"
           response = requests.get(feed_url)
           response.raise_for_status()
           root = ET.fromstring(response.content)

@@ -129,16 +129,6 @@ jobs:
             exit 12
           fi
 
-      - name: Verify output file 
-        run: |
-          # Count files in output directory (including hidden files)
-          FILE_COUNT=$(find output/ -type f | wc -l)
-          
-          if [ $FILE_COUNT -lt 2 ]; then
-            echo "Error: yt-dlp have a problem downloading video (found $FILE_COUNT)"
-            exit 13
-          fi
-
       - name: Concurrent Downloads
         continue-on-error: true
         run: |
@@ -156,6 +146,16 @@ jobs:
       - name: VPN Cleanup
         if: ${{ always() }}
         run: sudo wg-quick down wg0 || true
+
+      - name: Verify output file 
+        run: |
+          # Count files in output directory (including hidden files)
+          FILE_COUNT=$(find output/ -type f | wc -l)
+          
+          if [ $FILE_COUNT -lt 2 ]; then
+            echo "Error: yt-dlp have a problem downloading video (found $FILE_COUNT)"
+            exit 13
+          fi
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4

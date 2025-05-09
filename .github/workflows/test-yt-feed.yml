@@ -1,4 +1,4 @@
-name: Auto-Download YT
+name: Auto-Download YT Video
 
 on:
   workflow_dispatch:
@@ -6,7 +6,7 @@ on:
   #   - cron: '35 * * * *'
 
 concurrency:
-  group: Auto-Download YT
+  group: Auto-Download YT Video
   cancel-in-progress: false
 
 jobs:
@@ -48,7 +48,11 @@ jobs:
           matched_entries = []
 
           for entry in root.findall('atom:entry', ns):
-          
+              
+              updated_elem = entry.find('atom:updated', ns)
+              if updated_elem is None or not updated_elem.text.strip():
+                  continue
+                  
               entry_time = datetime.fromisoformat(updated_elem.text).astimezone(timezone.utc)
               
               if time_threshold <= entry_time <= current_time:

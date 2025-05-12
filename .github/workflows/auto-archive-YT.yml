@@ -211,6 +211,6 @@ jobs:
 
           curl -X POST \
           -H "Content-Type: application/json" \
-          -d "{\"content\":\"File Uploads: $LINK\"}" \
+          -d "{\"content\":\"File Uploads: $LINK \n$UPLOAD_LINKS\"}" \
           "${{ secrets.DISCORD_WEBHOOK }}"
           

@@ -221,5 +221,16 @@ jobs:
             fi
           done < <(find output/ -type f -print0)
 
-          echo "### File Uploads: $LINK" >> $GITHUB_STEP_SUMMARY
-          echo -e "\n$UPLOAD_LINKS" >> $GITHUB_STEP_SUMMARY
+          SUMMARY_CONTENT="### File Uploads: $LINK\n$UPLOAD_LINKS"
+          echo "$SUMMARY_CONTENT" >> $GITHUB_STEP_SUMMARY
+          echo "$SUMMARY_CONTENT" > upload_summary.md
+
+      - name: Send Discord Notification
+        if: steps.upload.conclusion == 'success' && ${{ github.event.inputs.upload_to_cloud == 'true' }}
+        run: |
+         CONTENT=$(cat upload_summary.md | sed 's/"/\"/g' | sed ':a;N;$!ba;s/\n/\n/g')
+         curl -X POST \
+           -H "Content-Type: application/json" \
+           -d "{\"content\":\"**Cloud Upload Complete**\n\`\`\`\n$CONTENT\n\`\`\`\"}" \
+           ${{ secrets.DISCORD_WEBHOOK }}
+      

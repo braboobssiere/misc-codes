@@ -223,3 +223,9 @@ jobs:
 
           echo "### File Uploads: $LINK" >> $GITHUB_STEP_SUMMARY
           echo -e "\n$UPLOAD_LINKS" >> $GITHUB_STEP_SUMMARY
+
+          curl -X POST \
+          -H "Content-Type: application/json" \
+          -d "{\"content\":\"File Uploads: $LINK \n$UPLOAD_LINKS\"}" \
+          "${{ secrets.DISCORD_WEBHOOK }}"
+          

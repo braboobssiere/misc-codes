@@ -26,7 +26,7 @@ jobs:
         fi
 
         # Filter and delete runs
-        jq -r --jsonargs '
+        jq -r '
           .workflow_runs[] | 
           select(
             ( (.updated_at | fromdateiso8601) - (.created_at | fromdateiso8601) ) < 120 ||

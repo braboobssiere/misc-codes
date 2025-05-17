@@ -39,8 +39,7 @@ jobs:
 
           FEED_URLS = [
               "https://www.youtube.com/feeds/videos.xml?channel_id=UCoiEtD4v1qMAqHV5MDI5Qpg",  # 9arm
-              "https://www.youtube.com/feeds/videos.xml?channel_id=UCyKsg-57XC9pyHbP7v3kCPQ",  # temp
-              "https://www.youtube.com/feeds/videos.xml?channel_id=UCLjLCV9Rlkf1FV3CVKSOJdA"
+              "https://www.youtube.com/feeds/videos.xml?channel_id=UCyKsg-57XC9pyHbP7v3kCPQ"  # temp
           ]
 
           ns = {'atom': 'http://www.w3.org/2005/Atom'}

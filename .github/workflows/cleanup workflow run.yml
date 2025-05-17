@@ -1,11 +1,9 @@
-name: Cleanup Short Runs
-
+name: Cleanup Short Runs and Old Runs
 
 on:
   workflow_dispatch:
   schedule:
     - cron: '12 18 * * *'
-
 
 jobs:
   cleanup:
@@ -14,24 +12,25 @@ jobs:
       actions: write
       
     steps:
-    - name: Delete short runs
+    - name: Delete short and old runs
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         # Get workflow runs
         curl -s -H "Authorization: Bearer $GH_TOKEN" \
           "https://api.github.com/repos/${{ github.repository }}/actions/runs?status=completed&per_page=100" > runs.json
-       
+
         if [ $? -ne 0 ]; then
           echo "Error: Failed to fetch workflow runs."
           exit 1
         fi
 
-        # Filter and delete runs with duration < 120s
-        jq -r '
+        # Filter and delete runs
+        jq -r --jsonargs '
           .workflow_runs[] | 
           select(
-            ( (.updated_at | fromdateiso8601) - (.created_at | fromdateiso8601) ) < 120
+            ( (.updated_at | fromdateiso8601) - (.created_at | fromdateiso8601) ) < 120 ||
+            (now - (.updated_at | fromdateiso8601)) > (90*24*60*60)
           ) | .id
         ' runs.json | while read -r run_id; do
           echo "Deleting run $run_id"

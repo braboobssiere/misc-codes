@@ -37,43 +37,32 @@ jobs:
           import os
           import json
 
-          FEED_URLS = [
-              "https://www.youtube.com/feeds/videos.xml?channel_id=UCoiEtD4v1qMAqHV5MDI5Qpg"  # 9arm
-              "https://raw.githubusercontent.com/braboobssiere/holedex-song-list/refs/heads/main/feeds/holodex-test.atom"  # test
-          ]
+          feed_url = "https://www.youtube.com/feeds/videos.xml?channel_id=UCoiEtD4v1qMAqHV5MDI5Qpg" # 9arm
+          response = requests.get(feed_url)
+          response.raise_for_status()
+          root = ET.fromstring(response.content)
 
           ns = {'atom': 'http://www.w3.org/2005/Atom'}
           current_time = datetime.now(timezone.utc)
           time_threshold = current_time - timedelta(minutes=60)
           matched_entries = []
 
-          for feed_url in FEED_URLS:
-              try:
-                  response = requests.get(feed_url)
-                  response.raise_for_status()
-                  root = ET.fromstring(response.content)
-        
-                  for entry in root.findall('atom:entry', ns):
-                      updated_elem = entry.find('atom:updated', ns)
-                      if updated_elem is None or not updated_elem.text.strip():
-                          continue
-                
-                      entry_time = datetime.fromisoformat(updated_elem.text).astimezone(timezone.utc)
-            
-                      if time_threshold <= entry_time <= current_time:
-                          link = entry.find("atom:link[@rel='alternate']", ns).attrib['href']
-                          matched_entries.append((entry_time, link))
-                
-              except requests.exceptions.RequestException as e:
-                  print(f"Error processing feed {feed_url}: {e}")
+          for entry in root.findall('atom:entry', ns):
+              
+              updated_elem = entry.find('atom:updated', ns)
+              if updated_elem is None or not updated_elem.text.strip():
                   continue
+                  
+              entry_time = datetime.fromisoformat(updated_elem.text).astimezone(timezone.utc)
+              
+              if time_threshold <= entry_time <= current_time:
+                  link = entry.find("atom:link[@rel='alternate']", ns).attrib['href']
+                  matched_entries.append((entry_time, link))
 
-          # Sort all matched entries by timestamp
+          entries = []
           if matched_entries:
               matched_entries.sort(reverse=True, key=lambda x: x[0])
-              entries = [{"url": entry[1]} for entry in matched_entries]
-          else:
-              entries = []
+              entries = [{"url": matched_entries[0][1]}] if matched_entries else []
 
           output_path = os.environ['GITHUB_OUTPUT']
           with open(output_path, 'a') as f:

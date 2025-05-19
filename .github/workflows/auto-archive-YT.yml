@@ -39,7 +39,7 @@ jobs:
 
           FEED_URLS = [
               "https://www.youtube.com/feeds/videos.xml?channel_id=UCoiEtD4v1qMAqHV5MDI5Qpg"  # 9arm
-              # "https://www.youtube.com/feeds/videos.xml?channel_id=UCyKsg-57XC9pyHbP7v3kCPQ"  # temp
+              "https://raw.githubusercontent.com/braboobssiere/holedex-song-list/refs/heads/main/feeds/holodex-test.atom"  # test
           ]
 
           ns = {'atom': 'http://www.w3.org/2005/Atom'}

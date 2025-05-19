@@ -38,6 +38,7 @@ jobs:
           import json
 
           feed_url = "https://www.youtube.com/feeds/videos.xml?channel_id=UCoiEtD4v1qMAqHV5MDI5Qpg" # 9arm
+          feed_url = "https://raw.githubusercontent.com/braboobssiere/holedex-song-list/refs/heads/main/feeds/holodex-test.atom" # test
           response = requests.get(feed_url)
           response.raise_for_status()
           root = ET.fromstring(response.content)

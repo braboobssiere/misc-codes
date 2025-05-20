@@ -1,4 +1,4 @@
-name: Check Keepalive Status
+name: Check Keepalive
 
 on:
   workflow_dispatch:
@@ -8,15 +8,30 @@ on:
         required: true
 
 jobs:
-  check-keepalive:
+  check-html:
     runs-on: ubuntu-latest
+
     steps:
-    - name: Check HTML source
-      id: check_html
-      run: |
-        HTML_CONTENT=$(curl -sL -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:138.0) Gecko/20100101 Firefox/138.0" "${{ inputs.url }}")
-        if echo "$HTML_CONTENT" | grep -q "keepalive/yes"; then
-          echo "result=yes" >> $GITHUB_OUTPUT
-        else
-          echo "result=no" >> $GITHUB_OUTPUT
-        fi
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Fetch HTML
+        id: fetch_html
+        run: |
+          response=$(curl -s "${{ github.event.inputs.url }}")
+          echo "html_content<<EOF" >> $GITHUB_ENV
+          echo "$response" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+
+      - name: Check for keepalive
+        id: check_keepalive
+        run: |
+          if echo "$html_content" | grep -q "keepalive/yes"; then
+            echo "keepalive_found=true" >> $GITHUB_ENV
+          else
+            echo "keepalive_found=false" >> $GITHUB_ENV
+          fi
+
+      - name: Output result
+        run: |
+          echo "Keepalive found: ${{ env.keepalive_found }}"

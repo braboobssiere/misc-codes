@@ -4,24 +4,19 @@ on:
   workflow_dispatch:
     inputs:
       url:
-        description: 'Target URL to check'
+        description: 'URL to check'
         required: true
 
 jobs:
-  check:
+  check-keepalive:
     runs-on: ubuntu-latest
     steps:
-    - name: Fetch page source
-      run: curl -s -o page.html "${{ github.event.inputs.url }}"
-
-    - name: Check for string
-      id: check_string
+    - name: Check HTML source
+      id: check_html
       run: |
-        if grep -q "keepalive/yes" page.html; then
-          echo "result=Exists" >> $GITHUB_OUTPUT
+        HTML_CONTENT=$(curl -sL -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:138.0) Gecko/20100101 Firefox/138.0" "${{ inputs.url }}")
+        if echo "$HTML_CONTENT" | grep -q "keepalive/yes"; then
+          echo "result=yes" >> $GITHUB_OUTPUT
         else
-          echo "result=Not Found" >> $GITHUB_OUTPUT
+          echo "result=no" >> $GITHUB_OUTPUT
         fi
-
-    - name: Show result
-      run: echo "${{ steps.check_string.outputs.result }} in page source"

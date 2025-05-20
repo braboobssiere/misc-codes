@@ -1,4 +1,4 @@
-name: Check Keepalive
+name: Check HTML for keepalive flag
 
 on:
   workflow_dispatch:
@@ -6,32 +6,39 @@ on:
       url:
         description: 'URL to check'
         required: true
+        default: 'https://example.com'
 
 jobs:
   check-html:
     runs-on: ubuntu-latest
-
+    outputs:
+      result: ${{ steps.check.outputs.result }}
+      
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-
-      - name: Fetch HTML
-        id: fetch_html
+      - name: Fetch HTML source
+        id: fetch
         run: |
-          response=$(curl -s "${{ github.event.inputs.url }}")
-          echo "html_content<<EOF" >> $GITHUB_ENV
-          echo "$response" >> $GITHUB_ENV
-          echo "EOF" >> $GITHUB_ENV
-
-      - name: Check for keepalive
-        id: check_keepalive
-        run: |
-          if echo "$html_content" | grep -q "keepalive/yes"; then
-            echo "keepalive_found=true" >> $GITHUB_ENV
-          else
-            echo "keepalive_found=false" >> $GITHUB_ENV
+          echo "Fetching HTML for URL: ${{ github.event.inputs.url }}"
+          # Fetch the HTML source content and output to a file
+          curl -s "${{ github.event.inputs.url }}" -o html_source.txt
+          
+          # Fail if curl didn't return any content.
+          if [ ! -s html_source.txt ]; then
+            echo "No content fetched from URL!"
+            exit 1
           fi
 
+      - name: Check for keepalive/yes
+        id: check
+        run: |
+          echo "Scanning the HTML source for 'keepalive/yes'"
+          # Check if the file contains the pattern "keepalive/yes"
+          if grep -q "keepalive/yes" html_source.txt; then
+            echo "Result=Found keepalive/yes" >> $GITHUB_OUTPUT
+          else
+            echo "Result=No keepalive/yes found" >> $GITHUB_OUTPUT
+          fi
+          
       - name: Output result
         run: |
-          echo "Keepalive found: ${{ env.keepalive_found }}"
+          echo "Check completed: ${{ steps.check.outputs.Result }}"

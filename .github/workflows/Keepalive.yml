@@ -1,0 +1,27 @@
+name: Check Keepalive Status
+
+on:
+  workflow_dispatch:
+    inputs:
+      url:
+        description: 'Target URL to check'
+        required: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Fetch page source
+      run: curl -s -o page.html "${{ github.event.inputs.url }}"
+
+    - name: Check for string
+      id: check_string
+      run: |
+        if grep -q "keepalive/yes" page.html; then
+          echo "result=Exists" >> $GITHUB_OUTPUT
+        else
+          echo "result=Not Found" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Show result
+      run: echo "${{ steps.check_string.outputs.result }} in page source"

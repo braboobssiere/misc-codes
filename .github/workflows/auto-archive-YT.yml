@@ -141,6 +141,7 @@ jobs:
           
           yt-dlp -i --no-progress -S "+res:1080" --retry-sleep 3 \
           --windows-filenames --live-from-start -N 4 --write-thumbnail \
+          --embed-metadata --no-embed-info-json \
           -o "output/%(title).170B [%(id)s] (%(resolution)s).%(ext)s" \
           "$URL" >> output/logs.txt 2>&1
 

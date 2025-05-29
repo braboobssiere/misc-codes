@@ -191,32 +191,53 @@ jobs:
           UPLOAD_LINKS=""
           FIRST_FILE=true
 
-          # Process files with null delimiter for special characters
           while IFS= read -r -d '' file; do
             echo "▫️ Starting upload: $(basename "$file")"
-      
-            # Set auth headers after first file
+        
             extra_args=()
             if [ "$FIRST_FILE" = false ]; then
               extra_args+=(-H "Authorization: Bearer $guest_token" -F "folderId=$folder_id")
             fi
 
-            # Upload call with error capture
             RESPONSE=$(curl -s -X POST -F "file=@\"$file\"" "${extra_args[@]}" "$UPLOAD_URL")
 
-            # Handle first response credentials
+            PYTHON_OUTPUT=$(python3 <<EOF
+          import json, sys
+
+          try:
+              data = json.loads('''$RESPONSE''')
+              if "$FIRST_FILE" == "true":
+                  guest_token = data['data']['guestToken']
+                  folder_id = data['data']['parentFolder']
+                  print(f"{guest_token}\t{folder_id}")
+              else:
+                  print("-\t-")
+                
+              status = 'ok' if data['status'] == 'ok' else 'error'
+              result_data = data.get('data', {}).get('downloadPage', '') if status == 'ok' else data.get('data', '')
+              print(f"{status}\t{result_data}")
+          except Exception as e:
+              print(f"error\tJSON parsing failed: {str(e)}")
+              sys.exit(1)
+          EOF
+            )
+
+            {
+              read -r token_part folder_part
+              read -r status_type result_data
+            } <<< "$PYTHON_OUTPUT"
+
             if [ "$FIRST_FILE" = true ]; then
-              guest_token=$(echo "$RESPONSE" | jq -r '.data.guestToken')
-              folder_id=$(echo "$RESPONSE" | jq -r '.data.parentFolder')
+              guest_token="$token_part"
+              folder_id="$folder_part"
               FIRST_FILE=false
               echo "🔑 Created folder ID: $folder_id"
             fi
 
-            # Individual file status check
-            if ! echo "$RESPONSE" | jq -e '.status == "ok"' >/dev/null; then
-              echo "::error file=$file::Upload failed: $(echo "$RESPONSE" | jq -r '.data')"
+            if [ "$status_type" != "ok" ]; then
+              echo "::error file=$file::Upload failed: $result_data"
             else
-              LINK=$(echo "$RESPONSE" | jq -r '.data.downloadPage')
+              LINK="$result_data"
               UPLOAD_LINKS+="- $(basename "$file")\n"
               echo "✅ Success: $LINK"
             fi

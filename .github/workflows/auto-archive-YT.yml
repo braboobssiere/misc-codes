@@ -133,7 +133,7 @@ jobs:
         continue-on-error: true
         run: |
           mkdir -p output
-          URL=$(echo '${{ needs.check-feed.outputs.urls }}' | jq -r '.[0].url')
+          URL=$(echo '${{ fromJson(needs.check-feed.outputs.urls) }}' | jq -r '.[0].url')
 
           # Live status check
           LIVE_STATUS=$(yt-dlp --print live_status "$URL" 2>/dev/null || echo "error")

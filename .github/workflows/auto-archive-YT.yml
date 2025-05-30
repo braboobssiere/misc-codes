@@ -42,7 +42,7 @@ jobs:
                       return link['href']
               return entry.get('link', '')
 
-          feed_url = "https://www.youtube.com/feeds/videos.xml?channel_id=UCoiEtD4v1qMAqHV5MDI5Qpg" # 9arm
+          feed_url = "https://raw.githubusercontent.com/braboobssiere/holedex-song-list/refs/heads/main/feeds/holodex-test.atom" # 9arm
           feed = feedparser.parse(feed_url)
 
           current_time = datetime.now(timezone.utc)

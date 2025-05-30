@@ -133,15 +133,15 @@ jobs:
         continue-on-error: true
         run: |
           mkdir -p output
-          URL=$(echo '${{ fromJson(needs.check-feed.outputs.urls) }}' | jq -r '.[0].url')
+          URL=$(echo '${{ needs.check-feed.outputs.urls }}' | jq -r '.[].url')
 
           # Live status check
           LIVE_STATUS=$(yt-dlp --print live_status "$URL" 2>/dev/null || echo "error")
           
-          if [[ ! "$LIVE_STATUS" =~ ^(is_live|post_live)$ ]]; then
-              echo "Stream is not live or status unknown (status: $LIVE_STATUS), skipping download"
-              exit 0
-          fi
+          # if [[ ! "$LIVE_STATUS" =~ ^(is_live|post_live)$ ]]; then
+          #    echo "Stream is not live or status unknown (status: $LIVE_STATUS), skipping download"
+          #    exit 0
+          # fi
           
           yt-dlp -i --no-progress -S "+res:1080" --retry-sleep 3 \
           --windows-filenames --live-from-start --write-thumbnail \

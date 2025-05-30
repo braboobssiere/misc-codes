@@ -66,7 +66,7 @@ jobs:
 
           # Sort by most recent first
           matched_entries.sort(reverse=True, key=lambda x: x[0])
-          entries = [{"url": item[1]} for item in matched_entries[:4]]
+          entries = [{"url": item[1]} for item in matched_entries[:1]]
 
           output_path = os.environ['GITHUB_OUTPUT']
           with open(output_path, 'a') as f:

@@ -42,11 +42,11 @@ jobs:
                       return link['href']
               return entry.get('link', '')
 
-          feed_url = "https://www.youtube.com/feeds/videos.xml?channel_id=UCqm3BQLlJfvkTsX_hvm0UmA" # 9arm
+          feed_url = "https://www.youtube.com/feeds/videos.xml?channel_id=UCoiEtD4v1qMAqHV5MDI5Qpg" # 9arm
           feed = feedparser.parse(feed_url)
 
           current_time = datetime.now(timezone.utc)
-          time_threshold = current_time - timedelta(hours=14)
+          time_threshold = current_time - timedelta(minutes=31)
           matched_entries = []
 
           for entry in feed.entries:

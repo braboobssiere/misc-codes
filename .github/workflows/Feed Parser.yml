@@ -23,7 +23,6 @@ jobs:
       run: |
         python -c "
         import feedparser
-        import sys
         
         feed_url = '${{ github.event.inputs.feed-url }}'
 
@@ -41,7 +40,7 @@ jobs:
         
         if not feed.entries:
             print('Error: No entries found or invalid feed')
-            sys.exit(1)
+            exit(1)
             
         for i, item in enumerate(feed.entries):
             title = item.get('title', 'No title')

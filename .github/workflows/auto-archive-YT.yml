@@ -49,7 +49,7 @@ jobs:
               raise Exception(f"Feed parse error: {feed.bozo_exception}")
 
           current_time = datetime.now(timezone.utc)
-          time_threshold = current_time - timedelta(days=3)
+          time_threshold = current_time - timedelta(minutes=31)
           matched_entries = []
 
           for entry in feed.entries:
@@ -139,10 +139,10 @@ jobs:
           # Live status check
           LIVE_STATUS=$(yt-dlp --print live_status "$URL" 2>/dev/null || echo "error")
           
-          # if [[ ! "$LIVE_STATUS" =~ ^(is_live|post_live)$ ]]; then
-          #    echo "Stream is not live or status unknown (status: $LIVE_STATUS), skipping download"
-          #    exit 0
-          # fi
+          if [[ ! "$LIVE_STATUS" =~ ^(is_live|post_live)$ ]]; then
+              echo "Stream is not live or status unknown (status: $LIVE_STATUS), skipping download"
+              exit 0
+          fi
           
           yt-dlp -i --no-progress -S "+res:1080" --retry-sleep 3 \
           --windows-filenames --live-from-start --write-thumbnail \

@@ -64,7 +64,7 @@ jobs:
               
               title = entry.get('title', '')
 
-              if 'unarchive' in title.lower() or 'アーカイブなし' in title:
+              if 'unarchive' not in title.lower() or 'アーカイブなし' not in title:
                   continue
 
               if time_threshold <= entry_time <= current_time:

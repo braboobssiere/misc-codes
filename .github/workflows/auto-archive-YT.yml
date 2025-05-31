@@ -28,7 +28,7 @@ jobs:
       - name: Parse and Validate Feed
         id: feed-parser
         env:
-          FEED_URL: "https://www.youtube.com/feeds/videos.xml?channel_id=UCoiEtD4v1qMAqHV5MDI5Qpg"
+          FEED_URL: "https://www.youtube.com/feeds/videos.xml?channel_id=UCp6993wxpyDPHUpavwDFqgg"
         run: |
           import os
           import json

@@ -81,7 +81,7 @@ jobs:
               f.write(f'should_process={bool(entries)}\n')
               f.write(f'urls={json.dumps(entries)}\n')
               if not entries:
-                  exit(0)
+                  sys.exit(0)
         shell: python
 
   process-video:
@@ -97,7 +97,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y ffmpeg wireguard-tools jq curl zip parallel
-          python3 -m pip install --upgrade pip --pre yt-dlp[default,curl-cffi]
+          python3 -m pip install --pre yt-dlp[default,curl-cffi]
           
       - name: VPN Setup 
         env: 
@@ -149,7 +149,7 @@ jobs:
             --embed-metadata --no-embed-info-json \
             -o \"output/%(title).170B [%(id)s] (%(resolution)s).%(ext)s\" {}";
           echo "Download command: $cmd";
-          eval "$cmd"' ::: "${URLS[@]}" >> output/logs.txt 2>&1
+          eval "$cmd"' ::: "${URLS[@]}" 2>&1 | awk '{ print strftime("[%Y-%m-%d %H:%M:%S UTC]"), $0 }' >> output/logs.txt
           # remove ,+vcodec:av01 from -S
 
       - name: VPN Cleanup
@@ -202,17 +202,15 @@ jobs:
 
           while IFS= read -r -d '' file; do
             echo "▫️ Starting upload: $(basename "$file")"
-        
             extra_args=()
             if [ "$FIRST_FILE" = false ]; then
               extra_args+=(-H "Authorization: Bearer $guest_token" -F "folderId=$folder_id")
             fi
-
+            
             RESPONSE=$(curl -s -X POST -F "file=@\"$file\"" "${extra_args[@]}" "$UPLOAD_URL")
 
             PYTHON_OUTPUT=$(python3 <<EOF
           import json, sys
-
           try:
               data = json.loads('''$RESPONSE''')
               if "$FIRST_FILE" == "true":
@@ -220,8 +218,7 @@ jobs:
                   folder_id = data['data']['parentFolder']
                   print(f"{guest_token}\t{folder_id}")
               else:
-                  print("-\t-")
-                
+                  print("-\t-")          
               status = 'ok' if data['status'] == 'ok' else 'error'
               result_data = data.get('data', {}).get('downloadPage', '') if status == 'ok' else data.get('data', '')
               print(f"{status}\t{result_data}")
@@ -240,7 +237,9 @@ jobs:
               guest_token="$token_part"
               folder_id="$folder_part"
               FIRST_FILE=false
-              echo "🔑 Created folder ID: $folder_id"
+              echo "GUEST_TOKEN=$guest_token" >> $GITHUB_ENV
+              echo "FOLDER_ID=$folder_id" >> $GITHUB_ENV
+              echo "Created folder ID"
             fi
 
             if [ "$status_type" != "ok" ]; then
@@ -248,7 +247,7 @@ jobs:
             else
               LINK="$result_data"
               UPLOAD_LINKS+="- $(basename "$file")\n"
-              echo "✅ Success: $LINK"
+              echo "Success: $LINK"
             fi
           done < <(find output/ -type f -print0)
 
@@ -256,6 +255,6 @@ jobs:
           echo -e "\n$UPLOAD_LINKS" >> $GITHUB_STEP_SUMMARY
 
           curl -X POST \
-          -H "Content-Type: application/json" \
-          -d "{\"content\":\"File Uploads: $LINK \n$UPLOAD_LINKS\"}" \
-          "${{ secrets.DISCORD_WEBHOOK }}"
+            -H "Content-Type: application/json" \
+            -d "{\"content\":\"File Uploads: $LINK \n$UPLOAD_LINKS\"}" \
+            "${{ secrets.DISCORD_WEBHOOK }}"

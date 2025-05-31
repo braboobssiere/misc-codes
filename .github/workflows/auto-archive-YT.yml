@@ -155,8 +155,8 @@ jobs:
       - name: Upload to gofile
         run: |
           UPLOAD_URL="https://upload.gofile.io/uploadfile"
-          guest_token=""
-          folder_id=""
+          guest_token="${GUEST_TOKEN:-}"
+          folder_id="${FOLDER_ID:-}"
           UPLOAD_LINKS=""
           FIRST_FILE=true
 
@@ -166,7 +166,9 @@ jobs:
             if [ "$FIRST_FILE" = false ]; then
               extra_args+=(-H "Authorization: Bearer $guest_token" -F "folderId=$folder_id")
             fi
+            
             RESPONSE=$(curl -s -X POST -F "file=@\"$file\"" "${extra_args[@]}" "$UPLOAD_URL")
+
             PYTHON_OUTPUT=$(python3 <<EOF
           import json, sys
           try:
@@ -174,11 +176,12 @@ jobs:
               if "$FIRST_FILE" == "true":
                   guest_token = data['data']['guestToken']
                   folder_id = data['data']['parentFolder']
+                  print(f"{guest_token}\t{folder_id}")
               else:
                   print("-\t-")          
               status = 'ok' if data['status'] == 'ok' else 'error'
               result_data = data.get('data', {}).get('downloadPage', '') if status == 'ok' else data.get('data', '')
-              print(f"{status}\t")
+              print(f"{status}\t{result_data}")
           except Exception as e:
               print(f"error\tJSON parsing failed: {str(e)}")
               sys.exit(1)
@@ -194,6 +197,9 @@ jobs:
               guest_token="$token_part"
               folder_id="$folder_part"
               FIRST_FILE=false
+              echo "GUEST_TOKEN=$guest_token" >> $GITHUB_ENV
+              echo "FOLDER_ID=$folder_id" >> $GITHUB_ENV
+              echo "Created folder ID"
             fi
 
             if [ "$status_type" != "ok" ]; then
@@ -201,6 +207,7 @@ jobs:
             else
               LINK="$result_data"
               UPLOAD_LINKS+="- $(basename "$file")\n"
+              echo "Success: $LINK"
             fi
           done < <(find output/ -type f -print0)
 
@@ -208,6 +215,6 @@ jobs:
           echo -e "\n$UPLOAD_LINKS" >> $GITHUB_STEP_SUMMARY
 
           curl -X POST \
-          -H "Content-Type: application/json" \
-          -d "{\"content\":\"File Uploads: $LINK \n$UPLOAD_LINKS\"}" \
-          "${{ secrets.DISCORD_WEBHOOK }}"
+            -H "Content-Type: application/json" \
+            -d "{\"content\":\"File Uploads: $LINK \n$UPLOAD_LINKS\"}" \
+            "${{ secrets.DISCORD_WEBHOOK }}"

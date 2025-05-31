@@ -178,7 +178,7 @@ jobs:
                   print("-\t-")          
               status = 'ok' if data['status'] == 'ok' else 'error'
               result_data = data.get('data', {}).get('downloadPage', '') if status == 'ok' else data.get('data', '')
-              print(f"{status}")
+              print(f"{status}\t")
           except Exception as e:
               print(f"error\tJSON parsing failed: {str(e)}")
               sys.exit(1)

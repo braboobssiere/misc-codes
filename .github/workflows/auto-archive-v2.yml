@@ -81,7 +81,7 @@ jobs:
               f.write(f'should_process={bool(entries)}\n')
               f.write(f'urls={json.dumps(entries)}\n')
               if not entries:
-                  sys.exit(0)
+                  exit(0)
         shell: python
 
   process-video:

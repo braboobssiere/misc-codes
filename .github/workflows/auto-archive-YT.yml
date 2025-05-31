@@ -56,6 +56,7 @@ jobs:
           # sort by newest and get last valid entry
           entries.sort(key=lambda x: x['timestamp'], reverse=True)
           result = entries[:1] 
+          print(f"Latest entry: {json.dumps(result, indent=2) if result else 'No entries found'}")
           
           with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
               f.write(f'should_process={bool(result)}\n')

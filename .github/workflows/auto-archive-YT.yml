@@ -6,7 +6,7 @@ on:
   #   - cron: '20,50 * * * *'
 
 concurrency:
-  group: Auto-Download YT Video test
+  group: Auto-Download YT Video
   cancel-in-progress: false
 
 jobs:
@@ -28,7 +28,8 @@ jobs:
       - name: Parse and Validate Feed
         id: feed-parser
         env:
-          FEED_URL: "https://raw.githubusercontent.com/braboobssiere/holedex-song-list/refs/heads/main/feeds/holodex-test.atom"
+          # 9arm
+          FEED_URL: "https://www.youtube.com/feeds/videos.xml?channel_id=UCoiEtD4v1qMAqHV5MDI5Qpg"
         run: |
           python3 <<EOF
           import os
@@ -122,7 +123,7 @@ jobs:
           LIVE_STATUS=$(timeout 10s yt-dlp --print '%(live_status)s' "$URL" 2>/dev/null || echo "error")
           if [[ ! "$LIVE_STATUS" =~ ^(is_live|post_live)$ ]]; then
             echo "Skipping non-live stream (status: $LIVE_STATUS)"
-          #  exit 13
+            exit 13
           fi          
           yt-dlp -i --no-progress -S "+res:1080" --retry-sleep 3 \
           --windows-filenames --live-from-start --write-thumbnail \

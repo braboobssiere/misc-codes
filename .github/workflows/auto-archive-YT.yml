@@ -30,6 +30,7 @@ jobs:
         env:
           FEED_URL: "https://www.youtube.com/feeds/videos.xml?channel_id=UCp6993wxpyDPHUpavwDFqgg"
         run: |
+          python3 <<EOF
           import os
           import json
           from datetime import datetime, timedelta, timezone
@@ -59,6 +60,7 @@ jobs:
           with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
               f.write(f'should_process={bool(result)}\n')
               f.write(f'urls={json.dumps(result)}\n')    
+          EOF
               
   process-video:
     name: Process Videos
@@ -151,7 +153,6 @@ jobs:
 
       - name: Upload to gofile
         run: |
-          import json, sys
           UPLOAD_URL="https://upload.gofile.io/uploadfile"
           guest_token=""
           folder_id=""
@@ -166,6 +167,7 @@ jobs:
             fi
             RESPONSE=$(curl -s -X POST -F "file=@\"$file\"" "${extra_args[@]}" "$UPLOAD_URL")
             PYTHON_OUTPUT=$(python3 <<EOF
+          import json, sys
           try:
               data = json.loads('''$RESPONSE''')
               if "$FIRST_FILE" == "true":

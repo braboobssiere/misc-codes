@@ -128,7 +128,7 @@ jobs:
           --windows-filenames --live-from-start --write-thumbnail \
           --embed-metadata --no-embed-info-json \
           -o "output/%(title).170B [%(id)s] (%(resolution)s).%(ext)s" \
-          "$URL" >> output/logs.txt 2>&1
+          "$URL" 2>&1 | awk '{ print strftime("[%Y-%m-%d %H:%M:%S]"), $0 }' >> output/logs.txt
 
       - name: VPN Cleanup
         if: ${{ always() }}

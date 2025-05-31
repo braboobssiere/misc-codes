@@ -45,7 +45,7 @@ jobs:
                       return link['href']
               return entry.get('link', '')
 
-          feed_url = "https://raw.githubusercontent.com/braboobssiere/holedex-song-list/main/feeds/holodex-test.atom" # holodex
+          feed_url = "https://raw.githubusercontent.com/braboobssiere/holedex-song-list/main/feeds/holodex.atom" # holodex
           feed = feedparser.parse(feed_url)
 
           current_time = datetime.now(timezone.utc)
@@ -147,7 +147,7 @@ jobs:
             --embed-metadata --no-embed-info-json \
             -o \"output/%(title).170B [%(id)s] (%(resolution)s).%(ext)s\" {}";
           echo "Download command: $cmd";
-          eval "$cmd"' ::: "${URLS[@]}" 2>&1 | awk '{ print strftime("[%Y-%m-%d %H:%M:%S UTC]"), $0 }' >> output/logs.txt
+          eval "$cmd"' ::: "${URLS[@]}" 2>&1 >> output/logs.txt
           # remove ,+vcodec:av01 from -S
 
       - name: VPN Cleanup

@@ -3,7 +3,7 @@ name: Auto-Download YT Video
 on:
   workflow_dispatch:
   # schedule: # use cron-job.org instead
-  #   - cron: '35 * * * *'
+  #   - cron: '20,50 * * * *'
 
 concurrency:
   group: Auto-Download YT Video
@@ -11,17 +11,14 @@ concurrency:
 
 jobs:
   check-feed:
-    name: Check Feed for Valid Entries
+    name: Check Feed
     runs-on: ubuntu-latest
     outputs:
       should_process: ${{ steps.feed-parser.outputs.should_process }}
       urls: ${{ steps.feed-parser.outputs.urls }}
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.x'
 
@@ -30,75 +27,60 @@ jobs:
 
       - name: Parse and Validate Feed
         id: feed-parser
+        env:
+          FEED_URL: "https://www.youtube.com/feeds/videos.xml?channel_id=UCoiEtD4v1qMAqHV5MDI5Qpg"
         run: |
-          import feedparser
-          from datetime import datetime, timedelta, timezone
           import os
           import json
-
-          def get_alternate_link(entry):
-              for link in entry.get('links', []):
-                  if link.get('rel') == 'alternate':
-                      return link['href']
-              return entry.get('link', '')
-
-          feed_url = "https://www.youtube.com/feeds/videos.xml?channel_id=UCoiEtD4v1qMAqHV5MDI5Qpg" # 9arm
-          feed = feedparser.parse(feed_url)
-
+          from datetime import datetime, timedelta, timezone
+          import feedparser
+          
           current_time = datetime.now(timezone.utc)
-          time_threshold = current_time - timedelta(minutes=31)
-          matched_entries = []
-
+          threshold = current_time - timedelta(minutes=32)
+          entries = []
+          
+          feed = feedparser.parse(os.environ['FEED_URL'])
           for entry in feed.entries:
-              updated_str = entry.get('updated')
-              if not updated_str:
-                  continue
-                  
+              if not (updated := entry.get('updated')): continue
               try:
-                  entry_time = datetime.fromisoformat(updated_str).astimezone(timezone.utc)
-              except (ValueError, TypeError):
+                  dt = datetime.fromisoformat(updated).astimezone(timezone.utc)
+              except ValueError:
                   continue
-
-              if time_threshold <= entry_time <= current_time:
-                  link = get_alternate_link(entry)
-                  if link:
-                      matched_entries.append((entry_time.isoformat(), link))
-
-          # Sort by most recent first
-          matched_entries.sort(reverse=True, key=lambda x: x[0])
-          entries = [{"url": item[1]} for item in matched_entries[:1]]
-
-          output_path = os.environ['GITHUB_OUTPUT']
-          with open(output_path, 'a') as f:
-              f.write(f'should_process={bool(entries)}\n')
-              f.write(f'urls={json.dumps(entries)}\n')
-              if not entries:
-                exit(0)
-        shell: python
-        
+              
+              if threshold <= dt <= current_time:
+                  link = next((link['href'] for link in entry.links 
+                             if link.rel == 'alternate'), entry.link)
+                  entries.append({'url': link, 'timestamp': dt.isoformat()})
+ 
+          # sort by newest and get last valid entry
+          entries.sort(key=lambda x: x['timestamp'], reverse=True)
+          result = entries[:1] 
+          
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
+              f.write(f'should_process={bool(result)}\n')
+              f.write(f'urls={json.dumps(result)}\n')    
+              
   process-video:
-    name: Process and Upload Videos
+    name: Process Videos
     needs: check-feed
     if: ${{ needs.check-feed.outputs.should_process == 'true' }}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Setup Dependencies
         run: |
-          sudo apt-get update
-          sudo apt-get install -y ffmpeg wireguard-tools jq curl parallel
-          python3 -m pip install --upgrade pip --pre yt-dlp[default,curl-cffi]
+          sudo apt-get install -y ffmpeg wireguard-tools curl
+          python3 -m pip install --pre yt-dlp[default,curl-cffi]
 
       - name: VPN Setup 
         env: 
           PRIMARY_CONFIG: ${{ secrets.WIREGUARD_GRANDCENTRAL }}
           SECONDARY_CONFIG: ${{ secrets.WIREGUARD_TRADEWAR }}
+          
         run: |
           sudo mkdir -p /etc/wireguard/
           WG_CONF="/etc/wireguard/wg0.conf"
-
           handle_vpn_attempt() {
             local config_content="$1"
             local label="$2"
@@ -115,7 +97,6 @@ jobs:
             done
             return 1
           }
-
           if ! handle_vpn_attempt "$PRIMARY_CONFIG" "primary"; then
             echo "::warning::Primary failed - Trying secondary"
             if ! handle_vpn_attempt "$SECONDARY_CONFIG" "secondary"; then
@@ -123,26 +104,23 @@ jobs:
               exit 11
             fi
           fi
-
           if ! sudo wg show wg0 >/dev/null 2>&1; then
             echo "::error::VPN connection verification failed"
             exit 12
           fi
 
       - name: Downloads
+        env:
+          URL: ${{ fromJson(needs.check-feed.outputs.urls)[0].url }}
         continue-on-error: true
         run: |
           mkdir -p output
-          URL=$(echo '${{ needs.check-feed.outputs.urls }}' | jq -r '.[].url')
-
           # Live status check
-          LIVE_STATUS=$(yt-dlp --print live_status "$URL" 2>/dev/null || echo "error")
-          
+          LIVE_STATUS=$(timeout 10s yt-dlp --print '%(live_status)s' "$URL" 2>/dev/null || echo "error")
           if [[ ! "$LIVE_STATUS" =~ ^(is_live|post_live)$ ]]; then
-              echo "Stream is not live or status unknown (status: $LIVE_STATUS), skipping download"
-              exit 0
-          fi
-          
+            echo "Skipping non-live stream (status: $LIVE_STATUS)"
+            exit 13
+          fi          
           yt-dlp -i --no-progress -S "+res:1080" --retry-sleep 3 \
           --windows-filenames --live-from-start --write-thumbnail \
           --embed-metadata --no-embed-info-json \
@@ -160,7 +138,7 @@ jobs:
           
           if [ $FILE_COUNT -lt 2 ]; then
             echo "Error: yt-dlp have a problem downloading video (found $FILE_COUNT)"
-            exit 13
+            exit 14
           fi
 
       - name: Upload Artifacts
@@ -171,8 +149,9 @@ jobs:
           compression-level: 1
           if-no-files-found: error
 
-      - name: Upload Files to Cloud Storage
+      - name: Upload to gofile
         run: |
+          import json, sys
           UPLOAD_URL="https://upload.gofile.io/uploadfile"
           guest_token=""
           folder_id=""
@@ -181,17 +160,12 @@ jobs:
 
           while IFS= read -r -d '' file; do
             echo "▫️ Starting upload: $(basename "$file")"
-        
             extra_args=()
             if [ "$FIRST_FILE" = false ]; then
               extra_args+=(-H "Authorization: Bearer $guest_token" -F "folderId=$folder_id")
             fi
-
             RESPONSE=$(curl -s -X POST -F "file=@\"$file\"" "${extra_args[@]}" "$UPLOAD_URL")
-
             PYTHON_OUTPUT=$(python3 <<EOF
-          import json, sys
-
           try:
               data = json.loads('''$RESPONSE''')
               if "$FIRST_FILE" == "true":
@@ -199,8 +173,7 @@ jobs:
                   folder_id = data['data']['parentFolder']
                   print(f"{guest_token}\t{folder_id}")
               else:
-                  print("-\t-")
-                
+                  print("-\t-")          
               status = 'ok' if data['status'] == 'ok' else 'error'
               result_data = data.get('data', {}).get('downloadPage', '') if status == 'ok' else data.get('data', '')
               print(f"{status}\t{result_data}")

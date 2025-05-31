@@ -28,8 +28,8 @@ jobs:
       - name: Parse and Validate Feed
         id: feed-parser
         env:
-          # 9arm
           FEED_URL: "https://www.youtube.com/feeds/videos.xml?channel_id=UCoiEtD4v1qMAqHV5MDI5Qpg"
+          # 9arm
         run: |
           python3 <<EOF
           import os

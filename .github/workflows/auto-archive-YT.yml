@@ -155,8 +155,8 @@ jobs:
       - name: Upload to gofile
         run: |
           UPLOAD_URL="https://upload.gofile.io/uploadfile"
-          guest_token="${GUEST_TOKEN:-}"
-          folder_id="${FOLDER_ID:-}"
+          guest_token=""
+          folder_id=""
           UPLOAD_LINKS=""
           FIRST_FILE=true
 

@@ -164,32 +164,6 @@ jobs:
             exit 13
           fi
 
-      - name: Generate tag and split large files
-        id: prep
-        run: |
-          TIMESTAMP=$(date -u +%Y%m%d-%H%M%S)
-          TAG="${TIMESTAMP}"
-          echo "TAG=$TAG" >> $GITHUB_OUTPUT          
-          cd output
-          find . -type f -size +1792M -exec bash -c '
-            for file; do
-              zip -s 1792m -r "${file}.zip" "${file}"
-              rm "${file}"
-            done
-          ' bash {} +
-
-      - name: Create draft release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ steps.prep.outputs.TAG }}
-          name: "Release ${{ steps.prep.outputs.TAG }}"
-          draft: true
-          files: |
-            output/**
-
-      - name: Cleanup tag
-        run: git push --delete origin "${{ steps.prep.outputs.TAG }}" || true
-
       - name: Upload Files to Cloud Storage
         run: |
           UPLOAD_URL="https://upload.gofile.io/uploadfile"
@@ -256,3 +230,30 @@ jobs:
             -H "Content-Type: application/json" \
             -d "{\"content\":\"File Uploads: $LINK \n$UPLOAD_LINKS\"}" \
             "${{ secrets.DISCORD_WEBHOOK }}"
+
+      - name: Generate tag and split large files
+        id: prep
+        run: |
+          TIMESTAMP=$(date -u +%Y%m%d-%H%M%S)
+          TAG="${TIMESTAMP}"
+          echo "TAG=$TAG" >> $GITHUB_OUTPUT          
+          cd output
+          find . -type f -size +1792M -exec bash -c '
+            for file; do
+              zip -s 1792m -r "${file}.zip" "${file}"
+              rm "${file}"
+            done
+          ' bash {} +
+
+      - name: Create draft release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.prep.outputs.TAG }}
+          name: "Release ${{ steps.prep.outputs.TAG }}"
+          draft: true
+          files: |
+            output/**
+
+      - name: Cleanup tag
+        run: git push --delete origin "${{ steps.prep.outputs.TAG }}" || true
+        

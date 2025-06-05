@@ -1,0 +1,39 @@
+name: Modify ototoy Feed
+
+# Trigger the workflow to run every 6 hours and also on push or manually.
+on:
+  # workflow_dispatch:
+  schedule:
+    - cron: "0 */6 * * *"  
+
+jobs:
+  modify-rss:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write  # Allow write permissions to modify and commit the feed
+
+    steps:
+    - name: Checkout the repository
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v3
+      with:
+        python-version: 3.x
+
+    - name: Install dependencies
+      run: |
+        pip install requests
+
+    - name: Run Python script to modify RSS feed
+      run: |
+        python3 js/modify_ototoy_feed.py
+
+    - name: Commit and push modified RSS feed
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add feeds/ototoy_hololive.rss
+        git commit -m "Update RSS feed: ototoy_hololive.rss" || echo "No changes to commit"
+        git push

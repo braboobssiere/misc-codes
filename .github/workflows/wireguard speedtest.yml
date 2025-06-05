@@ -1,0 +1,87 @@
+name: Wireguard Speed Test
+on:
+  workflow_dispatch:
+    inputs:
+      vpn_location:
+        description: 'Select VPN location or disable'
+        required: true
+        default: 'TradeWar'
+        type: choice
+        options:
+          - GrandCentral
+          - TradeWar
+          - Shinkansen
+          - Disable
+
+jobs:
+  speed-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install speedtest-go (Tarball)
+        run: |
+          VERSION="1.7.10"
+          sudo wget -O /tmp/speedtest.tar.gz \
+            "https://github.com/showwin/speedtest-go/releases/download/v${VERSION}/speedtest-go_${VERSION}_Linux_x86_64.tar.gz"
+          sudo tar -xzf /tmp/speedtest.tar.gz -C /usr/local/bin/
+          sudo chmod +x /usr/local/bin/speedtest-go
+          sudo mv /usr/local/bin/speedtest-go /usr/local/bin/speedtest
+          sudo rm /tmp/speedtest.tar.gz
+
+      - name: VPN Setup
+        if: ${{ github.event.inputs.vpn_location != 'Disable' }}
+        env:
+          GrandCentral_CONFIG: ${{ secrets.WIREGUARD_GrandCentral }}
+          TradeWar_CONFIG: ${{ secrets.WIREGUARD_TradeWar }}
+          Shinkansen_CONFIG: ${{ secrets.WIREGUARD_Shinkansen }}
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y wireguard-tools
+          sudo mkdir -p /etc/wireguard/
+          
+          case "${{ github.event.inputs.vpn_location }}" in
+            GrandCentral) CONFIG_VAR="GrandCentral_CONFIG" ;;
+            TradeWar) CONFIG_VAR="TradeWar_CONFIG" ;;
+            Shinkansen) CONFIG_VAR="Shinkansen_CONFIG" ;;
+            *)
+              echo "::error::Invalid location selection"
+              exit 1
+              ;;
+          esac
+
+          if [ -z "${!CONFIG_VAR}" ]; then
+            echo "::error::No configuration found for ${{ github.event.inputs.vpn_location }}"
+            exit 1
+          fi
+
+          echo "${!CONFIG_VAR}" | sudo tee /etc/wireguard/wg0.conf > /dev/null
+          sudo chmod 600 /etc/wireguard/wg0.conf
+
+          for i in {1..5}; do
+              timeout 60 sudo wg-quick up wg0
+              sleep 1 
+              if sudo wg show wg0 >/dev/null 2>&1; then
+                  echo "VPN connected successfully on attempt $i"
+                  break
+              else
+                  echo "VPN connection failed (attempt $i/5)"
+                  sudo wg-quick down wg0 >/dev/null 2>&1
+                  [ $i -lt 5 ] && sleep 1
+              fi
+          done
+
+          if ! sudo wg show wg0 >/dev/null 2>&1; then
+              echo "::error::VPN failed to connect after 5 attempts"
+              exit 1
+          fi
+
+      - name: Execute Speed Test
+        run: |
+          echo -e "\n### Speed Test Results - Location: ${{ github.event.inputs.vpn_location != 'Disable' && github.event.inputs.vpn_location || 'default' }}" >> $GITHUB_STEP_SUMMARY
+          speedtest -m | tee /dev/stderr | awk -F': ' '
+            $1 ~ /Latency/ {sub(/^ /, "", $2); printf "**Latency:** `%s`\n", $2}
+            $1 ~ /Download/ {sub(/^ /, "", $2); split($2,a,/ /); printf "**Download:** `%.2f Mbps`\n", a[1]}
+            $1 ~ /Upload/ {sub(/^ /, "", $2); split($2,a,/ /); printf "**Upload:** `%.2f Mbps`\n", a[1]}
+            $1 ~ /Packet Loss/ {sub(/^ /, "", $2); split($2,a,/ /); printf "**Packet Loss:** `%s`\n", a[1]}' >> $GITHUB_STEP_SUMMARY

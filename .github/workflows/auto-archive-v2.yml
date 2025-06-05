@@ -201,7 +201,6 @@ jobs:
               print(f"{status}\t{result_data}")
           except Exception as e:
               print(f"error\tJSON parsing failed: {str(e)}")
-              exit 0
           EOF
             )
 

@@ -172,7 +172,7 @@ jobs:
             RESPONSE=$(curl -s -X POST -F "file=@\"$file\"" "${extra_args[@]}" "$UPLOAD_URL")
 
             PYTHON_OUTPUT=$(python3 <<EOF
-          import json, sys
+          import json
           try:
               data = json.loads('''$RESPONSE''')
               if "$FIRST_FILE" == "true":
@@ -186,7 +186,6 @@ jobs:
               print(f"{status}\t{result_data}")
           except Exception as e:
               print(f"error\tJSON parsing failed: {str(e)}")
-              sys.exit(1)
           EOF
             )
 

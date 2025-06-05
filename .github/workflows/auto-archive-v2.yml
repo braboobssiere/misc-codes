@@ -88,8 +88,13 @@ jobs:
     if: ${{ needs.check-feed.outputs.should_process == 'true' }}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        
+      - name: Cache APT packages
+        uses: awalsh128/cache-apt-pkgs-action@latest
+        with:
+          packages: ffmpeg wireguard-tools jq curl zip parallel
+          version: 1.0
 
       - name: Setup Dependencies
         run: |

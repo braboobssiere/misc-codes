@@ -17,7 +17,6 @@ jobs:
       should_process: ${{ steps.feed-parser.outputs.should_process }}
       urls: ${{ steps.feed-parser.outputs.urls }}
     steps:
-      - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: '3.x'
@@ -70,8 +69,6 @@ jobs:
     if: ${{ needs.check-feed.outputs.should_process == 'true' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-
       - name: Cache APT packages
         uses: awalsh128/cache-apt-pkgs-action@latest
         with:
@@ -82,7 +79,18 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y ffmpeg wireguard-tools curl
-          python3 -m pip install --pre yt-dlp[default,curl-cffi]
+          echo "yt-dlp[default,curl-cffi]" > requirements.txt
+          
+      - name: Cache pip packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+          
+      - name: Install yt-dlp
+        run: python3 -m pip install --pre -r requirements.txt
 
       - name: VPN Setup 
         env: 

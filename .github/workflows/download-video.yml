@@ -75,7 +75,7 @@ jobs:
 
           sudo apt-get update
           sudo apt-get install -y $PACKAGES
-          echo "--pre yt-dlp[default,curl-cffi]" > requirements.txt
+          echo "yt-dlp[default,curl-cffi] --pre" > requirements.txt
 
       - name: Cache pip packages
         uses: actions/cache@v4

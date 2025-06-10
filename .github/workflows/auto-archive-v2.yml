@@ -20,9 +20,6 @@ jobs:
       should_process: ${{ steps.feed-parser.outputs.should_process }}
       urls: ${{ steps.feed-parser.outputs.urls }}
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -39,13 +36,14 @@ jobs:
           import os
           import json
 
-          def get_alternate_link(entry):
+          def alt_link(entry):
               for link in entry.get('links', []):
                   if link.get('rel') == 'alternate':
                       return link['href']
               return entry.get('link', '')
 
-          feed_url = "https://raw.githubusercontent.com/braboobssiere/holedex-song-list/main/feeds/holodex-test.atom" # holodex
+          feed_url = "https://raw.githubusercontent.com/braboobssiere/holedex-song-list/main/feeds/holodex-test.atom" 
+          # holodex
           feed = feedparser.parse(feed_url)
 
           current_time = datetime.now(timezone.utc)
@@ -64,11 +62,11 @@ jobs:
               
               title = entry.get('title', '')
 
-              if 'unarchive' not in title.lower() and 'アーカイブなし' not in title:
+              if 'unarchive' not in title.lower() and 'no archive' not in title.lower() and 'アーカイブなし' not in title:
                   continue
 
               if time_threshold <= entry_time <= current_time:
-                  link = get_alternate_link(entry)
+                  link = alt_link(entry)
                   if link:
                       matched_entries.append((entry_time.isoformat(), link))
 
@@ -89,7 +87,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        
+
       - name: Cache APT packages
         uses: awalsh128/cache-apt-pkgs-action@latest
         with:
@@ -112,11 +110,11 @@ jobs:
           
       - name: Install yt-dlp
         run: python3 -m pip install --pre -r requirements.txt
-          
+        
       - name: VPN Setup 
         env: 
           PRIMARY_CONFIG: ${{ secrets.WIREGUARD_TRADEWAR }}
-          SECONDARY_CONFIG: ${{ secrets.WIREGUARD_GRANDCENTRAL }}
+          SECONDARY_CONFIG: ${{ secrets.WIREGUARD_HARVARD }}
         run: |
           sudo mkdir -p /etc/wireguard/
           WG_CONF="/etc/wireguard/wg0.conf"
@@ -162,9 +160,9 @@ jobs:
             --windows-filenames --live-from-start --write-thumbnail \
             --embed-metadata --no-embed-info-json \
             -o \"output/%(title).170B [%(id)s] (%(resolution)s).%(ext)s\" {}";
+          # remove ,+vcodec:av01 from -S until youtube fixed it
           echo "Download command: $cmd";
           eval "$cmd"' ::: "${URLS[@]}" >> output/logs.txt 2>&1
-          # remove ,+vcodec:av01 from -S
 
       - name: VPN Cleanup
         if: ${{ always() }}
@@ -246,7 +244,7 @@ jobs:
             -H "Content-Type: application/json" \
             -d "{\"content\":\"File Uploads: $LINK \n$UPLOAD_LINKS\"}" \
             "${{ secrets.DISCORD_WEBHOOK }}"
-
+            
       - name: Generate tag and split large files
         id: prep
         run: |

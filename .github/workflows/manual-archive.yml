@@ -13,10 +13,10 @@ on:
       vpn_location:
         description: 'Select VPN location or false'
         required: true
-        default: 'Harvard'
+        default: 'TradeWar'
         type: choice
         options:
-          - 'Harvard'
+          # - 'Harvard'
           - 'TradeWar'
       resolution:
         description: "Video resolution (default: 1080p)"

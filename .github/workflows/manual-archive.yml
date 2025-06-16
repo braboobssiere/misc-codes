@@ -1,4 +1,4 @@
-name: Download Video
+name: Archive Video
 
 permissions:
   contents: write

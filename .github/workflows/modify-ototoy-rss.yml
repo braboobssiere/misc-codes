@@ -2,7 +2,7 @@ name: Modify ototoy Feed
 
 # Trigger the workflow to run every 6 hours and also on push or manually.
 on:
-  # workflow_dispatch:
+  workflow_dispatch:
   schedule:
     - cron: "0 */6 * * *"  
 

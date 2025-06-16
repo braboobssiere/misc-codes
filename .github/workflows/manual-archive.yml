@@ -246,7 +246,7 @@ jobs:
         uses: softprops/action-gh-release@v2.3.2
         with:
           tag_name: ${{ steps.prep.outputs.TAG }}
-          name: "Release ${{ steps.prep.outputs.TAG }} - ${{ steps.prep.outputs.FILE_BASE }}"
+          name: "Release ${{ steps.prep.outputs.TAG }} ${{ steps.prep.outputs.FILE_BASE }}"
           draft: true
           files: |
             output/**

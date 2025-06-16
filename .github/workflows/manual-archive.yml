@@ -231,8 +231,10 @@ jobs:
         run: |
           TIMESTAMP=$(date -u +%Y%m%d-%H%M%S)
           TAG="${TIMESTAMP}"
-          echo "TAG=$TAG" >> $GITHUB_OUTPUT          
           cd output
+          FILE_NAME=$(find . -type f ! -name '*.txt' -printf "%f\n" | head -n 1)
+          echo "TAG=$TAG" >> $GITHUB_OUTPUT 
+          echo "FILE_NAME=$FILE_NAME" >> $GITHUB_OUTPUT 
           find . -type f -size +1792M -exec bash -c '
             for file; do
               zip -s 1792m -r "${file}.zip" "${file}"
@@ -244,7 +246,7 @@ jobs:
         uses: softprops/action-gh-release@v2.3.2
         with:
           tag_name: ${{ steps.prep.outputs.TAG }}
-          name: "Release ${{ steps.prep.outputs.TAG }}"
+          name: "Release ${{ steps.prep.outputs.TAG }} - ${{ steps.prep.outputs.FILE_NAME }}"
           draft: true
           files: |
             output/**

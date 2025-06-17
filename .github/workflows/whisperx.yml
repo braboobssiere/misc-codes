@@ -30,7 +30,7 @@ jobs:
 
     - name: Run WhisperX
       run: |
-        INPUT_FILE=$(ls -1 -d input/whisperx/* | grep -v '\.txt$' | head -n 1)
+        INPUT_FILE=$(find input/whisperx/ -type f ! -name '*.txt' | head -n 1)
         if [ -z "$INPUT_FILE" ]; then
           echo "❌ No valid audio files found in input/whisperx/"
           exit 1
@@ -40,7 +40,7 @@ jobs:
         if [ -n "$LANGUAGE" ]; then
           COMMAND+=" --language $LANGUAGE"
         fi
-        COMMAND+=" \"input/whisperx/$INPUT_FILE\" --output_dir output"
+        COMMAND+="--output_dir output \"$INPUT_FILE\""
         eval $COMMAND
 
     - name: Upload results

@@ -32,7 +32,7 @@ jobs:
           echo "❌ No valid audio files found in input/whisperx/"
           exit 1
         fi
-        whisperx --compute_type int8 --model large-v2 \
+        whisperx --device cpu --compute_type int8 --model large-v2 \
           --language ${{ github.event.inputs.language }} \
           "$INPUT_FILE" \
           --output_dir output

@@ -1,0 +1,41 @@
+name: WhisperX Transcription
+
+on:
+  workflow_dispatch:
+    inputs:
+      language:
+        description: 'Language code (e.g., en, ja)'
+        required: true
+
+jobs:
+  transcribe:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5.6.0
+      with:
+        python-version: '3.12'
+
+    - name: Install dependencies
+      run: |
+        pip install whisperx
+        mkdir -p input/whisperx/
+        mkdir -p output/
+
+    - name: Run WhisperX
+      run: |
+        INPUT_FILE=$(ls input/whisperx/* | head -n 1)
+        whisperx --compute_type int8 --model large-v2 \
+          --language ${{ github.event.inputs.language }} \
+          "$INPUT_FILE" \
+          --output_dir output
+
+    - name: Upload results
+      uses: actions/upload-artifact@v4
+      with:
+        name: transcription-results
+        path: output/
+        

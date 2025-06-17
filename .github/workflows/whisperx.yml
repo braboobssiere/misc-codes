@@ -4,8 +4,9 @@ on:
   workflow_dispatch:
     inputs:
       language:
-        description: 'Language code (e.g., en, ja)'
-        required: true
+        description: 'Language code (optional e.g. en, ja)'
+        required: false
+        default: ''
 
 jobs:
   transcribe:
@@ -34,10 +35,13 @@ jobs:
           echo "❌ No valid audio files found in input/whisperx/"
           exit 1
         fi
-        whisperx --device cpu --compute_type int8 --model large-v2 \
-          --language ${{ github.event.inputs.language }} \
-          "$INPUT_FILE" \
-          --output_dir output
+        COMMAND="whisperx --device cpu --compute_type int8 --model large-v2"
+        LANGUAGE="${{ github.event.inputs.language }}"
+        if [ -n "$LANGUAGE" ]; then
+          COMMAND+=" --language $LANGUAGE"
+        fi
+        COMMAND+=" \"input/whisperx/$INPUT_FILE\" --output_dir output"
+        eval $COMMAND
 
     - name: Upload results
       uses: actions/upload-artifact@v4

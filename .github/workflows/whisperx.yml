@@ -27,7 +27,11 @@ jobs:
 
     - name: Run WhisperX
       run: |
-        INPUT_FILE=$(ls input/whisperx/* | head -n 1)
+        INPUT_FILE=$(ls input/whisperx/ --ignore='*.txt' | head -n 1)
+        if [ -z "$INPUT_FILE" ]; then
+          echo "❌ No valid audio files found in input/whisperx/"
+          exit 1
+        fi
         whisperx --compute_type int8 --model large-v2 \
           --language ${{ github.event.inputs.language }} \
           "$INPUT_FILE" \

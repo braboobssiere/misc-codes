@@ -14,28 +14,43 @@ jobs:
     
     steps:
     - uses: actions/checkout@v4
+    - run: |
+        echo "whisperx" >> requirements.txt
 
     - name: Set up Python
       uses: actions/setup-python@v5.6.0
       with:
         python-version: '3.12'
 
+    - name: Cache APT packages
+      uses: awalsh128/cache-apt-pkgs-action@latest
+      with:
+        packages: ffmpeg
+        version: 1.0
+
+    - name: Cache pip packages
+      uses: actions/cache@v4
+      with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
     - name: Install dependencies
       run: |
         sudo apt-get update
         sudo apt-get install -y ffmpeg
-        pip install whisperx
-        mkdir -p input/whisperx/
+        pip install -r requirements.txt
         mkdir -p output/
 
     - name: Run WhisperX
       run: |
         INPUT_FILE=$(find input/whisperx/ -type f ! -name '*.txt' | head -n 1)
         if [ -z "$INPUT_FILE" ]; then
-          echo "❌ No valid audio files found in input/whisperx/"
+          echo "❌ No valid audio files found in input/"
           exit 1
         fi
-        COMMAND="whisperx --device cpu --compute_type int8 --model large-v2 "
+        COMMAND="whisperx --compute_type int8 --model large-v2 "
         LANGUAGE="${{ github.event.inputs.language }}"
         if [ -n "$LANGUAGE" ]; then
           COMMAND+="--language $LANGUAGE "

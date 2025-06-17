@@ -21,15 +21,15 @@ jobs:
 
     - name: Install dependencies
       run: |
-        sudo apt-get update
-        sudo apt-get install -y ffmpeg
+        # sudo apt-get update
+        # sudo apt-get install -y ffmpeg
         pip install whisperx
         mkdir -p input/whisperx/
         mkdir -p output/
 
     - name: Run WhisperX
       run: |
-        INPUT_FILE=$(ls input/whisperx/ --ignore='*.txt' | head -n 1)
+        INPUT_FILE=$(ls -1 -d input/whisperx/* | grep -v '\.txt$' | head -n 1)
         if [ -z "$INPUT_FILE" ]; then
           echo "❌ No valid audio files found in input/whisperx/"
           exit 1

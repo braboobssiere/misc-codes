@@ -17,7 +17,6 @@ on:
         default: ''
         type: choice
         options:
-          - ''
           - '--task translate'
 
 jobs:

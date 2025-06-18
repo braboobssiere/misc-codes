@@ -12,9 +12,11 @@ on:
         required: false
         default: ''
       additional_param:
-        description: 'Additional parameters e.g. --task translate'
+        description: 'Additional parameters'
         required: false
         default: ''
+        options:
+          - '--task translate'
 
 jobs:
   transcribe:

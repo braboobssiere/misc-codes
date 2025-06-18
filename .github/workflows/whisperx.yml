@@ -20,9 +20,6 @@ jobs:
     - uses: actions/checkout@v4
     - run: |
         echo "whisperx" >> requirements.txt
-        echo "ffmpeg" >> packages.txt
-        echo "wget" >> packages.txt
-        echo "curl" >> packages.txt
 
     - name: Set up Python
       uses: actions/setup-python@v5.6.0
@@ -32,7 +29,7 @@ jobs:
     - name: Cache APT packages
       uses: awalsh128/cache-apt-pkgs-action@latest
       with:
-        packages: $(cat packages.txt | tr '\n' ' ')
+        packages: ffmpeg wget curl
         version: 1.0
 
     - name: Cache pip packages
@@ -46,7 +43,7 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update
-        xargs -a packages.txt sudo apt-get install -y
+        sudo apt-get install -y ffmpeg wget curl
         pip install -r requirements.txt
         mkdir -p output/ downloaded_input/
 

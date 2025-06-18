@@ -3,12 +3,12 @@ name: WhisperX Transcription
 on:
   workflow_dispatch:
     inputs:
-      language:
-        description: 'Language code (optional e.g. en, ja)'
+      media_url: 
+        description: 'URL to media file (optional, replaced local file)'
         required: false
         default: ''
-      media_url:  # New input parameter
-        description: 'URL to media file (optional, replaced local file)'
+      language:
+        description: 'Language code (optional e.g. en, ja)'
         required: false
         default: ''
 

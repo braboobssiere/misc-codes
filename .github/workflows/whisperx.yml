@@ -32,7 +32,7 @@ jobs:
     - name: Cache APT packages
       uses: awalsh128/cache-apt-pkgs-action@latest
       with:
-        packages: -r packages.txt
+        packages: $(cat packages.txt | tr '\n' ' ')
         version: 1.0
 
     - name: Cache pip packages
@@ -46,7 +46,7 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y -r packages.txt
+        xargs -a packages.txt sudo apt-get install -y
         pip install -r requirements.txt
         mkdir -p output/ downloaded_input/
 

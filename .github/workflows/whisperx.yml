@@ -14,9 +14,9 @@ on:
       additional_param:
         description: 'Additional parameters'
         required: false
-        default: ''
         type: choice
         options:
+          - ''
           - '--task translate'
 
 jobs:

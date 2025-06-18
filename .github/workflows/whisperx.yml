@@ -8,7 +8,11 @@ on:
         required: false
         default: ''
       language:
-        description: 'Language code (optional e.g. en, ja)'
+        description: 'Language code e.g. en, ja'
+        required: false
+        default: ''
+      additional_param:
+        description: 'Additional parameters e.g. --task translate'
         required: false
         default: ''
 
@@ -70,7 +74,9 @@ jobs:
         COMMAND="whisperx --compute_type int8 --model large-v2 "
         LANGUAGE="${{ inputs.language }}"
         [ -n "$LANGUAGE" ] && COMMAND+="--language $LANGUAGE "
-        COMMAND+="--output_dir output \"$INPUT_FILE\""
+        ADDITIONAL_PARAM="${{ inputs.additional_param }}"
+        [ -n "$ADDITIONAL_PARAM" ] && COMMAND+="$ADDITIONAL_PARAM "
+        COMMAND+="--output_dir output \"$INPUT_FILE\" "
         
         echo "Running: $COMMAND"
         eval $COMMAND

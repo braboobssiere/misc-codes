@@ -12,7 +12,7 @@ on:
         required: false
         default: ''
       additional_param:
-        description: 'Additional parameters (specify language if trnaslate)'
+        description: 'Additional parameters (specify language if translate)'
         required: false
         type: choice
         options:

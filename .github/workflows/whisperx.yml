@@ -12,7 +12,7 @@ on:
         required: false
         default: ''
       additional_param:
-        description: 'Additional parameters'
+        description: 'Additional parameters (specify language if trnaslate)'
         required: false
         type: choice
         options:
@@ -74,12 +74,13 @@ jobs:
           exit 1
         fi
 
-        COMMAND="whisperx --compute_type int8 --model large-v2 --chunk_size 10 "
+        COMMAND="whisperx --compute_type int8 --model large-v2 --output_format srt \
+        --output_dir output "
         LANGUAGE="${{ inputs.language }}"
         [ -n "$LANGUAGE" ] && COMMAND+="--language $LANGUAGE "
         ADDITIONAL_PARAM="${{ inputs.additional_param }}"
         [ -n "$ADDITIONAL_PARAM" ] && COMMAND+="$ADDITIONAL_PARAM "
-        COMMAND+="--output_dir output \"$INPUT_FILE\" "
+        COMMAND+="\"$INPUT_FILE\" "
         
         echo "Running: $COMMAND"
         eval $COMMAND

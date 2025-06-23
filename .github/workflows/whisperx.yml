@@ -74,7 +74,7 @@ jobs:
           exit 1
         fi
 
-        COMMAND="whisperx --compute_type int8 --model large-v2 --output_format srt \
+        COMMAND="whisperx --compute_type int8 --model large-v2 \
         --output_dir output "
         LANGUAGE="${{ inputs.language }}"
         [ -n "$LANGUAGE" ] && COMMAND+="--language $LANGUAGE "

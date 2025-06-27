@@ -100,13 +100,20 @@ jobs:
           sudo apt-get install -y ffmpeg wireguard-tools jq curl zip parallel
           echo "yt-dlp[default,curl-cffi]" > requirements.txt
           
+      - name: Get latest yt-dlp checksum
+        id: get_checksum
+        run: |
+          curl -sLO "https://github.com/yt-dlp/yt-dlp-nightly-builds/releases/latest/download/SHA2-256SUMS"
+          CHECKSUM=$(grep -i "yt-dlp$" SHA2-256SUMS | awk '{print $1}')
+          echo "checksum=$CHECKSUM" >> $GITHUB_OUTPUT
+
       - name: Cache pip packages
         uses: actions/cache@v4
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+          key: ${{ runner.os }}-pip-${{ steps.get_checksum.outputs.checksum }}
           restore-keys: |
-            ${{ runner.os }}-pip-
+            ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
           
       - name: Install yt-dlp
         run: python3 -m pip install --pre -r requirements.txt

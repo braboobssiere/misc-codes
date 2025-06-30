@@ -4,17 +4,12 @@ on: [workflow_dispatch]
 jobs:
   run-exporter:
     runs-on: ubuntu-latest
-    env:
-      REPO_URL: https://github.com/Forgenn/mangadex-exporter.git
-      WORKSPACE: mangadex-exporter
-    
     steps:
-      - name: Clone specified repository
-        run: |
-          git clone $REPO_URL $WORKSPACE
-      
-      - name: Navigate to repository
-        run: cd $WORKSPACE
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Navigate to directory
+        run: cd mangadex-exporter
         
       - name: Set up Python
         uses: actions/setup-python@v5

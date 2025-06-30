@@ -7,9 +7,6 @@ jobs:
     steps:
       - name: Clone repository
         run: git clone https://github.com/Forgenn/mangadex-exporter.git
-      
-      - name: Navigate to directory
-        run: cd mangadex-exporter
         
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -24,13 +21,11 @@ jobs:
           uv venv
           uv pip install -e .
         
-      - name: Restore credentials
+      - name: Restore credentials + Run exporter
         env:
           APP_CONFIG: ${{ secrets.CREDENTIALS_ENV }}
         run: |
           echo "$APP_CONFIG" > credentials.env
           echo "Configuration imported"
-        
-      - name: Run exporter
-        run: uv run python -m mangadex_exporter
+          uv run python -m mangadex_exporter
         

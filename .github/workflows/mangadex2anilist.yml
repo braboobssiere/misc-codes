@@ -1,0 +1,34 @@
+name: Run Mangadex Exporter
+on: [workflow_dispatch]
+
+jobs:
+  run-exporter:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone repository
+        run: git clone https://github.com/Forgenn/mangadex-exporter.git
+      
+      - name: Navigate to directory
+        run: cd mangadex-exporter
+        
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      - name: Install uv
+        run: pip install uv
+        
+      - name: Install dependencies
+        run: uv pip install -e .
+        
+      - name: Restore credentials
+        env:
+          APP_CONFIG: ${{ secrets.CREDENTIALS_ENV }}
+        run: |
+          echo "$APP_CONFIG" > credentials.env
+          echo "Configuration imported"
+        
+      - name: Run exporter
+        run: uv run python -m mangadex_exporter
+        

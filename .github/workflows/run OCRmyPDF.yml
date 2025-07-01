@@ -46,7 +46,32 @@ jobs:
         # Download URL to input directory if provided
         if [ -n "${{ github.event.inputs.url }}" ]; then
           url="${{ github.event.inputs.url }}"
+        
+          # Get the content type of the file
+          content_type=$(curl -sI "$url" | grep -i "Content-Type:" | awk '{print $2}' | tr -d '\r')
+
+          # Determine the file extension based on the content type
+          case "$content_type" in
+                "image/jpeg")
+                        extension="jpg"
+                        ;;
+                "image/png")
+                        extension="png"
+                        ;;
+                "application/pdf")
+                        extension="pdf"
+                        ;;
+                *)
+                        # Use the filename and extension from the URL if the type is unsupported
+                        echo "Unsupported file type: $content_type. Using default filename and extension from URL."
+                        extension="${url##*.}"  # Extract the extension from the URL
+                        ;;
+          esac
+
+          # Extract the filename without extension
           filename=$(basename "${url%%\?*}")
+          filename="${filename%.*}.$extension"  # Append the determined or default extension
+
           echo "Downloading $url to $INPUT_DIR/$filename"
           curl -L -o "$INPUT_DIR/$filename" "$url"
         fi

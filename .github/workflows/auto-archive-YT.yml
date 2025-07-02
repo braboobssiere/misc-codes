@@ -11,58 +11,92 @@ concurrency:
 
 jobs:
   check-feed:
-    name: Check Feed
+    name: Parse Feed & Poll for Live
     runs-on: ubuntu-latest
     outputs:
-      should_process: ${{ steps.feed-parser.outputs.should_process }}
-      urls: ${{ steps.feed-parser.outputs.urls }}
+      should_process: ${{ steps.check.outputs.should_process }}
+      urls:           ${{ steps.check.outputs.urls }}
+
     steps:
-      - uses: actions/setup-python@v5
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
           python-version: '3.x'
 
-      - name: Install parsing dependencies
-        run: pip install feedparser
-
-      - name: Parse and Validate Feed
-        id: feed-parser
-        env:
-          FEED_URL: "https://www.youtube.com/feeds/videos.xml?channel_id=UCoiEtD4v1qMAqHV5MDI5Qpg"
-          # 9arm
+      - name: Install dependencies
         run: |
-          python3 <<EOF
-          import os
-          import json
+          python -m pip install --upgrade pip
+          pip install feedparser requests
+
+      - name: Parse feed, check live & emit outputs
+        id: check
+        env:
+          FEED_URL:   "https://www.youtube.com/feeds/videos.xml?channel_id=UCoiEtD4v1qMAqHV5MDI5Qpg"
+          YT_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
+        run: |
+          python <<'EOF'
+          import os, json, time
           from datetime import datetime, timedelta, timezone
-          import feedparser
-          
-          current_time = datetime.now(timezone.utc)
-          threshold = current_time - timedelta(minutes=32)
-          entries = []
-          
-          feed = feedparser.parse(os.environ['FEED_URL'])
-          for entry in feed.entries:
-              if not (updated := entry.get('updated')): continue
+          import feedparser, requests
+
+          # 1) Parse feed for last 32 minutes
+          now    = datetime.now(timezone.utc)
+          cutoff = now - timedelta(minutes=32)
+          feed   = feedparser.parse(os.environ['FEED_URL'])
+
+          recent = []
+          for e in feed.entries:
+              updated = e.get('updated')
+              if not updated:
+                  continue
               try:
                   dt = datetime.fromisoformat(updated).astimezone(timezone.utc)
               except ValueError:
                   continue
-              
-              if threshold <= dt <= current_time:
-                  link = next((link['href'] for link in entry.links 
-                             if link.rel == 'alternate'), entry.link)
-                  entries.append({'url': link, 'timestamp': dt.isoformat()})
- 
-          # sort by newest and get last valid entry
-          entries.sort(key=lambda x: x['timestamp'], reverse=True)
-          result = entries[:1] 
-          print(f"Latest entry: {json.dumps(result, indent=2) if result else 'No entries found'}")
-          
-          with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
-              f.write(f'should_process={bool(result)}\n')
-              f.write(f'urls={json.dumps(result)}\n')    
+              if cutoff <= dt <= now:
+                  link = next((l['href'] for l in e.links if l.get('rel')=='alternate'), e.link)
+                  recent.append({'url': link, 'timestamp': dt.isoformat()})
+
+          # sort newest-first
+          recent.sort(key=lambda x: x['timestamp'], reverse=True)
+
+          # 2) Poll YouTube API for live status
+          api_key     = os.environ['YT_API_KEY']
+          live_entry  = None
+
+          for entry in recent:
+              url = entry['url']
+              # extract video ID
+              vid = None
+              if 'v=' in url:
+                  vid = url.split('v=')[1].split('&')[0]
+              elif 'youtu.be/' in url:
+                  vid = url.split('youtu.be/')[1].split('?')[0]
+              if not vid:
+                  continue
+
+              resp = requests.get(
+                  "https://www.googleapis.com/youtube/v3/videos",
+                  params={"part":"snippet","id":vid,"key":api_key},
+                  timeout=10
+              )
+              data = resp.json().get("items", [])
+              if data and data[0]["snippet"].get("liveBroadcastContent") == "live":
+                  live_entry = entry
+                  break
+
+              time.sleep(3)
+
+          # 3) Prepare outputs
+          should = live_entry is not None
+          urls   = [live_entry] if should else []
+
+          # Write to GITHUB_OUTPUT
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as out:
+              out.write(f"should_process={str(should).lower()}\n")
+              out.write("urls=" + json.dumps(urls) + "\n")
           EOF
-              
+
   process-video:
     name: Process Videos
     needs: check-feed
@@ -134,12 +168,6 @@ jobs:
         continue-on-error: true
         run: |
           mkdir -p output
-          # Live status check
-          LIVE_STATUS=$(timeout 10s yt-dlp --print '%(live_status)s' "$URL" 2>/dev/null || echo "error")
-          if [[ ! "$LIVE_STATUS" =~ ^(is_live|post_live)$ ]]; then
-            echo "Skipping non-live stream (status: $LIVE_STATUS)"
-            exit 13
-          fi          
           yt-dlp -i --no-progress -S "+res:1080" --retry-sleep 3 \
           --windows-filenames --live-from-start --write-thumbnail \
           --embed-metadata --no-embed-info-json \

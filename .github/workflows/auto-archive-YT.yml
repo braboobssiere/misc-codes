@@ -31,7 +31,8 @@ jobs:
       - name: Parse feed, check live & emit outputs
         id: check
         env:
-          FEED_URL:   "https://www.youtube.com/feeds/videos.xml?channel_id=UCoiEtD4v1qMAqHV5MDI5Qpg"
+          FEED_URL: "https://raw.githubusercontent.com/braboobssiere/holedex-song-list/refs/heads/main/feeds/holodex-test.atom"  
+          # "https://www.youtube.com/feeds/videos.xml?channel_id=UCoiEtD4v1qMAqHV5MDI5Qpg"
           YT_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
         run: |
           python <<'EOF'

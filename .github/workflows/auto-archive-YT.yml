@@ -21,7 +21,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.x'
+          python-version: '3.11'
 
       - name: Install dependencies
         run: |
@@ -31,8 +31,7 @@ jobs:
       - name: Parse feed, check live & emit outputs
         id: check
         env:
-          FEED_URL: "https://raw.githubusercontent.com/braboobssiere/holedex-song-list/main/feeds/holodex-test.atom"  
-          # "https://www.youtube.com/feeds/videos.xml?channel_id=UCoiEtD4v1qMAqHV5MDI5Qpg"
+          FEED_URL: "https://www.youtube.com/feeds/videos.xml?channel_id=UCoiEtD4v1qMAqHV5MDI5Qpg" # 9arm
           YT_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
         run: |
           python <<'EOF'
@@ -92,7 +91,6 @@ jobs:
           should = live_entry is not None
           urls   = [live_entry] if should else []
 
-          # Write to GITHUB_OUTPUT
           with open(os.environ['GITHUB_OUTPUT'], 'a') as out:
               out.write(f"should_process={str(should).lower()}\n")
               out.write("urls=" + json.dumps(urls) + "\n")

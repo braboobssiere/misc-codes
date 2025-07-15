@@ -1,0 +1,32 @@
+name: Download brbr
+
+on:
+  workflow_dispatch:
+    inputs:
+      video_url:
+        description: "Video URL to download"
+        required: true
+
+jobs:
+  process:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y python3-pip ffmpeg
+          pip3 install --upgrade pip setuptools
+          pip3 install ykdl
+
+      - name: Download video
+        run: |
+          mkdir -p output
+          ykdl -o output "${{ github.event.inputs.video_url }}"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: downloaded-video
+          path: output
+          

@@ -22,7 +22,7 @@ jobs:
       - name: Download video
         run: |
           mkdir -p output
-          ykdl -o output "${{ github.event.inputs.video_url }}"
+          ykdl.py -o output ${{ github.event.inputs.video_url }}
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4

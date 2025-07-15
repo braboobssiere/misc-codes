@@ -17,7 +17,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y python3-pip ffmpeg wireguard-tools
           pip3 install --upgrade pip setuptools
-          pip3 install ykdl
+          pip3 install ykdl --upgrade
 
       - name: VPN Setup 
         env: 

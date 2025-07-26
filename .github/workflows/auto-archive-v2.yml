@@ -154,7 +154,7 @@ jobs:
           parallel -j4 \
           'cmd="yt-dlp -i --no-progress -S \"+res:1080\" --retry-sleep 3 \
             --windows-filenames --live-from-start --write-thumbnail \
-            --embed-metadata --no-embed-info-json \
+            --embed-metadata --no-embed-info-json --write-info-json \
             -o \"output/%(title).170B [%(id)s] (%(resolution)s).%(ext)s\" {}";
           # remove ,+vcodec:av01 from -S until youtube fixed it
           echo "Download command: $cmd";

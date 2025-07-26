@@ -172,7 +172,7 @@ jobs:
           # Build the download command
           COMMAND="yt-dlp -i --no-progress ${COOKIE_FLAG} ${LIVE_FLAG} \
           ${ADDITIONAL_ARGS} ${FORMAT_OPTION} --windows-filenames \
-          --embed-metadata --no-embed-info-json --retry-sleep 3 \
+          --embed-metadata --no-embed-info-json --write-info-json --retry-sleep 3 \
           -o \"output/%(title).170B [%(id)s] (%(resolution)s).%(ext)s\" \
           --embed-subs --sub-langs all,-live_chat --write-thumbnail ${URL}"
 

@@ -169,7 +169,7 @@ jobs:
           mkdir -p output
           yt-dlp -i --no-progress -S "+res:1080" --retry-sleep 3 \
           --windows-filenames --live-from-start --write-thumbnail \
-          --embed-metadata --no-embed-info-json \
+          --embed-metadata --no-embed-info-json --write-info-json \
           -o "output/%(title).170B [%(id)s] (%(resolution)s).%(ext)s" \
           "$URL" 2>&1 | awk '{ print strftime("[%Y-%m-%d %H:%M:%S UTC]"), $0 }' >> output/logs.txt
 

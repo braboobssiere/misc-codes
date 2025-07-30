@@ -41,7 +41,7 @@ jobs:
 
           # 1) Parse feed for last 32 minutes
           now    = datetime.now(timezone.utc)
-          cutoff = now - timedelta(minutes=92)
+          cutoff = now - timedelta(minutes=62)
           feed   = feedparser.parse(os.environ['FEED_URL'])
 
           recent = []

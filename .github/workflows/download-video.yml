@@ -101,13 +101,13 @@ jobs:
             TradeWar) CONFIG_VAR="TradeWar_CONFIG" ;;
             *)
               echo "::error::Invalid location selection"
-              exit 1
+              exit 11
               ;;
           esac
 
           if [ -z "${!CONFIG_VAR}" ]; then
             echo "::error::No configuration found for ${{ github.event.inputs.vpn_location }}"
-            exit 1
+            exit 12
           fi
 
           echo "${!CONFIG_VAR}" | sudo tee /etc/wireguard/wg0.conf > /dev/null
@@ -128,7 +128,7 @@ jobs:
 
           if ! sudo wg show wg0 >/dev/null 2>&1; then
               echo "::error::VPN failed to connect after 5 attempts"
-              exit 1
+              exit 13
           fi
 
       - name: Download and Process Video
@@ -186,6 +186,16 @@ jobs:
         if: ${{ always() && github.event.inputs.vpn_location != 'false' }}
         run: |
           sudo wg-quick down wg0 || true
+          
+      - name: Verify output file 
+        run: |
+          # Count files in output directory (including hidden files)
+          FILE_COUNT=$(find output/ -type f | wc -l)
+          
+          if [ $FILE_COUNT -lt 2 ]; then
+            echo "Error: yt-dlp have a problem downloading video (found $FILE_COUNT)"
+            exit 14
+          fi
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4

@@ -5,13 +5,6 @@ user_pref("browser.urlbar.suggest.engines", false);
 // 1223: enable strict PKP (Public Key Pinning) 0=disabled, 1=allow user MiTM (default; such as your antivirus), 2=strict
 user_pref("security.cert_pinning.enforcement_level", 0); 
 
-// 2811: set/enforce what items to clear on shutdown (if 2810 is true) [SETUP-CHROME]
-user_pref("privacy.clearOnShutdown.siteSettings", true) //false in about:config
-user_pref("privacy.clearOnShutdown_v2.siteSettings", true)
-user_pref("privacy.clearOnShutdown.cookies", false); 
-user_pref("privacy.clearOnShutdown.offlineApps", false); 
-user_pref("privacy.clearOnShutdown_v2.cookiesAndStorage", false)
-
 // 5003: disable saving passwords
 user_pref("signon.rememberSignons", false); 
 
@@ -51,3 +44,11 @@ user_pref("permissions.default.camera", 2);
 user_pref("permissions.default.microphone", 2);
 user_pref("permissions.default.desktop-notification", 2);
 user_pref("permissions.default.xr", 2);
+
+// 4501: enable RFP
+user_pref("privacy.resistFingerprinting", true); 
+user_pref("privacy.resistFingerprinting.pbmode", true); 
+user_pref("privacy.resistFingerprinting.letterboxing", true); 
+user_pref("privacy.resistFingerprinting.letterboxing.dimensions", ""); 
+user_pref("privacy.resistFingerprinting.exemptedDomains", "*.example.invalid");
+user_pref("privacy.fingerprintingProtection.overrides", "+AllTargets,-JSDateTimeUTC");

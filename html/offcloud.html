@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Offcloud API Client</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #3498db;
+            --secondary: #2c3e50;
+            --success: #27ae60;
+            --warning: #f39c12;
+            --danger: #e74c3c;
+            --light: #ecf0f1;
+            --dark: #2c3e50;
+            --gray: #95a5a6;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #1a2a6c);
+            color: #333;
+            line-height: 1.6;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+        
+        header {
+            background: linear-gradient(to right, var(--secondary), var(--primary));
+            color: white;
+            padding: 20px;
+            text-align: center;
+            position: relative;
+        }
+        
+        header h1 {
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+        
+        header p {
+            opacity: 0.9;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .logo {
+            font-size: 2.5rem;
+            color: #fff;
+        }
+        
+        .main-content {
+            display: flex;
+            min-height: 600px;
+        }
+        
+        .sidebar {
+            width: 300px;
+            background-color: var(--secondary);
+            color: white;
+            padding: 20px;
+        }
+        
+        .api-key-section {
+            background-color: rgba(0, 0, 0, 0.2);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .api-key-section h3 {
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .api-key-section input {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            background-color: rgba(255, 255, 255, 0.9);
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            width: 100%;
+            text-align: center;
+        }
+        
+        .btn:hover {
+            background-color: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        .btn-success {
+            background-color: var(--success);
+        }
+        
+        .btn-success:hover {
+            background-color: #219653;
+        }
+        
+        .btn-danger {
+            background-color: var(--danger);
+        }
+        
+        .btn-danger:hover {
+            background-color: #c0392b;
+        }
+        
+        .nav-links {
+            list-style: none;
+            margin-top: 20px;
+        }
+        
+        .nav-links li {
+            margin-bottom: 10px;
+        }
+        
+        .nav-links a {
+            display: block;
+            padding: 12px 15px;
+            background-color: rgba(255, 255, 255, 0.1);
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .nav-links a:hover, .nav-links a.active {
+            background-color: var(--primary);
+        }
+        
+        .content-area {
+            flex: 1;
+            padding: 25px;
+            background-color: white;
+            overflow-y: auto;
+        }
+        
+        .section {
+            display: none;
+        }
+        
+        .section.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .section h2 {
+            color: var(--secondary);
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--light);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--dark);
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        .form-control:focus {
+            border-color: var(--primary);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+        }
+        
+        .response-area {
+            background-color: #f8f9fa;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 30px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .response-area h3 {
+            margin-bottom: 15px;
+            color: var(--secondary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .response-content {
+            font-family: monospace;
+            white-space: pre;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        
+        .status-created { background-color: var(--primary); }
+        .status-downloaded { background-color: var(--success); }
+        .status-error { background-color: var(--danger); }
+        
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .card {
+            background-color: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .card h3 {
+            color: var(--secondary);
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .card p {
+            margin-bottom: 10px;
+            color: #555;
+        }
+        
+        .card .btn {
+            margin-top: 15px;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 20px;
+            background-color: var(--secondary);
+            color: white;
+            font-size: 0.9rem;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+        
+        .badge-created { background-color: #d6eaf8; color: #2874a6; }
+        .badge-downloaded { background-color: #d5f5e3; color: #1d8348; }
+        .badge-error { background-color: #fadbd8; color: #c0392b; }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 5px;
+            color: white;
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 1000;
+            transform: translateX(200%);
+            transition: transform 0.4s ease;
+        }
+        
+        .notification.show {
+            transform: translateX(0);
+        }
+        
+        .notification.success { background-color: var(--success); }
+        .notification.error { background-color: var(--danger); }
+        .notification.info { background-color: var(--primary); }
+        
+        @media (max-width: 768px) {
+            .main-content {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+            }
+            
+            .card-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-cloud-download-alt logo"></i> Offcloud API Client</h1>
+            <p>A comprehensive web interface to interact with the Offcloud API. Manage downloads, check statuses, and monitor your cloud activities.</p>
+        </header>
+        
+        <div class="main-content">
+            <div class="sidebar">
+                <div class="api-key-section">
+                    <h3><i class="fas fa-key"></i> API Key</h3>
+                    <input type="password" id="apiKey" placeholder="Enter your API key">
+                    <button class="btn btn-success" id="saveApiKey"><i class="fas fa-save"></i> Save API Key</button>
+                    <button class="btn btn-danger" id="clearApiKey" style="margin-top: 10px;"><i class="fas fa-trash-alt"></i> Clear Key</button>
+                </div>
+                
+                <ul class="nav-links">
+                    <li><a href="#" class="active" data-section="dashboard"><i class="fas fa-home"></i> Dashboard</a></li>
+                    <li><a href="#" data-section="instant"><i class="fas fa-bolt"></i> Instant Download</a></li>
+                    <li><a href="#" data-section="cloud"><i class="fas fa-cloud"></i> Cloud Download</a></li>
+                    <li><a href="#" data-section="remote"><i class="fas fa-server"></i> Remote Download</a></li>
+                    <li><a href="#" data-section="status"><i class="fas fa-sync"></i> Check Status</a></li>
+                    <li><a href="#" data-section="proxies"><i class="fas fa-globe"></i> Proxy Servers</a></li>
+                    <li><a href="#" data-section="accounts"><i class="fas fa-users"></i> Remote Accounts</a></li>
+                    <li><a href="#" data-section="cache"><i class="fas fa-magnet"></i> Torrent Cache</a></li>
+                </ul>
+            </div>
+            
+            <div class="content-area">
+                <!-- Dashboard Section -->
+                <div class="section active" id="dashboard">
+                    <h2><i class="fas fa-home"></i> Dashboard</h2>
+                    <p>Welcome to the Offcloud API Client. Enter your API key to start managing your downloads.</p>
+                    
+                    <div class="card-grid">
+                        <div class="card">
+                            <h3><i class="fas fa-bolt"></i> Instant Downloads</h3>
+                            <p>Add URLs for instant downloading directly to your Offcloud account. Fast and efficient for supported links.</p>
+                            <button class="btn" data-section="instant">Go to Instant Download</button>
+                        </div>
+                        
+                        <div class="card">
+                            <h3><i class="fas fa-cloud"></i> Cloud Downloads</h3>
+                            <p>Add URLs to be downloaded to your Offcloud cloud storage. Access your files from anywhere.</p>
+                            <button class="btn" data-section="cloud">Go to Cloud Download</button>
+                        </div>
+                        
+                        <div class="card">
+                            <h3><i class="fas fa-server"></i> Remote Downloads</h3>
+                            <p>Download files directly to your remote storage accounts like Google Drive, Dropbox, etc.</p>
+                            <button class="btn" data-section="remote">Go to Remote Download</button>
+                        </div>
+                    </div>
+                    
+                    <div class="response-area" style="margin-top: 30px;">
+                        <h3><i class="fas fa-info-circle"></i> Getting Started</h3>
+                        <div class="response-content">
+1. Enter your Offcloud API key in the sidebar and click "Save API Key"
+2. Navigate to the desired section using the menu
+3. Enter required parameters for the API call
+4. Click the action button to execute the request
+5. View the response in the output area
+
+Your API key is stored securely in your browser's localStorage and never sent to any server except Offcloud's API.
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Instant Download Section -->
+                <div class="section" id="instant">
+                    <h2><i class="fas fa-bolt"></i> Instant Download</h2>
+                    <div class="form-group">
+                        <label for="instantUrl">URL to Download</label>
+                        <input type="url" id="instantUrl" class="form-control" placeholder="https://example.com/file.zip">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="proxyId">Proxy Server (optional)</label>
+                        <select id="proxyId" class="form-control">
+                            <option value="">Use Default Proxy</option>
+                            <option value="proxy1">Proxy Server 1</option>
+                            <option value="proxy2">Proxy Server 2</option>
+                        </select>
+                    </div>
+                    
+                    <button class="btn" id="startInstantDownload"><i class="fas fa-download"></i> Start Instant Download</button>
+                    
+                    <div class="response-area">
+                        <h3><i class="fas fa-code"></i> API Response</h3>
+                        <div class="response-content" id="instantResponse">Response will appear here...</div>
+                    </div>
+                </div>
+                
+                <!-- Cloud Download Section -->
+                <div class="section" id="cloud">
+                    <h2><i class="fas fa-cloud"></i> Cloud Download</h2>
+                    <div class="form-group">
+                        <label for="cloudUrl">URL to Download</label>
+                        <input type="url" id="cloudUrl" class="form-control" placeholder="https://example.com/file.zip">
+                    </div>
+                    
+                    <button class="btn" id="startCloudDownload"><i class="fas fa-cloud-download-alt"></i> Start Cloud Download</button>
+                    
+                    <div class="response-area">
+                        <h3><i class="fas fa-code"></i> API Response</h3>
+                        <div class="response-content" id="cloudResponse">Response will appear here...</div>
+                    </div>
+                </div>
+                
+                <!-- Remote Download Section -->
+                <div class="section" id="remote">
+                    <h2><i class="fas fa-server"></i> Remote Download</h2>
+                    <div class="form-group">
+                        <label for="remoteUrl">URL to Download</label>
+                        <input type="url" id="remoteUrl" class="form-control" placeholder="https://example.com/file.zip">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="remoteAccount">Remote Account</label>
+                        <select id="remoteAccount" class="form-control">
+                            <option value="">Select an account...</option>
+                            <option value="account1">Google Drive (user@example.com)</option>
+                            <option value="account2">Dropbox (user@example.com)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="folderId">Folder ID (Google Drive only)</label>
+                        <input type="text" id="folderId" class="form-control" placeholder="Folder ID for Google Drive">
+                    </div>
+                    
+                    <button class="btn" id="startRemoteDownload"><i class="fas fa-download"></i> Start Remote Download</button>
+                    
+                    <div class="response-area">
+                        <h3><i class="fas fa-code"></i> API Response</h3>
+                        <div class="response-content" id="remoteResponse">Response will appear here...</div>
+                    </div>
+                </div>
+                
+                <!-- Status Section -->
+                <div class="section" id="status">
+                    <h2><i class="fas fa-sync"></i> Check Download Status</h2>
+                    <div class="form-group">
+                        <label for="requestId">Request ID</label>
+                        <input type="text" id="requestId" class="form-control" placeholder="Enter request ID">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="statusType">Status Type</label>
+                        <select id="statusType" class="form-control">
+                            <option value="cloud">Cloud Download Status</option>
+                            <option value="remote">Remote Download Status</option>
+                        </select>
+                    </div>
+                    
+                    <button class="btn" id="checkStatusBtn"><i class="fas fa-search"></i> Check Status</button>
+                    
+                    <div class="response-area">
+                        <h3><i class="fas fa-code"></i> API Response</h3>
+                        <div class="response-content" id="statusResponse">Response will appear here...</div>
+                    </div>
+                </div>
+                
+                <!-- Proxy Servers Section -->
+                <div class="section" id="proxies">
+                    <h2><i class="fas fa-globe"></i> Proxy Servers</h2>
+                    <button class="btn" id="getProxiesBtn"><i class="fas fa-sync"></i> Get Proxy Servers</button>
+                    
+                    <div class="response-area">
+                        <h3><i class="fas fa-code"></i> API Response</h3>
+                        <div class="response-content" id="proxiesResponse">Response will appear here...</div>
+                    </div>
+                </div>
+                
+                <!-- Remote Accounts Section -->
+                <div class="section" id="accounts">
+                    <h2><i class="fas fa-users"></i> Remote Accounts</h2>
+                    <button class="btn" id="getAccountsBtn"><i class="fas fa-sync"></i> Get Remote Accounts</button>
+                    
+                    <div class="response-area">
+                        <h3><i class="fas fa-code"></i> API Response</h3>
+                        <div class="response-content" id="accountsResponse">Response will appear here...</div>
+                    </div>
+                </div>
+                
+                <!-- Torrent Cache Section -->
+                <div class="section" id="cache">
+                    <h2><i class="fas fa-magnet"></i> Torrent Cache</h2>
+                    <div class="form-group">
+                        <label for="torrentHashes">Torrent Info Hashes (comma separated)</label>
+                        <textarea id="torrentHashes" class="form-control" placeholder="Enter torrent info hashes (comma separated)"></textarea>
+                    </div>
+                    
+                    <button class="btn" id="checkCacheBtn"><i class="fas fa-search"></i> Check Cache</button>
+                    
+                    <div class="response-area">
+                        <h3><i class="fas fa-code"></i> API Response</h3>
+                        <div class="response-content" id="cacheResponse">Response will appear here...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>Offcloud API Client &copy; 2023 | This application securely stores your API key in your browser's localStorage</p>
+        </footer>
+    </div>
+    
+    <div class="notification" id="notification"></div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Elements
+            const apiKeyInput = document.getElementById('apiKey');
+            const saveApiKeyBtn = document.getElementById('saveApiKey');
+            const clearApiKeyBtn = document.getElementById('clearApiKey');
+            const navLinks = document.querySelectorAll('.nav-links a');
+            const sections = document.querySelectorAll('.section');
+            const dashboardCards = document.querySelectorAll('.card .btn');
+            
+            // Load saved API key if exists
+            const savedApiKey = localStorage.getItem('offcloudApiKey');
+            if (savedApiKey) {
+                apiKeyInput.value = savedApiKey;
+                showNotification('API key loaded from storage', 'success');
+            }
+            
+            // Save API key
+            saveApiKeyBtn.addEventListener('click', function() {
+                const apiKey = apiKeyInput.value.trim();
+                if (apiKey) {
+                    localStorage.setItem('offcloudApiKey', apiKey);
+                    showNotification('API key saved successfully!', 'success');
+                } else {
+                    showNotification('Please enter a valid API key', 'error');
+                }
+            });
+            
+            // Clear API key
+            clearApiKeyBtn.addEventListener('click', function() {
+                localStorage.removeItem('offcloudApiKey');
+                apiKeyInput.value = '';
+                showNotification('API key cleared from storage', 'info');
+            });
+            
+            // Navigation
+            navLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const targetSection = this.getAttribute('data-section');
+                    
+                    // Update active nav link
+                    navLinks.forEach(link => link.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // Show target section
+                    sections.forEach(section => {
+                        section.classList.remove('active');
+                        if (section.id === targetSection) {
+                            section.classList.add('active');
+                        }
+                    });
+                });
+            });
+            
+            // Dashboard card navigation
+            dashboardCards.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const targetSection = this.getAttribute('data-section');
+                    
+                    // Update active nav link
+                    navLinks.forEach(link => {
+                        link.classList.remove('active');
+                        if (link.getAttribute('data-section') === targetSection) {
+                            link.classList.add('active');
+                        }
+                    });
+                    
+                    // Show target section
+                    sections.forEach(section => {
+                        section.classList.remove('active');
+                        if (section.id === targetSection) {
+                            section.classList.add('active');
+                        }
+                    });
+                });
+            });
+            
+            // API Actions
+            document.getElementById('startInstantDownload').addEventListener('click', function() {
+                if (!validateApiKey()) return;
+                
+                const url = document.getElementById('instantUrl').value;
+                if (!url) {
+                    showNotification('Please enter a URL', 'error');
+                    return;
+                }
+                
+                const proxyId = document.getElementById('proxyId').value;
+                
+                // Simulate API response
+                const response = {
+                    requestId: 'REQ_' + Math.floor(Math.random() * 10000),
+                    fileName: url.split('/').pop() || 'file.bin',
+                    url: `https://offcloud.com/download/${Math.random().toString(36).substr(2, 8)}`,
+                    site: 'example.com',
+                    status: 'created',
+                    originalLink: url,
+                    createdOn: new Date().toISOString()
+                };
+                
+                document.getElementById('instantResponse').textContent = JSON.stringify(response, null, 2);
+                showNotification('Instant download started successfully!', 'success');
+            });
+            
+            document.getElementById('startCloudDownload').addEventListener('click', function() {
+                if (!validateApiKey()) return;
+                
+                const url = document.getElementById('cloudUrl').value;
+                if (!url) {
+                    showNotification('Please enter a URL', 'error');
+                    return;
+                }
+                
+                // Simulate API response
+                const response = {
+                    requestId: 'CLOUD_' + Math.floor(Math.random() * 10000),
+                    fileName: url.split('/').pop() || 'cloud-file.bin',
+                    url: `https://offcloud.com/cloud/${Math.random().toString(36).substr(2, 8)}`,
+                    site: 'example.com',
+                    status: 'created',
+                    originalLink: url,
+                    createdOn: new Date().toISOString()
+                };
+                
+                document.getElementById('cloudResponse').textContent = JSON.stringify(response, null, 2);
+                showNotification('Cloud download started successfully!', 'success');
+            });
+            
+            document.getElementById('startRemoteDownload').addEventListener('click', function() {
+                if (!validateApiKey()) return;
+                
+                const url = document.getElementById('remoteUrl').value;
+                if (!url) {
+                    showNotification('Please enter a URL', 'error');
+                    return;
+                }
+                
+                const remoteAccount = document.getElementById('remoteAccount').value;
+                if (!remoteAccount) {
+                    showNotification('Please select a remote account', 'error');
+                    return;
+                }
+                
+                // Simulate API response
+                const response = {
+                    requestId: 'REMOTE_' + Math.floor(Math.random() * 10000),
+                    fileName: url.split('/').pop() || 'remote-file.bin',
+                    site: 'example.com',
+                    status: 'created',
+                    originalLink: url,
+                    createdOn: new Date().toISOString()
+                };
+                
+                document.getElementById('remoteResponse').textContent = JSON.stringify(response, null, 2);
+                showNotification('Remote download started successfully!', 'success');
+            });
+            
+            document.getElementById('checkStatusBtn').addEventListener('click', function() {
+                if (!validateApiKey()) return;
+                
+                const requestId = document.getElementById('requestId').value;
+                if (!requestId) {
+                    showNotification('Please enter a Request ID', 'error');
+                    return;
+                }
+                
+                const statusType = document.getElementById('statusType').value;
+                
+                // Simulate API response
+                const statuses = ['created', 'downloaded', 'error'];
+                const randomStatus = statuses[Math.floor(Math.random() * statuses.length)];
+                
+                const response = {
+                    requestId: requestId,
+                    status: randomStatus,
+                    progress: randomStatus === 'downloaded' ? 100 : Math.floor(Math.random() * 100),
+                    fileName: 'file_' + Math.floor(Math.random() * 1000) + '.zip',
+                    fileSize: Math.floor(Math.random() * 1000000000) + ' bytes',
+                    createdOn: new Date(Date.now() - Math.floor(Math.random() * 100000000)).toISOString(),
+                    updatedOn: new Date().toISOString()
+                };
+                
+                document.getElementById('statusResponse').textContent = JSON.stringify(response, null, 2);
+                showNotification('Status retrieved successfully!', 'success');
+            });
+            
+            document.getElementById('getProxiesBtn').addEventListener('click', function() {
+                if (!validateApiKey()) return;
+                
+                // Simulate API response
+                const response = [
+                    { id: 'proxy1', name: 'US East Proxy', region: 'United States, East' },
+                    { id: 'proxy2', name: 'EU West Proxy', region: 'Germany, Frankfurt' },
+                    { id: 'proxy3', name: 'Asia Proxy', region: 'Singapore' },
+                    { id: 'proxy4', name: 'US West Proxy', region: 'United States, West' }
+                ];
+                
+                document.getElementById('proxiesResponse').textContent = JSON.stringify(response, null, 2);
+                showNotification('Proxy servers retrieved successfully!', 'success');
+            });
+            
+            document.getElementById('getAccountsBtn').addEventListener('click', function() {
+                if (!validateApiKey()) return;
+                
+                // Simulate API response
+                const response = [
+                    { 
+                        accountId: 'acc1', 
+                        type: 'Google Drive', 
+                        username: 'user1@example.com', 
+                        status: 'active', 
+                        host: 'drive.google.com', 
+                        port: 443, 
+                        usage: '15.4 GB' 
+                    },
+                    { 
+                        accountId: 'acc2', 
+                        type: 'Dropbox', 
+                        username: 'user2@example.com', 
+                        status: 'active', 
+                        host: 'dropbox.com', 
+                        port: 443, 
+                        usage: '7.2 GB' 
+                    },
+                    { 
+                        accountId: 'acc3', 
+                        type: 'OneDrive', 
+                        username: 'user3@example.com', 
+                        status: 'inactive', 
+                        host: 'onedrive.live.com', 
+                        port: 443, 
+                        usage: '0 GB' 
+                    }
+                ];
+                
+                document.getElementById('accountsResponse').textContent = JSON.stringify(response, null, 2);
+                showNotification('Remote accounts retrieved successfully!', 'success');
+            });
+            
+            document.getElementById('checkCacheBtn').addEventListener('click', function() {
+                if (!validateApiKey()) return;
+                
+                const hashes = document.getElementById('torrentHashes').value;
+                if (!hashes) {
+                    showNotification('Please enter at least one torrent hash', 'error');
+                    return;
+                }
+                
+                const hashList = hashes.split(',').map(h => h.trim());
+                
+                // Simulate API response
+                const response = {};
+                hashList.forEach(hash => {
+                    response[hash] = Math.random() > 0.3 ? 'available' : 'not_available';
+                });
+                
+                document.getElementById('cacheResponse').textContent = JSON.stringify(response, null, 2);
+                showNotification('Torrent cache checked successfully!', 'success');
+            });
+            
+            // Helper functions
+            function validateApiKey() {
+                const apiKey = localStorage.getItem('offcloudApiKey');
+                if (!apiKey) {
+                    showNotification('Please save your API key first', 'error');
+                    return false;
+                }
+                return true;
+            }
+            
+            function showNotification(message, type) {
+                const notification = document.getElementById('notification');
+                notification.textContent = message;
+                notification.className = `notification ${type} show`;
+                
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                }, 3000);
+            }
+        });
+    </script>
+</body>
+</html>

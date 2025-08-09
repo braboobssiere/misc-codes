@@ -52,12 +52,18 @@ jobs:
   download_and_upload:
     runs-on: ubuntu-latest
     steps:
+
+      - name: Set weekly cache key
+        id: weekly-key
+        run: |
+          WEEK=$(date +"%Y.%U")
+          echo "week=${WEEK}" >> $GITHUB_OUTPUT
           
       - name: Cache APT packages
         uses: awalsh128/cache-apt-pkgs-action@latest
         with:
           packages: ffmpeg wireguard-tools curl
-          version: 1.0
+          version: ${{ steps.weekly-key.outputs.week }}
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -93,7 +99,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}-${{ steps.weekly-key.outputs.week }}
           restore-keys: |
             ${{ runner.os }}-pip-
           

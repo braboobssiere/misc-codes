@@ -60,6 +60,7 @@ jobs:
 
       - name: Prepare bgutil
         run: |
+          cd ~
           git clone https://github.com/Brainicism/bgutil-ytdlp-pot-provider.git
           cd bgutil-ytdlp-pot-provider/server/
           npm install

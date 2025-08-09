@@ -65,6 +65,8 @@ jobs:
           cd bgutil-ytdlp-pot-provider/server/
           npm install
           npx tsc
+          nohup node ~/bgutil-ytdlp-pot-provider/server/dist/index.js > ~/bgutil-server.log 2>&1 &
+          sleep 3
           
       - name: Cache APT packages
         uses: awalsh128/cache-apt-pkgs-action@latest

@@ -52,6 +52,20 @@ jobs:
   download_and_upload:
     runs-on: ubuntu-latest
     steps:
+    
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '>=18'
+
+      - name: Prepare bgutil
+        run: |
+          cd ~
+          git clone https://github.com/Brainicism/bgutil-ytdlp-pot-provider.git
+          cd bgutil-ytdlp-pot-provider/server/
+          npm install
+          npx tsc
+          
       - name: Cache APT packages
         uses: awalsh128/cache-apt-pkgs-action@latest
         with:
@@ -73,7 +87,7 @@ jobs:
 
           sudo apt-get update
           sudo apt-get install -y $PACKAGES
-          echo "yt-dlp[default,curl-cffi]" > requirements.txt
+          echo -e "yt-dlp[default,curl-cffi]\nbgutil-ytdlp-pot-provider" > requirements.txt
 
       - name: Cache pip packages
         uses: actions/cache@v4
@@ -83,8 +97,10 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pip-
           
-      - name: Install yt-dlp
-        run: python3 -m pip install --pre -r requirements.txt
+      - name: Install yt-dlp and bgutil
+        run: |
+          python3 -m pip install --pre yt-dlp[default,curl-cffi]
+          python3 -m pip install bgutil-ytdlp-pot-provider
 
       - name: VPN Setup
         if: ${{ github.event.inputs.vpn_location != 'false' }}

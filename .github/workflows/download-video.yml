@@ -52,7 +52,13 @@ jobs:
   download_and_upload:
     runs-on: ubuntu-latest
     steps:
-    
+          
+      - name: Cache APT packages
+        uses: awalsh128/cache-apt-pkgs-action@latest
+        with:
+          packages: ffmpeg wireguard-tools curl
+          version: 1.0
+
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
@@ -65,12 +71,6 @@ jobs:
           cd bgutil-ytdlp-pot-provider/server/
           npm install
           npx tsc
-          
-      - name: Cache APT packages
-        uses: awalsh128/cache-apt-pkgs-action@latest
-        with:
-          packages: ffmpeg wireguard-tools curl
-          version: 1.0
 
       - name: Setup Environment
         run: |

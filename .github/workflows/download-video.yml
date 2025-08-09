@@ -80,7 +80,6 @@ jobs:
 
       - name: Setup Environment
         run: |
-       
           PACKAGES="ffmpeg"
           # Add VPN dependencies if enabled
           if [ "${{ github.event.inputs.vpn_location }}" != "false" ]; then
@@ -101,6 +100,7 @@ jobs:
           path: ~/.cache/pip
           key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}-${{ steps.weekly-key.outputs.week }}
           restore-keys: |
+            ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
             ${{ runner.os }}-pip-
           
       - name: Install yt-dlp and bgutil

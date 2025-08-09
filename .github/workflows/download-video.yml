@@ -162,9 +162,10 @@ jobs:
 
           # Configure format filter based on resolution
           if [[ "$RESOLUTION" == "best" ]]; then
-            FORMAT_OPTION=""
+            FORMAT_OPTION="--extractor-args \"youtube:player-client=default,mweb\""
           else
-            FORMAT_OPTION="-S \"+res:${RESOLUTION//[^0-9]/}\""
+            FORMAT_OPTION="--extractor-args \"youtube:player-client=default,mweb\" \
+            -S \"+res:${RESOLUTION//[^0-9]/}\""
             # remove +vcodec:av01 from -S until youtube fixed it
           fi
 

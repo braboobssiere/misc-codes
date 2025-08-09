@@ -60,14 +60,10 @@ jobs:
 
       - name: Prepare bgutil
         run: |
-          cd ~
           git clone https://github.com/Brainicism/bgutil-ytdlp-pot-provider.git
           cd bgutil-ytdlp-pot-provider/server/
           npm install
           npx tsc
-          nohup npm start &
-          sleep 3
-          curl http://127.0.0.1:4416/ping
           
       - name: Cache APT packages
         uses: awalsh128/cache-apt-pkgs-action@latest

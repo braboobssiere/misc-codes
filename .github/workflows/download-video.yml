@@ -65,12 +65,26 @@ jobs:
           packages: ffmpeg wireguard-tools curl
           version: ${{ steps.weekly-key.outputs.week }}
 
+      - name: Check URL
+        id: check_url
+        run: |
+          URL="${{ github.event.inputs.video_url }}"
+          if [[ "$URL" == *"youtube.com"* || "$URL" == *"youtu.be"* ]]; then
+            echo "url_check=youtube" >> $GITHUB_ENV
+          elif [[ "$URL" == *"twitter.com"* || "$URL" == *"x.com"* ]]; then
+            echo "url_check=twitter" >> $GITHUB_ENV
+          else
+            echo "url_check=" >> $GITHUB_ENV
+          fi
+
       - name: Set up Node.js
+        if: env.url_check == 'youtube'
         uses: actions/setup-node@v4
         with:
           node-version: '>=18'
 
       - name: Prepare bgutil
+        if: env.url_check == 'youtube'
         run: |
           cd ~
           git clone https://github.com/Brainicism/bgutil-ytdlp-pot-provider.git
@@ -106,6 +120,7 @@ jobs:
       - name: Install yt-dlp and bgutil
         run: |
           python3 -m pip install --pre yt-dlp[default,curl-cffi]
+          if: env.url_check == 'youtube'
           python3 -m pip install bgutil-ytdlp-pot-provider
 
       - name: VPN Setup
@@ -162,15 +177,15 @@ jobs:
 
           # Configure format filter based on resolution
           if [[ "$RESOLUTION" == "best" ]]; then
-            FORMAT_OPTION="--extractor-args \"youtube:player-client=default,mweb\""
+            FORMAT_OPTION=""
           else
-            FORMAT_OPTION="--extractor-args \"youtube:player-client=default,mweb\" \
-            -S \"+res:${RESOLUTION//[^0-9]/}\""
+            FORMAT_OPTION="-S \"+res:${RESOLUTION//[^0-9]/}\""
             # remove +vcodec:av01 from -S until youtube fixed it
           fi
 
           # Handle YouTube downloads using cookies if provided
-          if [[ "$URL" == *"youtube.com"* || "$URL" == *"youtu.be"* ]]; then
+          if [[ "$url_check" == 'youtube' ]]; then
+            EXTRACTOR="--extractor-args \"youtube:player-client=default,mweb\""
             if [[ "${{ github.event.inputs.cookies }}" == 'true' ]]; then
               echo "${{ secrets.YT_COOKIES }}" >> yt_cookies.txt
               COOKIE_FLAG="--cookies yt_cookies.txt"
@@ -184,7 +199,7 @@ jobs:
           fi
 
           # Handle Twitter downloads using cookies if provided
-          if [[ "$URL" == *"twitter.com"* || "$URL" == *"x.com"* ]] && \
+          if [[ "$url_check" == 'twitter' ]] && \
              [[ "${{ github.event.inputs.cookies }}" == 'true' ]]; then
             echo "${{ secrets.TWITTER_COOKIES }}" >> twitter_cookies.txt
             COOKIE_FLAG="--cookies twitter_cookies.txt"
@@ -194,7 +209,7 @@ jobs:
 
           # Build the download command
           COMMAND="yt-dlp -i --no-progress ${COOKIE_FLAG} ${LIVE_FLAG} \
-          ${ADDITIONAL_ARGS} ${FORMAT_OPTION} --windows-filenames \
+          ${EXTRACTOR} ${ADDITIONAL_ARGS} ${FORMAT_OPTION} --windows-filenames \
           --embed-metadata --no-embed-info-json --write-info-json --retry-sleep 3 \
           -o \"output/%(title).170B [%(id)s] (%(resolution)s).%(ext)s\" \
           --embed-subs --sub-langs all,-live_chat --write-thumbnail ${URL}"

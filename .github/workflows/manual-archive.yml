@@ -13,10 +13,10 @@ on:
       vpn_location:
         description: 'Select VPN location or false'
         required: true
-        default: 'TradeWar'
+        default: 'Harvard'
         type: choice
         options:
-          # - 'Harvard'
+          - 'Harvard'
           - 'TradeWar'
       resolution:
         description: "Video resolution (default: 1080p)"
@@ -37,16 +37,36 @@ jobs:
   download_and_upload:
     runs-on: ubuntu-latest
     steps:
+    
       - uses: actions/checkout@v4
+
+      - name: Set weekly cache key
+        id: weekly-key
+        run: |
+          WEEK=$(date +"%Y.%U")
+          echo "week=${WEEK}" >> $GITHUB_OUTPUT
+      
       - name: Cache APT packages
         uses: awalsh128/cache-apt-pkgs-action@latest
         with:
           packages: ffmpeg wireguard-tools jq curl zip parallel
-          version: 1.0
+          version: ${{ steps.weekly-key.outputs.week }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '>=18'
+
+      - name: Prepare bgutil
+        run: |
+          cd ~
+          git clone https://github.com/Brainicism/bgutil-ytdlp-pot-provider.git
+          cd bgutil-ytdlp-pot-provider/server/
+          npm install
+          npx tsc
 
       - name: Setup Environment
-        run: |
-       
+        run: |       
           sudo apt-get update
           sudo apt-get install -y ffmpeg wireguard-tools curl zip
           echo "yt-dlp[default,curl-cffi]" > requirements.txt
@@ -55,23 +75,27 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}-${{ steps.weekly-key.outputs.week }}
           restore-keys: |
+            ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
             ${{ runner.os }}-pip-
           
-      - name: Install yt-dlp
-        run: python3 -m pip install --pre -r requirements.txt
+      - name: Install yt-dlp and bgutil
+        run: |
+          python3 -m pip install --pre yt-dlp[default,curl-cffi]
+          python3 -m pip install bgutil-ytdlp-pot-provider
 
       - name: VPN Setup
         if: ${{ github.event.inputs.vpn_location != 'false' }}
         env:
           TradeWar_CONFIG: ${{ secrets.WIREGUARD_TRADEWAR  }}
-          # Harvard_CONFIG: ${{ secrets.WIREGUARD_HARVARD  }}
+          Harvard_CONFIG: ${{ secrets.WIREGUARD_HARVARD  }}
           
         run: |
           sudo mkdir -p /etc/wireguard/
           
           case "${{ github.event.inputs.vpn_location }}" in
+            Harvard) CONFIG_VAR="Harvard_CONFIG" ;;
             TradeWar) CONFIG_VAR="TradeWar_CONFIG" ;;
             *)
               echo "::error::Invalid location selection"
@@ -114,9 +138,10 @@ jobs:
 
           # Configure format filter based on resolution
           if [[ "$RESOLUTION" == "best" ]]; then
-            FORMAT_OPTION=""
+            FORMAT_OPTION="--extractor-args \"youtube:player-client=default,mweb\""
           else
-            FORMAT_OPTION="-S \"+res:${RESOLUTION//[^0-9]/}\""
+            FORMAT_OPTION="--extractor-args \"youtube:player-client=default,mweb\" \
+            -S \"+res:${RESOLUTION//[^0-9]/}\""
             # remove +vcodec:av01 from -S until youtube fixed it
           fi
 
@@ -150,6 +175,10 @@ jobs:
 
       - name: Verify output file 
         run: |
+          # Remove fragments if exist
+          if ls output/*.part 1> /dev/null 2>&1; then
+            rm output/*.part
+          fi
           # Count files in output directory (including hidden files)
           FILE_COUNT=$(find output/ -type f | wc -l)
           

@@ -204,6 +204,10 @@ jobs:
 
       - name: Verify output file 
         run: |
+          # Remove fragments if exist
+          if ls output/*.part 1> /dev/null 2>&1; then
+            rm output/*.part
+          fi
           # Count files in output directory (including hidden files)
           FILE_COUNT=$(find output/ -type f | wc -l)
           

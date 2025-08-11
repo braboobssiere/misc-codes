@@ -124,7 +124,7 @@ jobs:
         run: |
           python3 -m pip install --pre yt-dlp[default,curl-cffi]
           if [[ "$url_check" == 'youtube' ]]; then
-            python3 -m pip install bgutil-ytdlp-pot-provider
+            python3 -m pip install -U bgutil-ytdlp-pot-provider
           fi
 
       - name: VPN Setup

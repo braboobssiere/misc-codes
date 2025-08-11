@@ -131,7 +131,7 @@ jobs:
       - name: Install yt-dlp and bgutil
         run: |
           python3 -m pip install --pre yt-dlp[default,curl-cffi]
-          python3 -m pip install bgutil-ytdlp-pot-provider
+          python3 -m pip install -U bgutil-ytdlp-pot-provider
         
       - name: VPN Setup 
         env: 

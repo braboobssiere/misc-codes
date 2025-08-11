@@ -86,8 +86,11 @@ jobs:
       - name: Prepare bgutil
         if: env.url_check == 'youtube'
         run: |
+          # Fetch the latest version tag from the repository
+          latest_version=$(git ls-remote --tags https://github.com/Brainicism/bgutil-ytdlp-pot-provider.git | awk -F/ '{print $3}' | sort -V | tail -n 1)
+          echo "Latest version: $latest_version"
           cd ~
-          git clone https://github.com/Brainicism/bgutil-ytdlp-pot-provider.git
+          git clone --single-branch --branch $latest_version https://github.com/Brainicism/bgutil-ytdlp-pot-provider.git
           cd bgutil-ytdlp-pot-provider/server/
           npm install
           npx tsc

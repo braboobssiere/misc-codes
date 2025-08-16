@@ -10,7 +10,7 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  check-feed:
+  check:
     name: Parse Feed & Poll for Live
     runs-on: ubuntu-latest
     outputs:

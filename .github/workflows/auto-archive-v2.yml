@@ -179,6 +179,7 @@ jobs:
           
           parallel -j4 \
           'cmd="yt-dlp -i --no-progress -S \"+res:1080\" --retry-sleep 3 \
+            --extractor-args \"youtube:player-client=default,mweb\" \
             --windows-filenames --live-from-start --write-thumbnail \
             --embed-metadata --no-embed-info-json --write-info-json \
             -o \"output/%(title).170B [%(id)s] (%(resolution)s).%(ext)s\" {}";

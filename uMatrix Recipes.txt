@@ -96,6 +96,16 @@ discouse as 3rd party
  _ discourse-cdn.com image allow
  _ discourse-cdn.com script allow
 
+hcaptcha as 3rd party
+ * hcaptcha.com
+ _ hcaptcha.com cookie allow
+ _ hcaptcha.com css allow
+ _ hcaptcha.com frame allow
+ _ hcaptcha.com image allow
+ _ hcaptcha.com script allow
+ _ hcaptcha.com xhr allow
+ _ sentry.hcaptcha.com * block
+
 youtube as 3rd party
  * youtube.com
  _ googlevideo.com xhr allow

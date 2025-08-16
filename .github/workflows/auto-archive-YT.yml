@@ -14,8 +14,8 @@ jobs:
     name: Parse Feed & Poll for Live
     runs-on: ubuntu-latest
     outputs:
-      should_process: ${{ steps.check.outputs.should_process }}
-      urls:           ${{ steps.check.outputs.urls }}
+      should_process: ${{ steps.check-feed.outputs.should_process }}
+      urls:           ${{ steps.check-feed.outputs.urls }}
 
     steps:
           

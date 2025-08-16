@@ -10,7 +10,7 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  check:
+  check-feed:
     name: Parse Feed & Poll for Live
     runs-on: ubuntu-latest
     outputs:
@@ -30,7 +30,7 @@ jobs:
           pip install feedparser requests
 
       - name: Parse feed, check live & emit outputs
-        id: check-feed
+        id: check
         env:
           FEED_URL: "https://www.youtube.com/feeds/videos.xml?channel_id=UCoiEtD4v1qMAqHV5MDI5Qpg" # 9arm
           YT_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}

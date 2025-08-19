@@ -115,6 +115,11 @@ youtube as 3rd party
  _ youtube.com xhr allow
  _ i.ytimg.com image allow
 
+BreezeWiki as 3rd party
+ * fandom.com
+ _ fandom.com css allow
+ _ static.wikia.nocookie.net image allow
+
 ! youtube embed indivious
 ! * youtube.com
 ! _ googlevideo.com media allow

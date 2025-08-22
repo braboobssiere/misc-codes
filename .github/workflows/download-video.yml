@@ -1,0 +1,321 @@
+name: Download Video
+
+on:
+  workflow_dispatch:
+    inputs:
+      video_url:
+        description: "Video URL to download"
+        required: true
+        type: string
+      vpn_location:
+        description: 'Select VPN location or false'
+        required: true
+        default: 'TradeWar'
+        type: choice
+        options:
+          - 'TradeWar'
+          - 'GrandCentral'
+          - 'Shinkansen'
+          - 'false'
+      resolution:
+        description: "Video resolution (default: 1080p)"
+        required: true
+        type: choice
+        default: '1080p'
+        options:
+          - '1080p'
+          - 'best'
+          - '720p'
+          - '480p'
+      cookies:
+        description: "Pass cookies to yt-dlp?"
+        required: true
+        type: choice
+        default: 'false'
+        options:
+          - 'true'
+          - 'false'
+      additional_args:
+        description: "Optional yt-dlp arguments"
+        required: false
+        default: ''
+      upload_to_cloud:
+        description: "Upload downloaded video to cloud storage?"
+        required: true
+        type: choice
+        default: 'true'
+        options:
+          - 'true'
+          - 'false'
+
+jobs:
+  download_and_upload:
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: Set weekly cache key
+        id: weekly-key
+        run: |
+          WEEK=$(date +"%Y.%U")
+          echo "week=${WEEK}" >> $GITHUB_OUTPUT
+          
+      - name: Cache APT packages
+        uses: awalsh128/cache-apt-pkgs-action@latest
+        with:
+          packages: ffmpeg wireguard-tools curl
+          version: ${{ steps.weekly-key.outputs.week }}
+
+      - name: Check URL
+        id: check_url
+        run: |
+          URL="${{ github.event.inputs.video_url }}"
+          if [[ "$URL" == *"youtube.com"* || "$URL" == *"youtu.be"* ]]; then
+            echo "url_check=youtube" >> $GITHUB_ENV
+          elif [[ "$URL" == *"twitter.com"* || "$URL" == *"x.com"* ]]; then
+            echo "url_check=twitter" >> $GITHUB_ENV
+          else
+            echo "url_check=" >> $GITHUB_ENV
+          fi
+
+      - name: Set up Node.js
+        if: env.url_check == 'youtube'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '>=18'
+
+      - name: Prepare bgutil
+        if: env.url_check == 'youtube'
+        run: |
+          # Fetch the latest version tag from the repository
+          latest_version=$(git ls-remote --tags https://github.com/Brainicism/bgutil-ytdlp-pot-provider.git | awk -F/ '{print $3}' | sort -V | tail -n 1)
+          echo "Latest version: $latest_version"
+          cd ~
+          git clone --single-branch --branch $latest_version https://github.com/Brainicism/bgutil-ytdlp-pot-provider.git
+          cd bgutil-ytdlp-pot-provider/server/
+          npm install
+          npx tsc
+
+      - name: Setup Environment
+        run: |
+          PACKAGES="ffmpeg"
+          # Add VPN dependencies if enabled
+          if [ "${{ github.event.inputs.vpn_location }}" != "false" ]; then
+            PACKAGES="$PACKAGES wireguard-tools"
+          fi
+          # Add Cloud dependencies if upload is enabled
+          if [ "${{ github.event.inputs.upload_to_cloud }}" = "true" ]; then
+            PACKAGES="$PACKAGES curl"
+          fi
+
+          sudo apt-get update
+          sudo apt-get install -y $PACKAGES
+          echo -e "yt-dlp[default,curl-cffi]\nbgutil-ytdlp-pot-provider" > requirements.txt
+
+      - name: Cache pip packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}-${{ steps.weekly-key.outputs.week }}
+          restore-keys: |
+            ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+            ${{ runner.os }}-pip-
+          
+      - name: Install yt-dlp and bgutil
+        run: |
+          python3 -m pip install --pre yt-dlp[default,curl-cffi]
+          if [[ "$url_check" == 'youtube' ]]; then
+            python3 -m pip install -U bgutil-ytdlp-pot-provider
+          fi
+
+      - name: VPN Setup
+        if: ${{ github.event.inputs.vpn_location != 'false' }}
+        env:
+          GrandCentral_CONFIG: ${{ secrets.WIREGUARD_GRANDCENTRAL }}
+          TradeWar_CONFIG: ${{ secrets.WIREGUARD_TRADEWAR }}
+          Shinkansen_CONFIG: ${{ secrets.WIREGUARD_Shinkansen }}
+        run: |
+          sudo mkdir -p /etc/wireguard/
+          
+          case "${{ github.event.inputs.vpn_location }}" in
+            GrandCentral) CONFIG_VAR="GrandCentral_CONFIG" ;;
+            Shinkansen) CONFIG_VAR="Shinkansen_CONFIG" ;;
+            TradeWar) CONFIG_VAR="TradeWar_CONFIG" ;;
+            *)
+              echo "::error::Invalid location selection"
+              exit 11
+              ;;
+          esac
+
+          if [ -z "${!CONFIG_VAR}" ]; then
+            echo "::error::No configuration found for ${{ github.event.inputs.vpn_location }}"
+            exit 12
+          fi
+
+          echo "${!CONFIG_VAR}" | sudo tee /etc/wireguard/wg0.conf > /dev/null
+          sudo chmod 600 /etc/wireguard/wg0.conf 
+
+          for i in {1..5}; do
+              timeout 60 sudo wg-quick up wg0
+              sleep 1 
+              if sudo wg show wg0 >/dev/null 2>&1; then
+                  echo "VPN connected successfully on attempt $i"
+                  break
+              else
+                  echo "VPN connection failed (attempt $i/5)"
+                  sudo wg-quick down wg0 >/dev/null 2>&1
+                  [ $i -lt 5 ] && sleep 1
+              fi
+          done
+
+          if ! sudo wg show wg0 >/dev/null 2>&1; then
+              echo "::error::VPN failed to connect after 5 attempts"
+              exit 13
+          fi
+
+      - name: Download and Process Video
+        continue-on-error: true
+        run: |
+          mkdir -p output
+          URL="${{ github.event.inputs.video_url }}"
+          RESOLUTION="${{ github.event.inputs.resolution }}"
+
+          # Configure format filter based on resolution
+          if [[ "$RESOLUTION" == "best" ]]; then
+            FORMAT_OPTION=""
+          else
+            FORMAT_OPTION="-S \"+res:${RESOLUTION//[^0-9]/}\""
+            # remove +vcodec:av01 from -S until youtube fixed it
+          fi
+
+          # Handle YouTube downloads using cookies if provided
+          if [[ "$url_check" == 'youtube' ]]; then
+            EXTRACTOR="--extractor-args \"youtube:player-client=web_creator,default,mweb\""
+            if [[ "${{ github.event.inputs.cookies }}" == 'true' ]]; then
+              echo "${{ secrets.YT_COOKIES }}" >> yt_cookies.txt
+              COOKIE_FLAG="--cookies yt_cookies.txt"
+            fi
+
+            LIVE_STATUS=$(yt-dlp ${COOKIE_FLAG} --print live_status "$URL")
+            echo "Live status: '$LIVE_STATUS'"
+            if [[ "$LIVE_STATUS" =~ ^(is_live|post_live)$ ]]; then
+              LIVE_FLAG="--live-from-start"
+            fi
+          fi
+
+          # Handle Twitter downloads using cookies if provided
+          if [[ "$url_check" == 'twitter' ]] && \
+             [[ "${{ github.event.inputs.cookies }}" == 'true' ]]; then
+            echo "${{ secrets.TWITTER_COOKIES }}" >> twitter_cookies.txt
+            COOKIE_FLAG="--cookies twitter_cookies.txt"
+          fi
+
+          ADDITIONAL_ARGS="${{ github.event.inputs.additional_args }}"
+
+          # Build the download command
+          COMMAND="yt-dlp -i --no-progress ${COOKIE_FLAG} ${LIVE_FLAG} \
+          ${EXTRACTOR} ${ADDITIONAL_ARGS} ${FORMAT_OPTION} --windows-filenames \
+          --embed-metadata --no-embed-info-json --write-info-json --retry-sleep 3 \
+          -o \"output/%(title).170B [%(id)s] (%(resolution)s).%(ext)s\" \
+          --embed-subs --sub-langs all,-live_chat --write-thumbnail ${URL}"
+
+          # Log and execute the command
+          {
+          echo "Download command: ${COMMAND}"
+          eval "${COMMAND}"
+          } 2>&1 | tee >(awk '{ print strftime("[%Y-%m-%d %H:%M:%S UTC]"), $0 }' >> output/logs.txt)
+
+      - name: VPN Cleanup
+        if: ${{ always() && github.event.inputs.vpn_location != 'false' }}
+        run: |
+          sudo wg-quick down wg0 || true
+          
+      - name: Verify output file 
+        run: |
+          # Remove fragments if exist
+          if ls output/*.part 1> /dev/null 2>&1; then
+            rm output/*.part
+          fi
+          # Count files in output directory (including hidden files)
+          FILE_COUNT=$(find output/ -type f | wc -l)
+          
+          if [ $FILE_COUNT -lt 2 ]; then
+            echo "Error: yt-dlp have a problem downloading video (found $FILE_COUNT)"
+            exit 14
+          fi
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: downloaded-video
+          path: output
+          compression-level: 1
+          if-no-files-found: error
+
+      - name: Upload Files to Gofile
+        if: ${{ github.event.inputs.upload_to_cloud == 'true' }}
+        run: |
+          UPLOAD_URL="https://upload.gofile.io/uploadfile"
+          guest_token=""
+          folder_id=""
+          UPLOAD_LINKS=""
+          FIRST_FILE=true
+
+          while IFS= read -r -d '' file; do
+            echo "▫️ Starting upload: $(basename "$file")"
+            extra_args=()
+            if [ "$FIRST_FILE" = false ]; then
+              extra_args+=(-H "Authorization: Bearer $guest_token" -F "folderId=$folder_id")
+            fi
+            
+            RESPONSE=$(curl -s -X POST -F "file=@\"$file\"" "${extra_args[@]}" "$UPLOAD_URL")
+
+            PYTHON_OUTPUT=$(python3 <<EOF
+          import json, sys
+          try:
+              data = json.loads('''$RESPONSE''')
+              if "$FIRST_FILE" == "true":
+                  guest_token = data['data']['guestToken']
+                  folder_id = data['data']['parentFolder']
+                  print(f"{guest_token}\t{folder_id}")
+              else:
+                  print("-\t-")          
+              status = 'ok' if data['status'] == 'ok' else 'error'
+              result_data = data.get('data', {}).get('downloadPage', '') if status == 'ok' else data.get('data', '')
+              print(f"{status}\t{result_data}")
+          except Exception as e:
+              print(f"error\tJSON parsing failed: {str(e)}")
+              sys.exit(1)
+          EOF
+            )
+
+            {
+              read -r token_part folder_part
+              read -r status_type result_data
+            } <<< "$PYTHON_OUTPUT"
+
+            if [ "$FIRST_FILE" = true ]; then
+              guest_token="$token_part"
+              folder_id="$folder_part"
+              FIRST_FILE=false
+              echo "GUEST_TOKEN=$guest_token" >> $GITHUB_ENV
+              echo "FOLDER_ID=$folder_id" >> $GITHUB_ENV
+              echo "Created folder ID"
+            fi
+
+            if [ "$status_type" != "ok" ]; then
+              echo "::error file=$file::Upload failed: $result_data"
+            else
+              LINK="$result_data"
+              UPLOAD_LINKS+="- $(basename "$file")\n"
+              echo "Success: $LINK"
+            fi
+          done < <(find output/ -type f -print0)
+
+          echo "### File Uploads: $LINK" >> $GITHUB_STEP_SUMMARY
+          echo -e "\n$UPLOAD_LINKS" >> $GITHUB_STEP_SUMMARY
+
+          curl -X POST \
+            -H "Content-Type: application/json" \
+            -d "{\"content\":\"File Uploads: $LINK \n$UPLOAD_LINKS\"}" \
+            "${{ secrets.DISCORD_WEBHOOK }}"
+            

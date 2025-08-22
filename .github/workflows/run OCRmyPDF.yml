@@ -1,0 +1,134 @@
+name: Process Files with OCRmyPDF
+
+on:
+  workflow_dispatch:
+    inputs:
+      url:
+        description: 'URL to PDF/image file (optional)'
+        required: false
+      additional_param:
+        description: 'Additional OCR parameters'
+        required: false
+        default: -l tha+eng
+
+permissions:
+  contents: write
+
+jobs:
+  process_files:
+    runs-on: ubuntu-latest
+    env:
+      INPUT_DIR: ./input/OCRinput
+      OUTPUT_DIR: ./output
+      URL_INPUT: ${{ github.event.inputs.url }}  # Track URL presence
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y ocrmypdf tesseract-ocr curl
+        lang_codes=$(echo "${{ github.event.inputs.additional_param }}" | sed -n 's/.*-l[[:space:]]*\([a-zA-Z]\{3\}\([+][a-zA-Z]\{3\}\)*\)\b.*/\1/p')
+        if [ -n "$lang_codes" ]; then
+          for lang_code in $(echo "$lang_codes" | tr '+' ' '); do
+            [ "$lang_code" = "eng" ] && continue
+            sudo apt-get install -y "tesseract-ocr-$lang_code"
+          done
+        fi
+        mkdir -p $OUTPUT_DIR $INPUT_DIR
+
+    - name: Process files
+      run: |
+        set -eo pipefail
+
+        # Download URL to input directory if provided
+        if [ -n "${{ github.event.inputs.url }}" ]; then
+          url="${{ github.event.inputs.url }}"
+        
+          # Get the content type of the file
+          content_type=$(curl -sI "$url" | grep -i "Content-Type:" | awk '{print $2}' | tr -d '\r')
+
+          # Determine the file extension based on the content type
+          case "$content_type" in
+                "image/jpeg")
+                        extension="jpg"
+                        ;;
+                "image/png")
+                        extension="png"
+                        ;;
+                "application/pdf")
+                        extension="pdf"
+                        ;;
+                *)
+                        # Use the filename and extension from the URL if the type is unsupported
+                        echo "Unsupported file type: $content_type. Using default filename and extension from URL."
+                        extension="${url##*.}"  # Extract the extension from the URL
+                        ;;
+          esac
+
+          # Extract the filename without extension
+          filename=$(basename "${url%%\?*}")
+          filename="${filename%.*}.$extension"  # Append the determined or default extension
+
+          echo "Downloading $url to $INPUT_DIR/$filename"
+          curl -L -o "$INPUT_DIR/$filename" "$url"
+        fi
+
+        # Process all files in input directory
+        while IFS= read -rd '' file; do
+          filename=$(basename "$file")
+          extension="${filename##*.}"
+          success=false
+          timestamp=$(date +"%Y%m%d_%H%M%S")
+
+          echo "Processing $filename..."
+          if [[ "${extension,,}" =~ ^(jpg|jpeg|png|tiff|webp|bmp)$ ]]; then
+            output_base="$OUTPUT_DIR/${filename%.*}_$timestamp"
+            if tesseract ${{ github.event.inputs.additional_param }} "$file" "$output_base" pdf txt; then
+              success=true
+            fi
+          elif [[ "${extension,,}" == "pdf" ]]; then
+            output_pdf="$OUTPUT_DIR/${filename%.*}_$timestamp.pdf"
+            if ocrmypdf ${{ github.event.inputs.additional_param }} --skip-text --clean \
+              --sidecar "${output_pdf}.txt" "$file" "$output_pdf"; then
+              success=true
+            fi
+          else
+            echo "Skipped: $filename (unsupported format)"
+            continue
+          fi
+
+          if [ "$success" = true ]; then
+            # Remove processed file (git-aware removal)
+            if git ls-files --error-unmatch "$file" >/dev/null 2>&1; then
+              git rm -f --ignore-unmatch "$file"
+            fi
+            rm -f "$file"
+            echo "✅ Processed: $filename"
+          else
+            echo "❌ Failed: $filename (left in input for inspection)"
+          fi
+        done < <(find $INPUT_DIR -type f \( -iname '*.pdf' -o -iname '*.jpg' -o -iname '*.jpeg' \
+          -o -iname '*.png' -o -iname '*.webp' -o -iname '*.tiff' -o -iname '*.bmp' \) -print0)
+
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: processed-files
+        path: ${{ env.OUTPUT_DIR }}/
+        retention-days: 7
+
+    - name: Cleanup outputs
+      run: rm -rf $OUTPUT_DIR
+
+    - name: Commit changes
+      if: ${{ !github.event.inputs.url }}
+      run: |
+        git config --local user.name "github-actions"
+        git config --local user.email "github-actions@github.com"
+        git add -A
+        git commit -m "Clear Input" || echo "No changes to commit"
+        git push

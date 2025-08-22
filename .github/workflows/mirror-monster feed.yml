@@ -1,0 +1,50 @@
+name: Mirror Monster Feed
+
+on:
+  schedule:
+    - cron: '0 */6 * * *'
+  workflow_dispatch:  # Allows manual triggering
+
+permissions:
+  contents: write
+
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '16'
+
+      - name: Install dependencies
+        run: |
+          npm install xml2js
+
+      - name: Create feeds directory
+        run: |
+          mkdir -p feeds
+
+      - name: Fetch feed
+        run: |
+          curl -s "https://api.feedless.org/f/3628b1e8-d4f1-4806-be93-4163657ad13f/atom?skey=sd1qjJOXcr" -o feeds/space_monster.atom
+
+      - name: Set environment variables
+        run: |
+          echo "FEED_FILE_PATH=feeds/space_monster.atom" >> $GITHUB_ENV
+          echo "FEED_SELF_LINK=https://raw.githubusercontent.com/braboobssiere/misc-codes/main/feeds/space_monster.atom" >> $GITHUB_ENV
+          
+      - name: Modify feed content
+        run: |
+          node js/modify_monster_feed.js
+
+      - name: Commit and push changes
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add feeds/space_monster.atom
+          git commit -m "Update Atom feed: space_monster.atom" || echo "No changes to commit"
+          git push

@@ -194,12 +194,13 @@ jobs:
         continue-on-error: true
         run: |
           mkdir -p output
+          echo "${{ secrets.YT_COOKIES }}" >> yt_cookies.txt
           yt-dlp -i --no-progress -S "+res:1080" --retry-sleep 3 \
           --windows-filenames --live-from-start --write-thumbnail \
           --embed-metadata --no-embed-info-json --write-info-json \
-          --extractor-args "youtube:player-client=default,mweb" \
+          --cookies yt_cookies.txt --extractor-args "youtube:player-client=web_creator,default,mweb" \
           -o "output/%(title).170B [%(id)s] (%(resolution)s).%(ext)s" \
-          "$URL" 2>&1 | awk '{ print strftime("[%Y-%m-%d %H:%M:%S UTC]"), $0 }' >> output/logs.txt
+          "$URL" 2>&1 | tee >(awk '{ print strftime("[%Y-%m-%d %H:%M:%S UTC]"), $0 }' >> output/logs.txt)
 
       - name: VPN Cleanup
         if: ${{ always() }}

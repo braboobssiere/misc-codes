@@ -189,7 +189,7 @@ jobs:
 
           # Handle YouTube downloads using cookies if provided
           if [[ "$url_check" == 'youtube' ]]; then
-            EXTRACTOR="--extractor-args \"youtube:player-client=web_creator\""
+            EXTRACTOR="--extractor-args \"youtube:player-client=web_creator,mweb\""
             if [[ "${{ github.event.inputs.cookies }}" == 'true' ]]; then
               echo "${{ secrets.YT_COOKIES }}" >> yt_cookies.txt
               COOKIE_FLAG="--cookies yt_cookies.txt"

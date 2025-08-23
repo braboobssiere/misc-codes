@@ -189,10 +189,12 @@ jobs:
 
           # Handle YouTube downloads using cookies if provided
           if [[ "$url_check" == 'youtube' ]]; then
-            EXTRACTOR="--extractor-args \"youtube:player-client=web_creator,default,mweb\""
             if [[ "${{ github.event.inputs.cookies }}" == 'true' ]]; then
               echo "${{ secrets.YT_COOKIES }}" >> yt_cookies.txt
               COOKIE_FLAG="--cookies yt_cookies.txt"
+              EXTRACTOR="--extractor-args \"youtube:player-client=web_creator,default,mweb\""
+            else
+              EXTRACTOR="--extractor-args \"youtube:player-client=default,mweb\""
             fi
 
             LIVE_STATUS=$(yt-dlp ${COOKIE_FLAG} --print live_status "$URL")

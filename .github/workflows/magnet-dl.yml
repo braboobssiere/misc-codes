@@ -61,7 +61,6 @@ jobs:
       - name: Download files
         run: |
           mkdir -p magnet_output
-          echo "Downloading files from: ${{ inputs.source }}"
           webtorrent download "${{ inputs.source }}" --out magnet_output
 
       - name: VPN Cleanup

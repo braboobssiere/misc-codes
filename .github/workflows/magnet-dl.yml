@@ -62,8 +62,7 @@ jobs:
         run: |
           mkdir -p magnet_output
           echo "Downloading files from: ${{ inputs.source }}"
-          webtorrent download "${{ inputs.source }}" \
-            --out magnet_output
+          webtorrent download "${{ inputs.source }}" --out magnet_output
 
       - name: VPN Cleanup
         if: ${{ always() }}
@@ -76,7 +75,8 @@ jobs:
     
           if [ "$file_count" -eq 1 ]; then
               file_size=$(stat -c%s "$(find . -type f -print -quit)")
-              if [ "$file_size" -le 2147483648 ]; then  # 2GB in bytes
+              if [ "$file_size" -le 2147483648 ]; then  
+              # 2GB in bytes
                   echo "Single file under 2GB, keeping as-is"
                   exit 0
               fi

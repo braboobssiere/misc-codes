@@ -68,12 +68,30 @@ jobs:
       - name: VPN Cleanup
         if: ${{ always() }}
         run: sudo wg-quick down wg0 || true
+        
+      - name: Zip files 
+        run: |
+          cd magnet_output
+          file_count=$(find . -type f | wc -l)
+    
+          if [ "$file_count" -eq 1 ]; then
+              file_size=$(stat -c%s "$(find . -type f -print -quit)")
+              if [ "$file_size" -le 2147483648 ]; then  # 2GB in bytes
+                  echo "Single file under 2GB, keeping as-is"
+                  exit 0
+              fi
+          fi
+
+          echo "Creating uncompressed split archive"
+          zip -0 -r -s 2048m -m archive.zip .
+        shell: bash
 
       - name: Upload downloaded files
         uses: actions/upload-artifact@v4
         with:
           name: downloaded-files
           path: magnet_output/
+          compression-level: 0
           if-no-files-found: error
 
       - name: Upload Files to Gofile

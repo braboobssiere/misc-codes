@@ -61,7 +61,10 @@ jobs:
       - name: Download files
         run: |
           mkdir -p magnet_output
-          webtorrent download "${{ inputs.source }}" --out magnet_output
+          download_output=$(webtorrent download "${{ inputs.source }}" --out magnet_output)
+          files_name=$(echo "$download_output" | grep -oP '(?<=Downloading: ).*' | head -n 1)
+          sanitized_file_name=$(echo "$files_name" | tr -cd '[:alnum:]_.-[:space:]' | sed 's/^[_.-]*//;s/[_.-]*$//')
+          echo "files_name=${sanitized_file_name}" >> $GITHUB_ENV
 
       - name: VPN Cleanup
         if: ${{ always() }}
@@ -82,7 +85,7 @@ jobs:
           fi
 
           echo "Creating uncompressed split archive"
-          zip -0 -r -s 2048m -m archive.zip .
+          zip -0 -r -e -s 2048m -m "${{ env.files_name }}.zip" . <<< "${{ secrets.MAGNET_PASSWORD }}"
         shell: bash
 
       - name: Upload downloaded files

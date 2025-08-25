@@ -73,19 +73,7 @@ jobs:
       - name: Zip files 
         run: |
           cd magnet_output
-          file_count=$(find . -type f | wc -l)
-    
-          if [ "$file_count" -eq 1 ]; then
-              file_size=$(stat -c%s "$(find . -type f -print -quit)")
-              if [ "$file_size" -le 2147483648 ]; then  
-              # 2GB in bytes
-                  echo "Single file under 2GB, keeping as-is"
-                  exit 0
-              fi
-          fi
-
-          echo "Creating uncompressed split archive"
-          zip -0 -r -e -s 2048m -m "${{ env.files_name }}.zip" . <<< "${{ secrets.MAGNET_PASSWORD }}"
+          zip -0 -r -e -s 2048m -m -P "${{ secrets.MAGNET_PASSWORD }}" "${{ env.files_name }}.zip" .
         shell: bash
 
       - name: Upload downloaded files

@@ -20,7 +20,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y curl wireguard-tools
-          sudo npm install webtorrent-cli -g
+          sudo npm install webtorrent-cli
 
       - name: VPN Setup 
         env: 

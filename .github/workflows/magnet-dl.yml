@@ -94,7 +94,7 @@ jobs:
               full_file_name="${encoded_file_name}"
 
               response=$(curl -s -w "%{http_code}" -X PUT "https://w.buzzheavier.com/${full_file_name}" \
-                -H "Content-Type: application/octet-stream" --data-binary @"$file")
+                -H "Content-Type: application/octet-stream" -T "$file"
 
               http_status_code="${response: -3}"  
               response_body="${response:0:${#response}-3}"

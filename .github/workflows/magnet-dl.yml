@@ -96,15 +96,16 @@ jobs:
               response=$(curl -s -w "%{http_code}" -X PUT "https://w.buzzheavier.com/${full_file_name}" \
                 -H "Content-Type: application/octet-stream" --data-binary @"$file")
 
-              status_code="${response: -3}"  
+              http_status_code="${response: -3}"  
               response_body="${response:0:${#response}-3}"
+              response_code=$(echo "$response_body" | jq -r '.code')
 
-              if [ "$status_code" == 2* ]; then
+              if [[ "$response_code" == 201 ]]; then
                 download_id=$(echo "$response_body" | jq -r '.data.id')
                 download_url="https://buzzheavier.com/${download_id}"
                 echo "buzz_url=$download_url" >> $GITHUB_ENV
               else
-                echo "Upload failed with status code $status_code: $response_body"
+                echo "Upload failed with response code $response_code: $response_body"
               fi
             fi
           done

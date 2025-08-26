@@ -73,16 +73,8 @@ jobs:
       - name: Zip files 
         run: |
           cd magnet_output
-          zip -0 -r -e -s 2048m -m -P "${{ secrets.MAGNET_PASSWORD }}" "${{ env.files_name }}.zip" .
+          zip -0 -r -m "${{ env.files_name }}.zip" .
         shell: bash
-
-      - name: Upload downloaded files
-        uses: actions/upload-artifact@v4
-        with:
-          name: downloaded-files
-          path: magnet_output/
-          compression-level: 0
-          if-no-files-found: error
 
       - name: Upload Files to Gofile
         run: |

@@ -73,41 +73,8 @@ jobs:
       - name: Zip files 
         run: |
           cd magnet_output
-          zip -0 -r -m "${{ env.files_name }}.zip" .
+          zip -0 -r -m -s 2g "${{ env.files_name }}.zip" .
         shell: bash
-
-      - name: Upload files to BuzzHeavier
-        id: buzz_upload
-        run: |
-          for file in magnet_output/*; do
-            if [ -f "$file" ]; then
-              file_name_no_ext="${file%.*}"
-              file_name="${file_name_no_ext##*/}"  
-              extension="${file##*.}" 
-
-              # Trim the filename to 490 characters
-              if [ ${#file_name} -gt 490 ]; then
-                file_name="${file_name:0:490}"
-              fi
-
-              encoded_file_name=$(echo "$file_name.$extension" | jq -sRr @uri)
-              full_file_name="${encoded_file_name}"
-
-              response=$(curl -s -w "%{http_code}" -X PUT "https://w.buzzheavier.com/${full_file_name}" -T "$file")
-
-              http_status_code="${response: -3}"  
-              response_body="${response:0:${#response}-3}"
-              response_code=$(echo "$response_body" | jq -r '.code')
-
-              if [[ "$response_code" == 201 ]]; then
-                download_id=$(echo "$response_body" | jq -r '.data.id')
-                download_url="https://buzzheavier.com/${download_id}"
-                echo "buzz_url=$download_url" >> $GITHUB_ENV
-              else
-                echo "Upload failed with response code $response_code: $response_body"
-              fi
-            fi
-          done
 
       - name: Upload Files to Gofile
         run: |
@@ -168,7 +135,7 @@ jobs:
             fi
           done < <(find magnet_output/ -type f -print0)
 
-          echo -e "### File Uploads: \n${{ env.buzz_url }} \n$LINK \n$UPLOAD_LINKS" >> $GITHUB_STEP_SUMMARY
+          echo -e "### File Uploads: \n$LINK \n$UPLOAD_LINKS" >> $GITHUB_STEP_SUMMARY
 
           curl -X POST \
             -H "Content-Type: application/json" \

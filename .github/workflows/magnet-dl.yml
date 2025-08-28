@@ -103,12 +103,6 @@ jobs:
               http_status_code=$(curl --silent --show-error -X PUT \
               "https://w.buzzheavier.com/${full_file_name}" -T "$file" -o "$response_file" -w "%{http_code}") || true
 
-              if [ -z "$http_status_code" ]; then
-                echo "::error file=$file::Upload failed: no HTTP status"
-                rm -f "$response_file"
-                continue
-              fi
-
               response_body=$(cat "$response_file" 2>/dev/null || true)
               response_code=$(echo "$response_body" | jq -r '.code' 2>/dev/null || true)
               rm -f "$response_file"

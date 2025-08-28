@@ -90,17 +90,21 @@ jobs:
               file_name_no_ext="${file%.*}"
               file_name="${file_name_no_ext##*/}"  
               extension="${file##*.}" 
+        
+              # Encode the filename and extension separately
+              encoded_file_name=$(echo "$file_name" | jq -sRr @uri)
+              encoded_extension=$(echo "$extension" | jq -sRr @uri)
 
-              # Trim the filename to 490 characters
-              if [ ${#file_name} -gt 490 ]; then
-                file_name="${file_name:0:490}"
+              if [ ${#encoded_file_name} -gt 490 ]; then
+                encoded_file_name="${encoded_file_name:0:490}"
+                # Remove any partial encoding at the end
+                encoded_file_name="${encoded_file_name%\%[0-9A-Fa-f][0-9A-Fa-f]}"
+                encoded_file_name="${encoded_file_name%\%[0-9A-Fa-f]}"
               fi
-
-              encoded_file_name=$(echo "$file_name.$extension" | jq -sRr @uri)
-              full_file_name="${encoded_file_name}"
+              full_file_name="${encoded_file_name}.${encoded_extension}"
 
               response_file=$(mktemp)
-              http_status_code=$(curl --silent --show-error -X PUT \
+              http_status_code=$(curl --globoff --silent --show-error -X PUT \
               "https://w.buzzheavier.com/${full_file_name}" -T "$file" -o "$response_file" -w "%{http_code}") || true
 
               response_body=$(cat "$response_file" 2>/dev/null || true)

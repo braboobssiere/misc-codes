@@ -11,6 +11,12 @@ jobs:
   process-downloader:
     runs-on: ubuntu-latest
     steps:
+
+      - name: Maximize space
+        uses: easimon/maximize-build-space@v10
+        with:
+          swap-size-mb: 4096
+    
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -72,9 +78,44 @@ jobs:
         
       - name: Zip files 
         run: |
-          cd magnet_output
-          zip -0 -r -m -s 2g "${{ env.files_name }}.zip" .
+          mkdir -p buzz gofile
+          zip -0 -r -s 2g "gofile/${{ env.files_name }}.zip" magnet_output
+          zip -0 -r -m "buzz/${{ env.files_name }}.zip" magnet_output
         shell: bash
+
+      - name: Upload files to BuzzHeavier
+        run: |
+          for file in buzz/*; do
+            if [ -f "$file" ]; then
+              file_name_no_ext="${file%.*}"
+              file_name="${file_name_no_ext##*/}"  
+              extension="${file##*.}" 
+
+              # Trim the filename to 490 characters
+              if [ ${#file_name} -gt 490 ]; then
+                file_name="${file_name:0:490}"
+              fi
+
+              encoded_file_name=$(echo "$file_name.$extension" | jq -sRr @uri)
+              full_file_name="${encoded_file_name}"
+
+              http_status=$(curl --silent --show-error --fail -X PUT \
+              "https://w.buzzheavier.com/${full_file_name}" -T "$file" -w "%{http_code}" -o -) || true
+
+              http_code="${http_status: -3}"
+              response_body="${http_status:0:${#http_status}-3}"
+
+              response_code=$(echo "$response_body" | jq -r '.code' 2>/dev/null || true)
+              if [[ "$response_code" == 201 ]]; then
+                download_id=$(echo "$response_body" | jq -r '.data.id')
+                download_url="https://buzzheavier.com/${download_id}"
+                echo "buzz_url=$download_url" >> $GITHUB_ENV
+              else
+                echo "Upload failed: HTTP $http_code"
+                echo "Response: $response_body"
+              fi
+            fi
+          done
 
       - name: Upload Files to Gofile
         run: |
@@ -85,59 +126,55 @@ jobs:
           FIRST_FILE=true
 
           while IFS= read -r -d '' file; do
-            echo "▫️ Starting upload: $(basename "$file")"
+            echo "Starting upload: $(basename "$file")"
             extra_args=()
             if [ "$FIRST_FILE" = false ]; then
               extra_args+=(-H "Authorization: Bearer $guest_token" -F "folderId=$folder_id")
             fi
             
-            RESPONSE=$(curl -s -X POST -F "file=@\"$file\"" "${extra_args[@]}" "$UPLOAD_URL")
+            resp_and_code=$(curl --silent --show-error --fail -X POST "${extra_args[@]}" -F "file=@${file}" "$UPLOAD_URL" -w "%{http_code}" -o -) || true
+            http_code="${resp_and_code: -3}"
+            response_body="${resp_and_code:0:${#resp_and_code}-3}"
 
-            PYTHON_OUTPUT=$(python3 <<EOF
-          import json, sys
-          try:
-              data = json.loads('''$RESPONSE''')
-              if "$FIRST_FILE" == "true":
-                  guest_token = data['data']['guestToken']
-                  folder_id = data['data']['parentFolder']
-                  print(f"{guest_token}\t{folder_id}")
-              else:
-                  print("-\t-")          
-              status = 'ok' if data['status'] == 'ok' else 'error'
-              result_data = data.get('data', {}).get('downloadPage', '') if status == 'ok' else data.get('data', '')
-              print(f"{status}\t{result_data}")
-          except Exception as e:
-              print(f"error\tJSON parsing failed: {str(e)}")
-              sys.exit(1)
-          EOF
-            )
-
-            {
-              read -r token_part folder_part
-              read -r status_type result_data
-            } <<< "$PYTHON_OUTPUT"
+            if ! echo "$response_body" | jq . >/dev/null 2>&1; then
+              echo "::error file=$file::Upload failed: invalid JSON response (HTTP $http_code)"
+              continue
+            fi
 
             if [ "$FIRST_FILE" = true ]; then
-              guest_token="$token_part"
-              folder_id="$folder_part"
-              FIRST_FILE=false
-              echo "GUEST_TOKEN=$guest_token" >> $GITHUB_ENV
-              echo "FOLDER_ID=$folder_id" >> $GITHUB_ENV
-              echo "Created folder ID"
+              guest_token=$(echo "$response_body" | jq -r '.data.guestToken // empty')
+              folder_id=$(echo "$response_body" | jq -r '.data.parentFolder // empty')
+              if [ -n "$guest_token" ] && [ -n "$folder_id" ]; then
+                FIRST_FILE=false
+                echo "GUEST_TOKEN=$guest_token" >> $GITHUB_ENV
+                echo "FOLDER_ID=$folder_id" >> $GITHUB_ENV
+                echo "::add-mask::$guest_token"
+                echo "Created folder ID: $folder_id"
+              fi
             fi
 
-            if [ "$status_type" != "ok" ]; then
-              echo "::error file=$file::Upload failed: $result_data"
-            else
-              LINK="$result_data"
-              UPLOAD_LINKS+="- $(basename "$file")\n"
-              echo "Success: $LINK"
+            status=$(echo "$response_body" | jq -r '.status // empty')
+            if [ "$status" != "ok" ]; then
+              err=$(echo "$response_body" | jq -r '.data // .message // "unknown error"')
+              echo "::error file=$file::Upload failed (HTTP $http_code): $err"
+              continue
             fi
-          done < <(find magnet_output/ -type f -print0)
 
-          echo -e "### File Uploads: \n$LINK \n$UPLOAD_LINKS" >> $GITHUB_STEP_SUMMARY
+            link=$(echo "$response_body" | jq -r '.data.downloadPage // empty')
+            if [ -z "$link" ]; then
+              echo "::error file=$file::Upload succeeded but no download link in response"
+              continue
+            fi
+
+            UPLOAD_LINKS+="- $(basename "$file")\n"
+            echo "Success: $link"
+            LAST_LINK="$link"
+          done < <(find gofile/ -type f -print0)
+
+          echo -e "### File Uploads:\n${{ env.buzz_url }}\n${LAST_LINK}\n${UPLOAD_LINKS}" >> $GITHUB_STEP_SUMMARY
 
           curl -X POST \
             -H "Content-Type: application/json" \
             -d "{\"content\":\"File Uploads: \n${{ env.buzz_url }} \n$LINK \n$UPLOAD_LINKS\"}" \
             "${{ secrets.DISCORD_WEBHOOK }}"
+            

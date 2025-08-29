@@ -11,6 +11,12 @@ jobs:
   process-downloader:
     runs-on: ubuntu-latest
     steps:
+
+      - name: Maximize space
+        uses: easimon/maximize-build-space@v10
+        with:
+          swap-size-mb: 4096
+    
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:

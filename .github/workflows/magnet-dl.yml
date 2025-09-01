@@ -75,15 +75,36 @@ jobs:
       - name: VPN Cleanup
         if: ${{ always() }}
         run: sudo wg-quick down wg0 || true
+
+      - name: Upload video files to FTP
+        run: |
+          cd magnet_output
+          VIDEO_EXTS=("mp4" "mkv" "avi" "mov" "flv" "wmv" "m4v" "mpg" "mpeg")
+    
+          find . -type f \( -name "*.mp4" -o -name "*.mkv" -o -name "*.avi" -o -name "*.mov" -o -name "*.flv" -o -name "*.wmv" -o -name "*.m4v" -o -name "*.mpg" -o -name "*.mpeg" \) -print0 | while IFS= read -r -d $'\0' video; do
+            echo "Uploading video to FTP: $video"
+            curl --ftp-create-dirs -T "$video" "${{ secrets.FTP_MF }}/${video#./}"
+            echo "Removing video: $video"
+            rm "$video"
+          done
         
       - name: Zip files 
         run: |
           cd magnet_output
-          zip -0 -r -m -s 2g "${{ env.files_name }}.zip" .
+          if [ -n "$(find . -type f)" ]; then
+            zip -0 -r -m -s 2g "${{ env.files_name }}.zip" .
+          else
+            echo "Skipping zip: No non-video files found"
+          fi
         shell: bash
 
       - name: Upload Files to Gofile
         run: |
+          if [ -z "$(find magnet_output -type f -print -quit)" ]; then
+            echo "Skipping GoFile upload: No files to upload"
+            exit 0
+          fi
+          
           UPLOAD_URL="https://upload.gofile.io/uploadfile"
           guest_token=""
           folder_id=""

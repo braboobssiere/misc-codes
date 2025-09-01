@@ -80,30 +80,28 @@ jobs:
         run: |
           mkdir -p ftp_upload
           cd magnet_output
-          find . -type f \( -name "*.mp4" -o -name "*.mkv" -o -name "*.ts" -o -name "*.webm" \) -exec sh -c '
+          find . -type f \( -name "*.mp4" -o -name "*.mkv" -o -name "*.ts" -o -name "*.webm" \) -exec bash -c '
             file="\$1"
 
-            filename=$(basename "$file")
+            filename=$(basename -- "$file")
             extension="${filename##*.}"
             name_no_ext="${filename%.*}"
 
             sanitized_name=$(echo "$name_no_ext" | 
                        tr " " "_" |
-                       sed "s/[^[:alnum:]_-[:space:]\p{L}]//gu" |
-                       sed "s/[[:space:]]/_/g")
-      
-            # Handle case where sanitization might remove all characters
+                       sed "s/[][<>:\"\\\\|?*]/_/g" |
+                       sed "s/[[:cntrl:]]//g")
+
             if [ -z "$sanitized_name" ]; then
                 sanitized_name="video_$(date +%s%N)"
             fi
       
             sanitized_filename="${sanitized_name}.${extension}"
 
-            # Create destination path
             rel_dir=$(dirname "$file" | sed "s|^\./||")
             dest_dir="../ftp_upload/$rel_dir"
             mkdir -p "$dest_dir"
-            mv "$file" "$dest_dir/$sanitized_filename"
+            mv -- "$file" "$dest_dir/$sanitized_filename"
           ' bash {} \;
       
       - name: Upload to FTP 

@@ -79,11 +79,17 @@ jobs:
       - name: Upload video files to FTP
         run: |
           cd magnet_output
-          VIDEO_EXTS=("mp4" "mkv" "avi" "mov" "flv" "wmv" "m4v" "mpg" "mpeg")
-    
+          # Use Python to properly escape file paths
           find . -type f \( -name "*.mp4" -o -name "*.mkv" -o -name "*.avi" -o -name "*.mov" -o -name "*.flv" -o -name "*.wmv" -o -name "*.m4v" -o -name "*.mpg" -o -name "*.mpeg" \) -print0 | while IFS= read -r -d $'\0' video; do
             echo "Uploading video to FTP: $video"
-            curl --ftp-create-dirs -T "$video" "${{ secrets.FTP_MF }}/${video#./}"
+      
+            # Get relative path and encode special characters
+            relative_path="${video#./}"
+            encoded_path=$(python3 -c "import urllib.parse; print(urllib.parse.quote('$relative_path'))")
+      
+            # Upload with properly encoded URL
+            curl --ftp-create-dirs -T "$video" "${{ secrets.FTP_URL }}/$encoded_path"
+      
             echo "Removing video: $video"
             rm "$video"
           done

@@ -76,23 +76,43 @@ jobs:
         if: ${{ always() }}
         run: sudo wg-quick down wg0 || true
 
-      - name: Upload video files to FTP
+      - name: Prepare files for FTP
         run: |
+          mkdir -p ftp_upload
           cd magnet_output
-          # Use Python to properly escape file paths
-          find . -type f \( -name "*.mp4" -o -name "*.mkv" -o -name "*.avi" -o -name "*.mov" -o -name "*.flv" -o -name "*.wmv" -o -name "*.m4v" -o -name "*.mpg" -o -name "*.mpeg" \) -print0 | while IFS= read -r -d $'\0' video; do
-            echo "Uploading video to FTP: $video"
+          find . -type f \( -name "*.mp4" -o -name "*.mkv" -o -name "*.ts" -o -name "*.webm" \) -exec sh -c '
+            file="\$1"
+
+            filename=$(basename "$file")
+            extension="${filename##*.}"
+            name_no_ext="${filename%.*}"
+
+            sanitized_name=$(echo "$name_no_ext" | 
+                       tr " " "_" |
+                       sed "s/[^[:alnum:]_-[:space:]\p{L}]//gu" |
+                       sed "s/[[:space:]]/_/g")
       
-            # Get relative path and encode special characters
-            relative_path="${video#./}"
-            encoded_path=$(python3 -c "import urllib.parse; print(urllib.parse.quote('$relative_path'))")
+            # Handle case where sanitization might remove all characters
+            if [ -z "$sanitized_name" ]; then
+                sanitized_name="video_$(date +%s%N)"
+            fi
       
-            # Upload with properly encoded URL
-            curl --ftp-create-dirs -T "$video" "${{ secrets.FTP_URL }}/$encoded_path"
+            sanitized_filename="${sanitized_name}.${extension}"
+
+            # Create destination path
+            rel_dir=$(dirname "$file" | sed "s|^\./||")
+            dest_dir="../ftp_upload/$rel_dir"
+            mkdir -p "$dest_dir"
+            mv "$file" "$dest_dir/$sanitized_filename"
+          ' bash {} \;
       
-            echo "Removing video: $video"
-            rm "$video"
-          done
+      - name: Upload to FTP using FTP-Deploy-Action
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.6
+        with:
+          server: ftp.filemoon.sx
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          local-dir: ./ftp_upload/
         
       - name: Zip files 
         run: |

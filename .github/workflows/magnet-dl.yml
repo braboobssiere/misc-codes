@@ -106,13 +106,13 @@ jobs:
             mv "$file" "$dest_dir/$sanitized_filename"
           ' bash {} \;
       
-      - name: Upload to FTP using FTP-Deploy-Action
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.6
+      - name: Upload to FTP 
+        uses: GenieTim/ftp-action@v4.0.1
         with:
-          server: ftp.filemoon.sx
-          username: ${{ secrets.FTP_USERNAME }}
+          host: ftp.filemoon.sx
+          user: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
-          local-dir: ./ftp_upload/
+          localDir: ./ftp_upload/
         
       - name: Zip files 
         run: |

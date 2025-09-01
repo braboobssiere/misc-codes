@@ -76,38 +76,43 @@ jobs:
         if: ${{ always() }}
         run: sudo wg-quick down wg0 || true
 
-      - name: Prepare files for FTP
+      - name: Prepare and Upload to FTP
         run: |
+          # 1️⃣ Prepare upload folder
           mkdir -p ftp_upload
           cd magnet_output
-          find . -type f \( -name "*.mp4" -o -name "*.mkv" -o -name "*.ts" -o -name "*.webm" \) -exec bash -c '
-            file="\$0"
-            filename=$(basename -- "$file")
-            extension="${filename##*.}"
-            name_no_ext="${filename%.*}"
 
-            sanitized_name=$(
-              echo "$name_no_ext" | 
-              tr " " "_" |
-              sed "s/[][<>:\"\\\\|?*]/_/g" |
-              sed "s/[[:cntrl:]]//g"
-            )
+          # 2️⃣ Find and sanitize video files, flatten into ftp_upload/
+          find . -type f \( -name "*.mp4" -o -name "*.mkv" -o -name "*.ts" -o -name "*.webm" \) \
+            -exec bash -c '
+              file="$1"
+              filename=$(basename -- "$file")
+              extension="${filename##*.}"
+              name_no_ext="${filename%.*}"
 
-            if [ -z "$sanitized_name" ]; then
+              # Replace spaces with underscores, remove illegal chars, strip control chars
+              sanitized_name=$(
+                echo "$name_no_ext" |
+                tr " " "_" |
+                sed "s/[][<>:\"\\\\|?*]/_/g" |
+                sed "s/[[:cntrl:]]//g"
+              )
+
+              # Fallback if empty after sanitizing
+              if [ -z "$sanitized_name" ]; then
                 sanitized_name="video_$(date +%s%N)"
-            fi
-      
-            sanitized_filename="${sanitized_name}.${extension}"
+              fi
 
-            rel_dir=$(dirname "$file" | sed "s|^\./||")
-            dest_dir="../ftp_upload/$rel_dir"
-            mkdir -p "$dest_dir"
-            mv -- "$file" "$dest_dir/$sanitized_filename"
-          ' {} \;
-      
-      - name: Upload to FTP 
-        run: |
-          find ./ftp_upload -type f | while read file; do
+              sanitized_filename="${sanitized_name}.${extension}"
+
+              # Move into ftp_upload root
+              mv -- "$file" "../ftp_upload/$sanitized_filename"
+            ' _ {} \;
+
+          cd ..
+
+          # 3️⃣ Upload each file directly to FTP root (no dir creation)
+          for file in ftp_upload/*; do
             echo "Uploading $file to ftp://ftp.filemoon.sx/"
             curl -T "$file" \
               -u "${{ secrets.FTP_USERNAME }}:${{ secrets.FTP_PASSWORD }}" \

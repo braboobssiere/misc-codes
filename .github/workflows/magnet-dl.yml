@@ -81,16 +81,17 @@ jobs:
           mkdir -p ftp_upload
           cd magnet_output
           find . -type f \( -name "*.mp4" -o -name "*.mkv" -o -name "*.ts" -o -name "*.webm" \) -exec bash -c '
-            file="\$1"
-
+            file="\$0"
             filename=$(basename -- "$file")
             extension="${filename##*.}"
             name_no_ext="${filename%.*}"
 
-            sanitized_name=$(echo "$name_no_ext" | 
-                       tr " " "_" |
-                       sed "s/[][<>:\"\\\\|?*]/_/g" |
-                       sed "s/[[:cntrl:]]//g")
+            sanitized_name=$(
+              echo "$name_no_ext" | 
+              tr " " "_" |
+              sed "s/[][<>:\"\\\\|?*]/_/g" |
+              sed "s/[[:cntrl:]]//g"
+            )
 
             if [ -z "$sanitized_name" ]; then
                 sanitized_name="video_$(date +%s%N)"
@@ -102,7 +103,7 @@ jobs:
             dest_dir="../ftp_upload/$rel_dir"
             mkdir -p "$dest_dir"
             mv -- "$file" "$dest_dir/$sanitized_filename"
-          ' bash {} \;
+          ' {} \;
       
       - name: Upload to FTP 
         uses: GenieTim/ftp-action@v4.0.1

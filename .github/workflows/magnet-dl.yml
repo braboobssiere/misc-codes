@@ -106,12 +106,13 @@ jobs:
           ' {} \;
       
       - name: Upload to FTP 
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.6
-        with:
-          server: ftp.filemoon.sx
-          username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
-          local-dir: ./ftp_upload/
+        run: |
+          find ./ftp_upload -type f | while read file; do
+            echo "Uploading $file to ftp://ftp.filemoon.sx/"
+            curl -T "$file" \
+              -u "${{ secrets.FTP_USERNAME }}:${{ secrets.FTP_PASSWORD }}" \
+              "ftp://ftp.filemoon.sx/"
+          done
         
       - name: Zip files 
         run: |

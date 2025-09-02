@@ -1,0 +1,201 @@
+name: Magnet Downloader
+on:
+  workflow_dispatch:
+    inputs:
+      source:
+        description: "Input link"
+        required: true
+        type: string
+
+jobs:
+  process-downloader:
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: Maximize space
+        uses: easimon/maximize-build-space@v10
+        with:
+          swap-size-mb: 4096
+    
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '>=16'
+
+      - name: Install Dependency 
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y curl wireguard-tools
+          sudo npm install webtorrent-cli -g
+
+      - name: VPN Setup 
+        env: 
+          PRIMARY_CONFIG: ${{ secrets.WIREGUARD_GRANDCENTRAL }}
+          SECONDARY_CONFIG: ${{ secrets.WIREGUARD_TRADEWAR }}
+          
+        run: |
+          sudo mkdir -p /etc/wireguard/
+          WG_CONF="/etc/wireguard/wg0.conf"
+          handle_vpn_attempt() {
+            local config_content="$1"
+            local label="$2"
+            
+            echo "$config_content" | sudo tee $WG_CONF > /dev/null
+            sudo chmod 600 $WG_CONF
+
+            for i in {1..3}; do
+              if timeout 60 sudo wg-quick up wg0; then
+                return 0
+              fi
+              echo "${label^} VPN attempt $i/3 failed"
+              sleep 3
+            done
+            return 1
+          }
+          if ! handle_vpn_attempt "$PRIMARY_CONFIG" "primary"; then
+            echo "::warning::Primary failed - Trying secondary"
+            if ! handle_vpn_attempt "$SECONDARY_CONFIG" "secondary"; then
+              echo "::error::All VPN configurations failed after 3 attempts each"
+              exit 11
+            fi
+          fi
+          if ! sudo wg show wg0 >/dev/null 2>&1; then
+            echo "::error::VPN connection verification failed"
+            exit 12
+          fi
+        
+      - name: Download files
+        run: |
+          mkdir -p magnet_output
+          download_output=$(webtorrent download "${{ inputs.source }}" --out magnet_output)
+          files_name=$(echo "$download_output" | grep -oP '(?<=Downloading: ).*' | head -n 1)
+          # sanitized_file_name=$(echo "$files_name" | tr -cd '[:alnum:]_.-[:space:]' | sed 's/^[_.-]*//;s/[_.-]*$//')
+          echo "files_name=${files_name}" >> $GITHUB_ENV
+
+      - name: VPN Cleanup
+        if: ${{ always() }}
+        run: sudo wg-quick down wg0 || true
+
+      - name: Prepare and Upload to FTP
+        run: |
+          # 1️⃣ Prepare upload folder
+          mkdir -p ftp_upload
+          cd magnet_output
+
+          # 2️⃣ Find and sanitize video files, flatten into ftp_upload/
+          find . -type f \( -name "*.mp4" -o -name "*.mkv" -o -name "*.ts" -o -name "*.webm" \) \
+            -exec bash -c '
+              file="$1"
+              filename=$(basename -- "$file")
+              extension="${filename##*.}"
+              name_no_ext="${filename%.*}"
+
+              # Replace spaces with underscores, remove illegal chars, strip control chars
+              sanitized_name=$(
+                echo "$name_no_ext" |
+                tr " " "_" |
+                sed "s/[][<>:\"\\\\|?*]/_/g" |
+                sed "s/[[:cntrl:]]//g"
+              )
+
+              # Fallback if empty after sanitizing
+              if [ -z "$sanitized_name" ]; then
+                sanitized_name="video_$(date +%s%N)"
+              fi
+
+              sanitized_filename="${sanitized_name}.${extension}"
+
+              # Move into ftp_upload root
+              mv -- "$file" "../ftp_upload/$sanitized_filename"
+            ' _ {} \;
+
+          cd ..
+
+          # 3️⃣ Upload each file directly to FTP root (no dir creation)
+          for file in ftp_upload/*; do
+            echo "Uploading $file to video host"
+            curl -T "$file" \
+              -u ${{ secrets.FTP_LOGIN }}
+              # "user:pass" "ftp://host/"
+          done
+        
+      - name: Zip files 
+        run: |
+          cd magnet_output
+          if [ -n "$(find . -type f)" ]; then
+            zip -0 -r -m -s 2g "${{ env.files_name }}.zip" .
+          else
+            echo "Skipping zip: No non-video files found"
+          fi
+        shell: bash
+
+      - name: Upload Files to Gofile
+        run: |
+          if [ -z "$(find magnet_output -type f -print -quit)" ]; then
+            echo "Skipping GoFile upload: No files to upload"
+            exit 0
+          fi
+          
+          UPLOAD_URL="https://upload.gofile.io/uploadfile"
+          guest_token=""
+          folder_id=""
+          UPLOAD_LINKS=""
+          FIRST_FILE=true
+
+          while IFS= read -r -d '' file; do
+            echo "▫️ Starting upload: $(basename "$file")"
+            extra_args=()
+            if [ "$FIRST_FILE" = false ]; then
+              extra_args+=(-H "Authorization: Bearer $guest_token" -F "folderId=$folder_id")
+            fi
+            
+            RESPONSE=$(curl -s -X POST -F "file=@\"$file\"" "${extra_args[@]}" "$UPLOAD_URL")
+
+            PYTHON_OUTPUT=$(python3 <<EOF
+          import json, sys
+          try:
+              data = json.loads('''$RESPONSE''')
+              if "$FIRST_FILE" == "true":
+                  guest_token = data['data']['guestToken']
+                  folder_id = data['data']['parentFolder']
+                  print(f"{guest_token}\t{folder_id}")
+              else:
+                  print("-\t-")          
+              status = 'ok' if data['status'] == 'ok' else 'error'
+              result_data = data.get('data', {}).get('downloadPage', '') if status == 'ok' else data.get('data', '')
+              print(f"{status}\t{result_data}")
+          except Exception as e:
+              print(f"error\tJSON parsing failed: {str(e)}")
+              sys.exit(1)
+          EOF
+            )
+
+            {
+              read -r token_part folder_part
+              read -r status_type result_data
+            } <<< "$PYTHON_OUTPUT"
+
+            if [ "$FIRST_FILE" = true ]; then
+              guest_token="$token_part"
+              folder_id="$folder_part"
+              FIRST_FILE=false
+              echo "GUEST_TOKEN=$guest_token" >> $GITHUB_ENV
+              echo "FOLDER_ID=$folder_id" >> $GITHUB_ENV
+              echo "Created folder ID"
+            fi
+
+            if [ "$status_type" != "ok" ]; then
+              echo "::error file=$file::Upload failed: $result_data"
+            else
+              LINK="$result_data"
+              UPLOAD_LINKS+="- $(basename "$file")\n"
+              echo "Success: $LINK"
+            fi
+          done < <(find magnet_output/ -type f -print0)
+
+          echo -e "### File Uploads: \n$LINK \n$UPLOAD_LINKS" >> $GITHUB_STEP_SUMMARY
+
+          curl -X POST \
+            -H "Content-Type: application/json" \
+            -d "{\"content\":\"File Uploads: \n${{ env.buzz_url }} \n$LINK \n$UPLOAD_LINKS\"}" \
+            "${{ secrets.DISCORD_WEBHOOK }}"

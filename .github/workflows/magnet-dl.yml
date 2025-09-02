@@ -12,6 +12,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
 
+      - name: Set monthly cache key
+        id: monthly-key
+        run: |
+          MONTH=$(date +"%Y.%m")
+          echo "month=${MONTH}" >> $GITHUB_OUTPUT
+
+      - name: Cache APT packages
+        uses: awalsh128/cache-apt-pkgs-action@latest
+        with:
+          packages: curl wireguard-tools lftp
+          version: ${{ steps.monthly-key.outputs.month }}
+
       - name: Maximize space
         uses: easimon/maximize-build-space@v10
         with:
@@ -25,7 +37,7 @@ jobs:
       - name: Install Dependency 
         run: |
           sudo apt-get update
-          sudo apt-get install -y curl wireguard-tools
+          sudo apt-get install -y curl wireguard-tools lftp
           sudo npm install webtorrent-cli -g
 
       - name: VPN Setup 
@@ -112,12 +124,9 @@ jobs:
           cd ..
 
           # 3️⃣ Upload each file directly to FTP root (no dir creation)
-          for file in ftp_upload/*; do
-            echo "Uploading $file to video host"
-            curl -T "$file" \
-              -u ${{ secrets.FTP_LOGIN }}
-              # "user:pass" "ftp://host/"
-          done
+          lftp -u ${{ secrets.FTP_LOGIN }} -e "set ssl:verify-certificate no; set ssl:check-hostname no; mput ftp_upload/*; bye"
+          # 'user,pass' ftp://host/
+          
         
       - name: Zip files 
         run: |

@@ -21,23 +21,18 @@ jobs:
       - name: Cache APT packages
         uses: awalsh128/cache-apt-pkgs-action@latest
         with:
-          packages: curl wireguard-tools lftp resolvconf
+          packages: wireguard-tools lftp resolvconf
           version: ${{ steps.monthly-key.outputs.month }}
 
       - name: Maximize space
         uses: easimon/maximize-build-space@v10
         with:
           swap-size-mb: 10240
-    
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '>=16'
 
       - name: Install Dependency 
         run: |
           sudo apt-get update
-          sudo apt-get install -y curl wireguard-tools lftp resolvconf
+          sudo apt-get install -y wireguard-tools lftp resolvconf
           sudo npm install webtorrent-cli -g
 
       - name: VPN Setup 
@@ -124,7 +119,7 @@ jobs:
           cd ..
 
           # 3️⃣ Upload each file directly to FTP root (no dir creation)
-          lftp -u ${{ secrets.FTP_LOGIN }} -e "set ssl:verify-certificate false; set cache:size 1073741824; mput ftp_upload/*; bye"
+          lftp -u ${{ secrets.FTP_LOGIN }} -e "set ftp:ssl-allow yes; set cache:size 1073741824; mput ftp_upload/*; bye"
           # 'user,pass' ftp://host/
           
         

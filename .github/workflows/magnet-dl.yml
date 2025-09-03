@@ -27,7 +27,7 @@ jobs:
       - name: Maximize space
         uses: easimon/maximize-build-space@v10
         with:
-          swap-size-mb: 15360
+          swap-size-mb: 10240
     
       - name: Setup Node.js
         uses: actions/setup-node@v4

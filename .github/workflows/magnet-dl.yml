@@ -9,7 +9,7 @@ on:
 
 jobs:
   process-downloader:
-    runs-on: ubuntu-lastest
+    runs-on: ubuntu-latest
     steps:
 
       - name: Set monthly cache key

@@ -1,4 +1,4 @@
-name: Process Files with OCRmyPDF
+name: OCRmyPDF
 
 on:
   workflow_dispatch:
@@ -6,6 +6,12 @@ on:
       url:
         description: 'URL to PDF/image file (optional)'
         required: false
+      OCR_type:
+        required: true
+        type: choice
+        options:
+          - --skip-text
+          - --redo-ocr
       additional_param:
         description: 'Additional OCR parameters'
         required: false
@@ -91,7 +97,7 @@ jobs:
             fi
           elif [[ "${extension,,}" == "pdf" ]]; then
             output_pdf="$OUTPUT_DIR/${filename%.*}_$timestamp.pdf"
-            if ocrmypdf ${{ github.event.inputs.additional_param }} --skip-text --clean \
+            if ocrmypdf ${{ github.event.inputs.additional_param }} ${{ github.event.inputs.OCR_type }} --clean \
               --sidecar "${output_pdf}.txt" "$file" "$output_pdf"; then
               success=true
             fi

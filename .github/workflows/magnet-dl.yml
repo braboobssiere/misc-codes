@@ -9,7 +9,7 @@ on:
 
 jobs:
   process-downloader:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-lastest
     steps:
 
       - name: Set monthly cache key
@@ -37,7 +37,7 @@ jobs:
       - name: Install Dependency 
         run: |
           sudo apt-get update
-          sudo apt-get install -y curl wireguard-tools lftp resolvconf
+          sudo apt-get install -y curl wireguard-tools lftp
           sudo npm install webtorrent-cli -g
 
       - name: VPN Setup 

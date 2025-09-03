@@ -9,7 +9,7 @@ on:
 
 jobs:
   process-downloader:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
 
       - name: Set monthly cache key
@@ -21,7 +21,7 @@ jobs:
       - name: Cache APT packages
         uses: awalsh128/cache-apt-pkgs-action@latest
         with:
-          packages: curl wireguard-tools lftp
+          packages: curl wireguard-tools lftp resolvconf
           version: ${{ steps.monthly-key.outputs.month }}
 
       - name: Maximize space
@@ -37,7 +37,7 @@ jobs:
       - name: Install Dependency 
         run: |
           sudo apt-get update
-          sudo apt-get install -y curl wireguard-tools lftp
+          sudo apt-get install -y curl wireguard-tools lftp resolvconf
           sudo npm install webtorrent-cli -g
 
       - name: VPN Setup 

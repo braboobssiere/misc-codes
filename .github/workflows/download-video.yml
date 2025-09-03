@@ -62,7 +62,7 @@ jobs:
       - name: Cache APT packages
         uses: awalsh128/cache-apt-pkgs-action@latest
         with:
-          packages: ffmpeg wireguard-tools curl
+          packages: ffmpeg wireguard-tools
           version: ${{ steps.weekly-key.outputs.week }}
 
       - name: Check URL
@@ -76,12 +76,6 @@ jobs:
           else
             echo "url_check=" >> $GITHUB_ENV
           fi
-
-      - name: Set up Node.js
-        if: env.url_check == 'youtube'
-        uses: actions/setup-node@v4
-        with:
-          node-version: '>=18'
 
       - name: Prepare bgutil
         if: env.url_check == 'youtube'
@@ -101,10 +95,6 @@ jobs:
           # Add VPN dependencies if enabled
           if [ "${{ github.event.inputs.vpn_location }}" != "false" ]; then
             PACKAGES="$PACKAGES wireguard-tools"
-          fi
-          # Add Cloud dependencies if upload is enabled
-          if [ "${{ github.event.inputs.upload_to_cloud }}" = "true" ]; then
-            PACKAGES="$PACKAGES curl"
           fi
 
           sudo apt-get update

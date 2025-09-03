@@ -35,7 +35,7 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y ocrmypdf tesseract-ocr curl
+        sudo apt-get install -y ocrmypdf tesseract-ocr
         lang_codes=$(echo "${{ github.event.inputs.additional_param }}" | sed -n 's/.*-l[[:space:]]*\([a-zA-Z]\{3\}\([+][a-zA-Z]\{3\}\)*\)\b.*/\1/p')
         if [ -n "$lang_codes" ]; then
           for lang_code in $(echo "$lang_codes" | tr '+' ' '); do

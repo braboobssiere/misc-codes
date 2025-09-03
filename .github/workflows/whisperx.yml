@@ -28,15 +28,10 @@ jobs:
     - run: |
         echo "whisperx" >> requirements.txt
 
-    - name: Set up Python
-      uses: actions/setup-python@v5.6.0
-      with:
-        python-version: '3.12'
-
     - name: Cache APT packages
       uses: awalsh128/cache-apt-pkgs-action@latest
       with:
-        packages: ffmpeg wget curl
+        packages: ffmpeg
         version: 1.0
 
     - name: Cache pip packages
@@ -50,7 +45,7 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y ffmpeg wget curl
+        sudo apt-get install -y ffmpeg
         pip install -r requirements.txt
         mkdir -p output/ downloaded_input/
 

@@ -21,23 +21,18 @@ jobs:
       - name: Cache APT packages
         uses: awalsh128/cache-apt-pkgs-action@latest
         with:
-          packages: curl wireguard-tools lftp
+          packages: wireguard-tools lftp
           version: ${{ steps.monthly-key.outputs.month }}
 
       - name: Maximize space
         uses: easimon/maximize-build-space@v10
         with:
           swap-size-mb: 15360
-    
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '>=16'
 
       - name: Install Dependency 
         run: |
           sudo apt-get update
-          sudo apt-get install -y curl wireguard-tools lftp
+          sudo apt-get install -y wireguard-tools lftp
           sudo npm install webtorrent-cli -g
 
       - name: VPN Setup 

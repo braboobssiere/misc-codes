@@ -124,7 +124,7 @@ jobs:
           cd ..
 
           # 3️⃣ Upload each file directly to FTP root (no dir creation)
-          lftp -u ${{ secrets.FTP_LOGIN }} -e "set ssl:verify-certificate false; mput ftp_upload/*; bye"
+          lftp -u ${{ secrets.FTP_LOGIN }} -e "set ssl:verify-certificate false; set cache:size 1073741824; mput ftp_upload/*; bye"
           # 'user,pass' ftp://host/
           
         

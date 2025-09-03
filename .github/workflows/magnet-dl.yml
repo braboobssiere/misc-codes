@@ -37,7 +37,7 @@ jobs:
       - name: Install Dependency 
         run: |
           sudo apt-get update
-          sudo apt-get install -y curl wireguard-tools lftp
+          sudo apt-get install -y curl wireguard-tools lftp resolvconf
           sudo npm install webtorrent-cli -g
 
       - name: VPN Setup 

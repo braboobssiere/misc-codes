@@ -18,11 +18,6 @@ jobs:
       urls:           ${{ steps.check.outputs.urls }}
 
     steps:
-          
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
 
       - name: Install dependencies
         run: |
@@ -113,13 +108,8 @@ jobs:
       - name: Cache APT packages
         uses: awalsh128/cache-apt-pkgs-action@latest
         with:
-          packages: ffmpeg wireguard-tools curl
+          packages: ffmpeg wireguard-tools
           version: ${{ steps.weekly-key.outputs.week }}
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '>=18'
 
       - name: Prepare bgutil
         run: |
@@ -135,7 +125,7 @@ jobs:
       - name: Setup Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y ffmpeg wireguard-tools curl
+          sudo apt-get install -y ffmpeg wireguard-tools
           echo -e "yt-dlp[default,curl-cffi]\nbgutil-ytdlp-pot-provider" > requirements.txt
           
       - name: Cache pip packages

@@ -23,7 +23,7 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y software-properties-common ffmpeg jq curl
+        sudo apt-get install -y software-properties-common ffmpeg
         wget -qO- 'http://keyserver.ubuntu.com/pks/lookup?op=get&search=0x6888550b2fc77d09' | sudo tee /etc/apt/trusted.gpg.d/songrec.asc
         sudo add-apt-repository ppa:marin-m/songrec -y
         sudo apt-get install -y songrec

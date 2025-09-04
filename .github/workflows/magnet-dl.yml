@@ -9,7 +9,7 @@ on:
 
 jobs:
   process-downloader:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
 
       - name: Set monthly cache key
@@ -21,18 +21,18 @@ jobs:
       - name: Cache APT packages
         uses: awalsh128/cache-apt-pkgs-action@latest
         with:
-          packages: wireguard-tools lftp
+          packages: wireguard-tools lftp resolvconf
           version: ${{ steps.monthly-key.outputs.month }}
 
       - name: Maximize space
         uses: easimon/maximize-build-space@v10
         with:
-          swap-size-mb: 15360
+          swap-size-mb: 10240
 
       - name: Install Dependency 
         run: |
           sudo apt-get update
-          sudo apt-get install -y wireguard-tools lftp
+          sudo apt-get install -y wireguard-tools lftp resolvconf
           sudo npm install webtorrent-cli -g
 
       - name: VPN Setup 
@@ -119,7 +119,7 @@ jobs:
           cd ..
 
           # 3️⃣ Upload each file directly to FTP root (no dir creation)
-          lftp -u ${{ secrets.FTP_LOGIN }} -e "set ssl:verify-certificate no; set ssl:check-hostname no; mput ftp_upload/*; bye"
+          lftp -u ${{ secrets.FTP_LOGIN }} -e "set ssl:verify-certificate false; set cache:size 1073741824; mput ftp_upload/*; bye"
           # 'user,pass' ftp://host/
           
         

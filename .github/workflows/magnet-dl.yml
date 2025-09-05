@@ -139,7 +139,11 @@ jobs:
           trap 'kill $LOGGER_PID 2>/dev/null || true' EXIT
 
           # 3️⃣ Upload each file directly to FTP root (no dir creation)
-          lftp -u ${{ secrets.FTP_LOGIN }} -e "set ssl:verify-certificate false; set cache:size 1073741824; mput ftp_upload/*; bye"
+          for f in ftp_upload/*; do
+            lftp -d -u ${{ secrets.FTP_LOGIN }} -e "set ssl:verify-certificate false; \
+            set cache:size 209715200; set ftp:use-allo no; set net:limit-rate-up 26214400; \
+            put -c \"$f\" -o \"$(basename "$f")\"; bye"
+          done
           # 'user,pass' ftp://host/
           
         

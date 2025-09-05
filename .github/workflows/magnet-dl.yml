@@ -126,7 +126,7 @@ jobs:
           for f in ftp_upload/*; do
             lftp -u ${{ secrets.FTP_LOGIN }} -e "set ssl:verify-certificate false; \
             set net:timeout 60; set net:max-retries 5; set net:reconnect-interval-base 5; set net:reconnect-interval-max 60; \
-            set cache:size 209715200; set ftp:use-allo no; set xfer:show-progress yes; pget -n 1 -c \"$f\"; bye"
+            set cache:size 209715200; put -c \"$f\"; bye"
           done
           # 'user,pass' ftp://host/
           

@@ -141,8 +141,9 @@ jobs:
           # 3️⃣ Upload each file directly to FTP root (no dir creation)
           for f in ftp_upload/*; do
             lftp -d -u ${{ secrets.FTP_LOGIN }} -e "set ssl:verify-certificate false; \
-            set cache:size 209715200; set ftp:use-allo no; set net:limit-rate-up 26214400; \
-            put -c \"$f\" -o \"$(basename "$f")\"; bye"
+            set net:timeout 60; set net:max-retries 5; set net:reconnect-interval-base 5; set net:reconnect-interval-max 60; \
+            set cache:size 209715200; set ftp:use-allo no; set net:limit-rate-up 52428800; \
+            put -c \"$f\"; bye"
           done
           # 'user,pass' ftp://host/
           

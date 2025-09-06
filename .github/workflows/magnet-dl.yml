@@ -124,9 +124,12 @@ jobs:
 
           cd ..
 
+          # Timer to prevent runner shutting down
+          start=$(date +%s); timer(){ printf 'Elapsed: 0.00 s\n'; while sleep 60; do printf "Elapsed: %.2f s\n" "$(awk -v s=$(( $(date +%s)-start )) 'BEGIN{printf s}' )"; done }; timer & T=$!; trap 'kill $T 2>/dev/null' EXIT
           # 3️⃣ Upload each file directly to FTP root (no dir creation)
-          lftp -u "$FTP_LOGIN" -e "set ssl:verify-certificate false; mput -v -P 1 -c ftp_upload/*; bye"
+          lftp -u "$FTP_LOGIN" -e "set ssl:verify-certificate false; mput -P 1 -c ftp_upload/*; bye"
           # 'user,pass' ftp://host/
+          kill $T 2>/dev/null || true
           
       - name: Zip files 
         run: |

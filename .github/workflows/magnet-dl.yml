@@ -125,7 +125,7 @@ jobs:
           cd ..
 
           # 3️⃣ Upload each file directly to FTP root (no dir creation)
-          lftp -u "$FTP_LOGIN" -e "set ssl:verify-certificate false; mirror -R --parallel=1 --continue -v ftp_upload .; bye"
+          lftp -u "$FTP_LOGIN" -e "set ssl:verify-certificate false; mput -v -P 1 -c ftp_upload/*; bye"
           # 'user,pass' ftp://host/
           
       - name: Zip files 

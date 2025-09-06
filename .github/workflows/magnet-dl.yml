@@ -88,6 +88,8 @@ jobs:
         run: sudo wg-quick down wg0 || true
 
       - name: Prepare and Upload to FTP
+        env:
+          FTP_LOGIN: ${{ secrets.FTP_LOGIN }}
         run: |
           # 1️⃣ Prepare upload folder
           mkdir -p ftp_upload
@@ -123,11 +125,7 @@ jobs:
           cd ..
 
           # 3️⃣ Upload each file directly to FTP root (no dir creation)
-          for f in ftp_upload/*; do
-            lftp -v -u ${{ secrets.FTP_LOGIN }} -e "set ssl:verify-certificate false; \
-            set net:timeout 60; set net:max-retries 5; set net:reconnect-interval-base 5; set net:reconnect-interval-max 60; \
-            set cache:size 209715200; put -c \"$f\"; bye"
-          done
+          lftp -u $FTP_LOGIN -e "set ssl:verify-certificate false; mirror -R --parallel=1 --continue -v --progress ftp_upload .; bye"
           # 'user,pass' ftp://host/
           
       - name: Zip files 

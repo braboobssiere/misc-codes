@@ -1,10 +1,6 @@
 ---
-title: Touhou Gensou Mahjong Abilities Reference
+Touhou Gensou Mahjong Abilities Reference
 ---
-# Touhou Gensou Mahjong Abilities Reference
-
-{: .toc }
-
 ### Character index
  
  | Row I Column |  1                     |  2                     |  3                     |  4                     |  5                     |

@@ -1,0 +1,280 @@
+name: Archive Video
+
+permissions:
+  contents: write
+
+on:
+  workflow_dispatch:
+    inputs:
+      video_url:
+        description: "Video URL to download"
+        required: true
+        type: string
+      vpn_location:
+        description: 'Select VPN location or false'
+        required: true
+        default: 'Harvard'
+        type: choice
+        options:
+          - 'Harvard'
+          - 'TradeWar'
+      resolution:
+        description: "Video resolution (default: 1080p)"
+        required: true
+        type: choice
+        default: '1080p'
+        options:
+          - '1080p'
+          - 'best'
+          - '720p'
+          - '480p'
+      additional_args:
+        description: "Optional yt-dlp arguments"
+        required: false
+        default: ''
+
+jobs:
+  download_and_upload:
+    runs-on: ubuntu-latest
+    steps:
+    
+      - uses: actions/checkout@v4
+
+      - name: Set weekly cache key
+        id: weekly-key
+        run: |
+          WEEK=$(date +"%Y.%U")
+          echo "week=${WEEK}" >> $GITHUB_OUTPUT
+      
+      - name: Cache APT packages
+        uses: awalsh128/cache-apt-pkgs-action@latest
+        with:
+          packages: ffmpeg wireguard-tools
+          version: ${{ steps.weekly-key.outputs.week }}
+
+      - name: Prepare bgutil
+        run: |
+          cd ~
+          git clone https://github.com/Brainicism/bgutil-ytdlp-pot-provider.git
+          cd bgutil-ytdlp-pot-provider/server/
+          npm install
+          npx tsc
+
+      - name: Setup Environment
+        run: |       
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg wireguard-tools
+          echo "yt-dlp[default,curl-cffi]" > requirements.txt
+
+      - name: Cache pip packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}-${{ steps.weekly-key.outputs.week }}
+          restore-keys: |
+            ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+            ${{ runner.os }}-pip-
+          
+      - name: Install yt-dlp and bgutil
+        run: |
+          python3 -m pip install --pre yt-dlp[default,curl-cffi]
+          python3 -m pip install bgutil-ytdlp-pot-provider
+
+      - name: VPN Setup
+        if: ${{ github.event.inputs.vpn_location != 'false' }}
+        env:
+          TradeWar_CONFIG: ${{ secrets.WIREGUARD_TRADEWAR  }}
+          Harvard_CONFIG: ${{ secrets.WIREGUARD_HARVARD  }}
+          
+        run: |
+          sudo mkdir -p /etc/wireguard/
+          
+          case "${{ github.event.inputs.vpn_location }}" in
+            Harvard) CONFIG_VAR="Harvard_CONFIG" ;;
+            TradeWar) CONFIG_VAR="TradeWar_CONFIG" ;;
+            *)
+              echo "::error::Invalid location selection"
+              exit 1
+              ;;
+          esac
+
+          if [ -z "${!CONFIG_VAR}" ]; then
+            echo "::error::No configuration found for ${{ github.event.inputs.vpn_location }}"
+            exit 1
+          fi
+
+          echo "${!CONFIG_VAR}" | sudo tee /etc/wireguard/wg0.conf > /dev/null
+          sudo chmod 600 /etc/wireguard/wg0.conf 
+
+          for i in {1..5}; do
+              timeout 60 sudo wg-quick up wg0
+              sleep 1 
+              if sudo wg show wg0 >/dev/null 2>&1; then
+                  echo "VPN connected successfully on attempt $i"
+                  break
+              else
+                  echo "VPN connection failed (attempt $i/5)"
+                  sudo wg-quick down wg0 >/dev/null 2>&1
+                  [ $i -lt 5 ] && sleep 1
+              fi
+          done
+
+          if ! sudo wg show wg0 >/dev/null 2>&1; then
+              echo "::error::VPN failed to connect after 5 attempts"
+              exit 1
+          fi
+
+      - name: Download and Process Video
+        continue-on-error: true
+        run: |
+          mkdir -p output
+          URL="${{ github.event.inputs.video_url }}"
+          RESOLUTION="${{ github.event.inputs.resolution }}"
+
+          # Configure format filter based on resolution
+          if [[ "$RESOLUTION" == "best" ]]; then
+            FORMAT_OPTION="--extractor-args \"youtube:player-client=default,mweb\""
+          else
+            FORMAT_OPTION="--extractor-args \"youtube:player-client=default,mweb\" \
+            -S \"+res:${RESOLUTION//[^0-9]/}\""
+            # remove +vcodec:av01 from -S until youtube fixed it
+          fi
+
+          if [[ "$URL" == *"youtube.com"* || "$URL" == *"youtu.be"* ]]; then
+            LIVE_STATUS=$(yt-dlp --print live_status "$URL")
+            echo "Live status: '$LIVE_STATUS'"
+            if [[ "$LIVE_STATUS" =~ ^(is_live|post_live)$ ]]; then
+              LIVE_FLAG="--live-from-start"
+            fi
+          fi
+
+          ADDITIONAL_ARGS="${{ github.event.inputs.additional_args }}"
+
+          # Build the download command
+          COMMAND="yt-dlp -i --no-progress ${LIVE_FLAG} \
+          ${ADDITIONAL_ARGS} ${FORMAT_OPTION} --windows-filenames \
+          --embed-metadata --no-embed-info-json --write-info-json --retry-sleep 3 \
+          -o \"output/%(title).170B [%(id)s] (%(resolution)s).%(ext)s\" \
+          --embed-subs --sub-langs all,-live_chat --write-thumbnail ${URL}"
+
+          # Log and execute the command
+          {
+            echo "Download command: ${COMMAND}" 
+            eval "${COMMAND}"
+          } 2>&1 | awk '{ print strftime("[%Y-%m-%d %H:%M:%S UTC]"), $0 }' >> output/logs.txt
+
+      - name: VPN Cleanup
+        if: ${{ always() && github.event.inputs.vpn_location != 'false' }}
+        run: |
+          sudo wg-quick down wg0 || true
+
+      - name: Verify output file 
+        run: |
+          # Remove fragments if exist
+          if ls output/*.part 1> /dev/null 2>&1; then
+            rm output/*.part
+          fi
+          # Count files in output directory (including hidden files)
+          FILE_COUNT=$(find output/ -type f | wc -l)
+          
+          if [ $FILE_COUNT -lt 2 ]; then
+            echo "Error: yt-dlp have a problem downloading video (found $FILE_COUNT)"
+            exit 13
+          fi
+
+      - name: Upload Files to Cloud Storage
+        run: |
+          UPLOAD_URL="https://upload.gofile.io/uploadfile"
+          guest_token=""
+          folder_id=""
+          UPLOAD_LINKS=""
+          FIRST_FILE=true
+
+          while IFS= read -r -d '' file; do
+            echo "▫️ Starting upload: $(basename "$file")"
+            extra_args=()
+            if [ "$FIRST_FILE" = false ]; then
+              extra_args+=(-H "Authorization: Bearer $guest_token" -F "folderId=$folder_id")
+            fi
+            
+            RESPONSE=$(curl -s -X POST -F "file=@\"$file\"" "${extra_args[@]}" "$UPLOAD_URL")
+
+            PYTHON_OUTPUT=$(python3 <<EOF
+          import json, sys
+          try:
+              data = json.loads('''$RESPONSE''')
+              if "$FIRST_FILE" == "true":
+                  guest_token = data['data']['guestToken']
+                  folder_id = data['data']['parentFolder']
+                  print(f"{guest_token}\t{folder_id}")
+              else:
+                  print("-\t-")          
+              status = 'ok' if data['status'] == 'ok' else 'error'
+              result_data = data.get('data', {}).get('downloadPage', '') if status == 'ok' else data.get('data', '')
+              print(f"{status}\t{result_data}")
+          except Exception as e:
+              print(f"error\tJSON parsing failed: {str(e)}")
+              sys.exit(1)
+          EOF
+            )
+
+            {
+              read -r token_part folder_part
+              read -r status_type result_data
+            } <<< "$PYTHON_OUTPUT"
+
+            if [ "$FIRST_FILE" = true ]; then
+              guest_token="$token_part"
+              folder_id="$folder_part"
+              FIRST_FILE=false
+              echo "GUEST_TOKEN=$guest_token" >> $GITHUB_ENV
+              echo "FOLDER_ID=$folder_id" >> $GITHUB_ENV
+              echo "Created folder ID"
+            fi
+
+            if [ "$status_type" != "ok" ]; then
+              echo "::error file=$file::Upload failed: $result_data"
+            else
+              LINK="$result_data"
+              UPLOAD_LINKS+="- $(basename "$file")\n"
+              echo "Success: $LINK"
+            fi
+          done < <(find output/ -type f -print0)
+
+          echo "### File Uploads: $LINK" >> $GITHUB_STEP_SUMMARY
+          echo -e "\n$UPLOAD_LINKS" >> $GITHUB_STEP_SUMMARY
+
+          curl -X POST \
+            -H "Content-Type: application/json" \
+            -d "{\"content\":\"File Uploads: $LINK \n$UPLOAD_LINKS\"}" \
+            "${{ secrets.DISCORD_WEBHOOK }}"
+
+      - name: Generate tag and split large files
+        id: prep
+        run: |
+          TIMESTAMP=$(date -u +%Y%m%d-%H%M%S)
+          TAG="${TIMESTAMP}"
+          cd output
+          FILE_NAME=$(find . -type f ! -name '*.txt' -printf "%f\n" | head -n 1)
+          FILE_BASE="${FILE_NAME%.*}"
+          echo "TAG=$TAG" >> $GITHUB_OUTPUT 
+          echo "FILE_BASE=$FILE_BASE" >> $GITHUB_OUTPUT 
+          find . -type f -size +1792M -exec bash -c '
+            for file; do
+              zip -s 1792m -r "${file}.zip" "${file}"
+              rm "${file}"
+            done
+          ' bash {} +
+
+      - name: Create draft release
+        uses: softprops/action-gh-release@v2.3.2
+        with:
+          tag_name: ${{ steps.prep.outputs.TAG }}
+          name: "Release ${{ steps.prep.outputs.TAG }} ${{ steps.prep.outputs.FILE_BASE }}"
+          draft: true
+          files: |
+            output/**
+
+      - name: Cleanup tag
+        run: git push --delete origin "${{ steps.prep.outputs.TAG }}" || true
+        

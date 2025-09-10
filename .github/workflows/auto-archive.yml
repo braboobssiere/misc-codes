@@ -1,0 +1,209 @@
+name: Auto-Download Video
+
+on:
+  workflow_dispatch:
+  # schedule: # use cron-job.org instead
+  #   - cron: '35 * * * *'
+
+concurrency:
+  group: Auto-Download Video
+  cancel-in-progress: false
+
+jobs:
+  check-feed:
+    name: Check Feed for Valid Entries
+    runs-on: ubuntu-latest
+    outputs:
+      should_process: ${{ steps.feed-parser.outputs.should_process }}
+      urls: ${{ steps.feed-parser.outputs.urls }}
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install parsing dependencies
+        run: pip install requests
+
+      - name: Parse and Validate Feed
+        id: feed-parser
+        run: |
+          import xml.etree.ElementTree as ET
+          import requests
+          from datetime import datetime, timedelta, timezone
+          import os
+          import json
+
+          feed_url = "https://raw.githubusercontent.com/braboobssiere/holedex-song-list/main/feeds/holodex.atom"
+          response = requests.get(feed_url)
+          response.raise_for_status()
+          root = ET.fromstring(response.content)
+
+          ns = {'atom': 'http://www.w3.org/2005/Atom'}
+          current_time = datetime.now(timezone.utc)
+          time_threshold = current_time - timedelta(minutes=60)
+          matched_entries = []
+
+          for entry in root.findall('atom:entry', ns):
+              title = entry.find('atom:title', ns).text or ''
+              
+              if 'unarchive' not in title.lower() and 'アーカイブなし' not in title:
+                  continue
+              
+              updated_elem = entry.find('atom:updated', ns)
+              if updated_elem is None or not updated_elem.text.strip():
+                  continue
+                  
+              entry_time = datetime.fromisoformat(updated_elem.text).astimezone(timezone.utc)
+              
+              if time_threshold <= entry_time <= current_time:
+                  link = entry.find("atom:link[@rel='alternate']", ns).attrib['href']
+                  matched_entries.append((entry_time, link))
+
+          entries = []
+          if matched_entries:
+              matched_entries.sort(reverse=True, key=lambda x: x[0])
+              entries = [{"url": e[1]} for e in matched_entries[:4]]
+
+          output_path = os.environ['GITHUB_OUTPUT']
+          with open(output_path, 'a') as f:
+              f.write(f'should_process={bool(entries)}\n')
+              f.write(f'urls={json.dumps(entries)}\n')
+              if not entries:
+                  exit(0)
+        shell: python
+
+  process-video:
+    name: Process and Upload Videos
+    needs: check-feed
+    if: ${{ needs.check-feed.outputs.should_process == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg wireguard-tools jq curl parallel
+          python3 -m pip install --upgrade pip --pre yt-dlp[default,curl-cffi]
+
+      - name: VPN Setup 
+        env: 
+          PRIMARY_CONFIG: ${{ secrets.WIREGUARD_GRANDCENTRAL }}
+          SECONDARY_CONFIG: ${{ secrets.WIREGUARD_TRADEWAR }}
+        run: |
+          sudo mkdir -p /etc/wireguard/
+          WG_CONF="/etc/wireguard/wg0.conf"
+
+          handle_vpn_attempt() {
+            local config_content="$1"
+            local label="$2"
+            
+            echo "$config_content" | sudo tee $WG_CONF > /dev/null
+            sudo chmod 600 $WG_CONF
+
+            for i in {1..3}; do
+              if timeout 60 sudo wg-quick up wg0; then
+                return 0
+              fi
+              echo "${label^} VPN attempt $i/3 failed"
+              sleep 3
+            done
+            return 1
+          }
+
+          if ! handle_vpn_attempt "$PRIMARY_CONFIG" "primary"; then
+            echo "::warning::Primary failed - Trying secondary"
+            if ! handle_vpn_attempt "$SECONDARY_CONFIG" "secondary"; then
+              echo "::error::All VPN configurations failed after 3 attempts each"
+              exit 11
+            fi
+          fi
+
+          if ! sudo wg show wg0 >/dev/null 2>&1; then
+            echo "::error::VPN connection verification failed"
+            exit 12
+          fi
+
+      - name: Concurrent Downloads
+        continue-on-error: true
+        run: |
+          mkdir -p output
+          URLS=$(echo '${{ needs.check-feed.outputs.urls }}' | jq -r '.[].url')
+          
+          parallel -j4 \
+          'cmd="yt-dlp -i --no-progress -S \"+res:1080\" --retry-sleep 3 \
+            --windows-filenames --live-from-start --write-thumbnail \
+            --embed-metadata --no-embed-info-json \
+            -o \"output/%(title).170B [%(id)s] (%(resolution)s).%(ext)s\" {}";
+          # remove +vcodec:av01 from -S until youtube fixed it
+          echo "Download command: $cmd";
+          eval "$cmd"' ::: "${URLS[@]}" >> output/logs.txt 2>&1
+
+      - name: VPN Cleanup
+        if: ${{ always() }}
+        run: sudo wg-quick down wg0 || true
+
+      - name: Verify output file 
+        run: |
+          # Count files in output directory (including hidden files)
+          FILE_COUNT=$(find output/ -type f | wc -l)
+          
+          if [ $FILE_COUNT -lt 2 ]; then
+            echo "Error: yt-dlp have a problem downloading video (found $FILE_COUNT)"
+            exit 13
+          fi
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: downloaded-videos
+          path: output/
+          compression-level: 1
+          if-no-files-found: error
+
+      - name: Upload Files to Cloud Storage
+        run: |
+          UPLOAD_URL="https://upload.gofile.io/uploadfile"
+          guest_token=""
+          folder_id=""
+          UPLOAD_LINKS=""
+          FIRST_FILE=true
+
+          # Process files with null delimiter for special characters
+          while IFS= read -r -d '' file; do
+            echo "▫️ Starting upload: $(basename "$file")"
+      
+            # Set auth headers after first file
+            extra_args=()
+            if [ "$FIRST_FILE" = false ]; then
+              extra_args+=(-H "Authorization: Bearer $guest_token" -F "folderId=$folder_id")
+            fi
+
+            # Upload call with error capture
+            RESPONSE=$(curl -s -X POST -F "file=@\"$file\"" "${extra_args[@]}" "$UPLOAD_URL")
+
+            # Handle first response credentials
+            if [ "$FIRST_FILE" = true ]; then
+              guest_token=$(echo "$RESPONSE" | jq -r '.data.guestToken')
+              folder_id=$(echo "$RESPONSE" | jq -r '.data.parentFolder')
+              FIRST_FILE=false
+              echo "🔑 Created folder ID: $folder_id"
+            fi
+
+            # Individual file status check
+            if ! echo "$RESPONSE" | jq -e '.status == "ok"' >/dev/null; then
+              echo "::error file=$file::Upload failed: $(echo "$RESPONSE" | jq -r '.data')"
+            else
+              LINK=$(echo "$RESPONSE" | jq -r '.data.downloadPage')
+              UPLOAD_LINKS+="- $(basename "$file")\n"
+              echo "✅ Success: $LINK"
+            fi
+          done < <(find output/ -type f -print0)
+
+          echo "### File Uploads: $LINK" >> $GITHUB_STEP_SUMMARY
+          echo -e "\n$UPLOAD_LINKS" >> $GITHUB_STEP_SUMMARY

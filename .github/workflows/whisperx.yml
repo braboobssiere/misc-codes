@@ -1,0 +1,149 @@
+name: WhisperX Transcription
+
+on:
+  workflow_dispatch:
+    inputs:
+      media_url: 
+        description: 'URL to media file (optional, replaced local file)'
+        required: false
+        default: ''
+      language:
+        description: 'Language code e.g. en, ja'
+        required: false
+        default: ''
+      additional_param:
+        description: 'Additional parameters (specify language if translate)'
+        required: false
+        type: choice
+        options:
+          - ''
+          - '--task translate'
+
+jobs:
+  transcribe:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    - run: |
+        echo "whisperx" >> requirements.txt
+
+    - name: Cache APT packages
+      uses: awalsh128/cache-apt-pkgs-action@latest
+      with:
+        packages: ffmpeg
+        version: 1.0
+
+    - name: Cache pip packages
+      uses: actions/cache@v4
+      with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y ffmpeg
+        pip install -r requirements.txt
+        mkdir -p output/ downloaded_input/
+
+    - name: Fetch remote media
+      if: ${{ inputs.media_url != '' }}
+      run: |
+        wget -q -P downloaded_input/ "${{ inputs.media_url }}"
+        echo "Downloaded input file: $(ls downloaded_input/)"
+
+    - name: Run WhisperX
+      run: |
+        # Priority: Use downloaded file if available, else local file
+        if [ -n "$(ls -A downloaded_input/ 2>/dev/null)" ]; then
+          INPUT_FILE=$(find downloaded_input/ -type f | head -n 1)
+        else
+          INPUT_FILE=$(find input/whisperx/ -type f ! -name '*.txt' | head -n 1)
+        fi
+
+        if [ -z "$INPUT_FILE" ]; then
+          echo "❌ No valid input files found"
+          exit 1
+        fi
+
+        COMMAND="whisperx --compute_type int8 --model large-v2 \
+        --output_dir output "
+        LANGUAGE="${{ inputs.language }}"
+        [ -n "$LANGUAGE" ] && COMMAND+="--language $LANGUAGE "
+        ADDITIONAL_PARAM="${{ inputs.additional_param }}"
+        [ -n "$ADDITIONAL_PARAM" ] && COMMAND+="$ADDITIONAL_PARAM "
+        COMMAND+="\"$INPUT_FILE\" "
+        
+        echo "Running: $COMMAND"
+        eval $COMMAND
+
+    - name: Upload results
+      uses: actions/upload-artifact@v4
+      with:
+        name: transcription-results
+        path: output/
+        
+    - name: Upload Files to Gofile
+      run: |
+          UPLOAD_URL="https://upload.gofile.io/uploadfile"
+          guest_token=""
+          folder_id=""
+          UPLOAD_LINKS=""
+          FIRST_FILE=true
+
+          while IFS= read -r -d '' file; do
+            echo "▫️ Starting upload: $(basename "$file")"
+            extra_args=()
+            if [ "$FIRST_FILE" = false ]; then
+              extra_args+=(-H "Authorization: Bearer $guest_token" -F "folderId=$folder_id")
+            fi
+            
+            RESPONSE=$(curl -s -X POST -F "file=@\"$file\"" "${extra_args[@]}" "$UPLOAD_URL")
+
+            PYTHON_OUTPUT=$(python3 <<EOF
+          import json, sys
+          try:
+              data = json.loads('''$RESPONSE''')
+              if "$FIRST_FILE" == "true":
+                  guest_token = data['data']['guestToken']
+                  folder_id = data['data']['parentFolder']
+                  print(f"{guest_token}\t{folder_id}")
+              else:
+                  print("-\t-")          
+              status = 'ok' if data['status'] == 'ok' else 'error'
+              result_data = data.get('data', {}).get('downloadPage', '') if status == 'ok' else data.get('data', '')
+              print(f"{status}\t{result_data}")
+          except Exception as e:
+              print(f"error\tJSON parsing failed: {str(e)}")
+              sys.exit(1)
+          EOF
+            )
+
+            {
+              read -r token_part folder_part
+              read -r status_type result_data
+            } <<< "$PYTHON_OUTPUT"
+
+            if [ "$FIRST_FILE" = true ]; then
+              guest_token="$token_part"
+              folder_id="$folder_part"
+              FIRST_FILE=false
+              echo "GUEST_TOKEN=$guest_token" >> $GITHUB_ENV
+              echo "FOLDER_ID=$folder_id" >> $GITHUB_ENV
+              echo "Created folder ID"
+            fi
+
+            if [ "$status_type" != "ok" ]; then
+              echo "::error file=$file::Upload failed: $result_data"
+            else
+              LINK="$result_data"
+              UPLOAD_LINKS+="- $(basename "$file")\n"
+              echo "Success: $LINK"
+            fi
+          done < <(find output/ -type f -print0)
+
+          echo "### File Uploads: $LINK" >> $GITHUB_STEP_SUMMARY
+          echo -e "\n$UPLOAD_LINKS" >> $GITHUB_STEP_SUMMARY

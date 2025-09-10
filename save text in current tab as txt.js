@@ -1,0 +1,3 @@
+javascript:(function(){var e=decodeURIComponent(window.location.href),t="URL: "+e+"\n\n\n"+document.body.innerText;for(;t.includes("\n\n\n");)t=t.replace(/\n\n\n/g,"\n\n");t=encodeURIComponent(t);var n="";try{n=decodeURIComponent(t)}catch(e){console.error("Error decoding content:",e),n=t}for(var o=2000,r="\n▞▞▞▞▞\n",i="",a=0;a<n.length;a+=o)i+=n.substring(a,a+o)+r;var c=(new Date).toISOString().slice(0,19).replace(/[-:]/g,"").replace("T","_")+".txt",l=new Blob([i],{type:"text/plain;charset=utf-8"}),u=URL.createObjectURL(l),d=document.createElement("a");d.setAttribute("href",u),d.setAttribute("download",c),document.body.appendChild(d),d.click(),document.body.removeChild(d)})();
+
+// filled in r="" to splices char count

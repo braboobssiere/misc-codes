@@ -1,7 +1,9 @@
 ---
 title: Touhou Gensou Mahjong Abilities Reference
-layout: default
 ---
+# Touhou Gensou Mahjong Abilities Reference
+
+{: .toc }
 
 ### Character index
  

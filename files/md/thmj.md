@@ -11,7 +11,6 @@ layout: default
 - [Character index](#character-index)
 - [Ability Classification - Touhou Gensou Mahjong (Switch Version)](#ability-classification---touhou-gensou-mahjong-switch-version)
 
-<details>
 <summary>Attack UP Types</summary>
 
 - [Red Dora Creation](#red-dora-creation)
@@ -20,9 +19,7 @@ layout: default
 - [Fu/Han Increase](#fuhan-increase)
 - [Point Bonus](#point-bonus)
 - [Point Stealing](#point-stealing)
-</details>
 
-<details>
 <summary>Speed UP Types</summary>
 
 - [Stacking (Self)](#stacking-self)
@@ -32,17 +29,13 @@ layout: default
 - [Hand Modification](#hand-modification)
 - [Tile Swapping](#tile-swapping)
 - [Draw Tile Prediction](#draw-tile-prediction)
-</details>
 
-<details>
 <summary>Defense UP Types</summary>
 
 - [Deal-In Defense](#deal-in-defense)
 - [Hand Peeking](#hand-peeking)
 - [Ready Hand / Winning Tile Detection](#ready-hand--winning-tile-detection)
-</details>
 
-<details>
 <summary>Interference Types</summary>
 
 - [Blind / Misdirection](#blind--misdirection)
@@ -55,9 +48,7 @@ layout: default
 - [Han Reduction](#han-reduction)
 - [Magic Gauge Reduction](#magic-gauge-reduction)
 - [Ability Cancel](#ability-cancel)
-</details>
 
-<details>
 <summary>Rule Change Types</summary>
 
 - [Yaku Condition Change](#yaku-condition-change)
@@ -70,11 +61,8 @@ layout: default
 - [Honba Change (Honba Increase)](#honba-change-honba-increase)
 - [Renchan Condition Change](#renchan-condition-change)
 - [Random](#random)
-</details>
 
-</details>
-
-### Character index
+### Character index 
  
  | Row I Column |  1                     |  2                     |  3                     |  4                     |  5                     |
 |-----|------------------------------|------------------------------|------------------------------|------------------------------|------------------------------|

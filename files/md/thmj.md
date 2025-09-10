@@ -1,6 +1,11 @@
 ---
-Touhou Gensou Mahjong Abilities Reference
+
+title: Touhou Gensou Mahjong Abilities Reference
+
+layout: default
+
 ---
+
 ## Table of Contents
 
 - [Character index](#character-index)

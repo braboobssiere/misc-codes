@@ -259,7 +259,7 @@ Abilities to look at opponents' hands.
 | Satori Komeiji | 2 | 2.0 | On First Draw | Usable on first draw. Reads all players' hands. Tiles drawn after activation are not visible. |
 | Mamizou Futatsuiwa | 3 | 1.6 | On Draw | Choose 3 tiles from your hand. If opponents have those tiles, they remain visible for the round. Tiles drawn after activation are not visible. |
 | Sekibanki | 1 | 2.2 | On First Draw | Usable on first draw. Peek at the current drawer's hand. Cannot call tiles while peeking. |
-| Okina Matara | 2 | 1.0 | On Draw | 'Ability to Open Doors on Others' Backs': Randomly chooses one opponent; their hand is visible for 3 turns. |
+| Okina Matara | 2 | 1.0 | On Draw | Randomly chooses one opponent; their hand is visible for 3 turns. |
 
 #### Ready Hand / Winning Tile Detection
 Abilities to detect opponents' ready hands or see which tiles are dangerous.

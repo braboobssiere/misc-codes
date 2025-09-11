@@ -74,7 +74,7 @@ Abilities that change parts of your hand into Red Dora.
 | Marisa Kirisame | 2 | 1.8 | On Draw | Selects 1 random type of number tile from hand and changes all tiles of that type to Red Dora. |
 | Remilia Scarlet | 1 | 1.6 | On Draw | Randomly changes 1-4 tiles in hand to Red Dora. |
 | Lunasa Prismriver | 1 | 1.8 | On Draw | Changes a random number of tiles in hand to Red Dora, equal to half the number of 1/9 tiles in your discard. Max 4 tiles. Fractions rounded up. |
-| Keine Kamishirasawa (Normal) | 1 | 1.4 | On Draw | Reduces magic gauge from one random opponent. Changes a random number of tiles in hand to Red Dora proportional to the target's gauge. Max 4 tiles. |
+| Keine Kamishirasawa | 1 | 1.4 | On Draw | Reduces magic gauge from one random opponent. Changes a random number of tiles in hand to Red Dora proportional to the target's gauge. Max 4 tiles. |
 | Keine Kamishirasawa (EX) | 1 | 1.4 | On Draw | Reduces opponents' magic gauges. Changes a random number of tiles in hand to Red Dora inversely proportional to rank. Max 4 tiles. |
 | Reisen Udongein Inaba | 1 | 1.4 | On Win | Usable when winning. Changes tiles present in both your discard and hand to Red Dora. (Max 1 per type, up to 4 tiles total). |
 | Shizuha Aki | 1 | 1.8 | On Win (10+ tiles left) | Usable when winning with 10+ tiles left in the wall. Changes random tiles in hand to Red Dora. Number increases with more wall tiles left, max 4. |
@@ -353,7 +353,7 @@ Abilities that reduce opponents' magic gauges.
 
 | Character | Max Stock | Gauge Speed | Activation | Description |
 | :--- | :--- | :--- | :--- | :--- |
-| Keine Kamishirasawa | 1 | 1.4 | On Draw | Steals magic gauge from random opponent. Changes random tiles in hand to Red Dora proportional to the target's gauge. Max 4 tiles. |
+| Keine Kamishirasawa | 1 | 1.4 | On Draw | Reduces magic gauge from one random opponent. Changes random tiles in hand to Red Dora proportional to the target's gauge. Max 4 tiles. |
 | Keine Kamishirasawa (EX) | 1 | 1.4 | On Draw | Reduces opponents' magic gauges. Changes random tiles in hand to Red Dora inversely proportional to rank. Max 4 tiles. |
 
 #### Ability Cancel

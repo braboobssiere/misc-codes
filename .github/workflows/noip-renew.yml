@@ -16,7 +16,7 @@ jobs:
       - name: Set up environment variables
         run: |
           # Split the single secret into individual variables your_username;your_password;your_2fa_secret_key
-          IFS=';' read -r NOIP_USERNAME NOIP_PASSWORD NOIP_2FA_SECRET_KEY <<< "${{ secrets.NOIP_CREDENTIALS }}"
+          IFS=';' read -r ::add-mask::NOIP_USERNAME ::add-mask::NOIP_PASSWORD ::add-mask::NOIP_2FA_SECRET_KEY <<< "${{ secrets.NOIP_CREDENTIALS }}"
           echo "NOIP_USERNAME=${NOIP_USERNAME}" >> $GITHUB_ENV
           echo "NOIP_PASSWORD=${NOIP_PASSWORD}" >> $GITHUB_ENV
           echo "NOIP_2FA_SECRET_KEY=${NOIP_2FA_SECRET_KEY}" >> $GITHUB_ENV

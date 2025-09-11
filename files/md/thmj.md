@@ -182,7 +182,7 @@ Abilities that make specific tiles easier or harder to draw.
 | Ran Yakumo | 1 | 2.0 | On Riichi | Usable on Riichi. Increases draw rate of winning tiles for 3 turns after Riichi. Rate is higher for single waits and decreases per draw. |
 | Eirin Yagokoro | 1 | 2.4 | On Draw | For the next 5 draws, concentrates draws on one specific suit (Characters, Bamboos, or Circles), returned to normal draws if there's none of that suit left. |
 | Kaguya Houraisan | 1 | 1.6 | On Draw | For the next 3 draws, increases draw rate of Dora indicator tiles (including Kan Dora). Red Dora cannot be drawn. Rate decreases per draw. Cannot Tsumo, Riichi, or Kan during this effect. |
-| Yuugi Hoshiguma | 1 | 2.0 | On Draw | Increases draw rate of the next Dora indicator tile (including Kan Dora). Red Dora cannot be drawn. Cannot Tsumo, Riichi, or Kan with the tile drawn this way. |
+| Yuugi Hoshiguma | 1 | 2.0 | On Draw | Increases draw rate to draw Dora from revealed indicator (including Kan Dora) for the next draw. Red Dora cannot be drawn. Cannot Tsumo, Riichi, or Kan with the tile drawn this way. |
 | Nazrin | 1 | 1.6 | On First Draw | Usable on first draw. Increases draw rate of winning tiles for 5 turns after reaching Tenpai. Effect ends if you declare Riichi. |
 | Minamitsu Murasa | 1 | 2.2 | On Draw (12+ tiles left) | Usable with 12+ tiles left in the wall. If in Tenpai with 4 or fewer tiles left, greatly increases draw rate of winning tile. Will create the tile if not in wall. |
 | Hatate Himekaidou | 1 | 1.8 | On Draw | Declare a tile from your hand to draw on your next turn. Cannot draw Red Dora. May fail. Cannot Tsumo, Riichi, or Kan with the tile drawn this way. |

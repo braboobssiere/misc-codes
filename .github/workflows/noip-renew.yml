@@ -2,6 +2,8 @@ name: Docker Deployment for NoIP Renew
 
 on:
   workflow_dispatch:  
+  schedule: 
+    - cron: '20 7 13 * *'  
 
 jobs:
   deploy:

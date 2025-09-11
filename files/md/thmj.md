@@ -9,7 +9,7 @@
 | 4   | Chen                         | Alice Margatroid            | Alice Margatroid            | Lily White                   | Lunasa Prismriver           |
 | 5   | Merlin Prismriver            | Lyrica Prismriver           | Youmu Konpaku               | Yuyuko Saigyouji            | Ran Yakumo                  |
 | 6   | Yukari Yakumo                | Suika Ibuki                 | Wriggle Nightbug            | Mystia Lorelei               | Keine Kamishirasawa         |
-| 7   | Keine Kamishirasawa         | Tewi Inaba                  | Reisen Udongein Inaba       | Eirin Yagokoro               | Kaguya Houraisan           |
+| 7   | Keine Kamishirasawa (EX)         | Tewi Inaba                  | Reisen Udongein Inaba       | Eirin Yagokoro               | Kaguya Houraisan           |
 | 8   | Fujiwara no Mokou            | Medicine Melancholy         | Yuuka Kazami                | Komachi Onozuka              | Eiki Shiki, Yamaxanadu     |
 | 9   | Aya Shameimaru               | Shizuha Aki                 | Minoriko Aki                | Hina Kagiyama                | Nitori Kawashiro            |
 | 10  | Momizi Inubashiri           | Sanae Kochiya               | Kanako Yasaka               | Suwako Moriya                | Iku Nagae                  |

@@ -283,7 +283,7 @@ Abilities that hide or falsify public information like your hand or discards.
 | Rumia | 2 | 1.6 | On Draw | Hides your hand and discards from opponents. |
 | Mystia Lorelei | 2 | 1.4 | On Draw | For 6 turns, opponents can only see your hand and discards. They can still call and Ron, but abilities needing opponent discards cannot target them. |
 | Nitori Kawashiro | 1 | 2.2 | On Draw | For 4 turns, discards are placed face down. Opponents cannot call them (Ron is still possible). |
-| Ichirin Kumoi & Unzan | 1 | 2.4 | On Draw | Removes your first 6 discards from view. |
+| Ichirin Kumoi & Unzan | 1 | 2.4 | On Draw | Removes your last 6 discards from pond. |
 | Nue Houjuu | 2 | 1.8 | On Draw | For 6 turns, disguises all tiles in your discard as random honor tiles. |
 | Doremy Sweet | 2 | 1.0 | On Draw | For 6 turns, opponents see the suits of number tiles in your discard incorrectly. |
 

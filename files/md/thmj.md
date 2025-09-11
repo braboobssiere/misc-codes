@@ -34,6 +34,29 @@
 
 ### Ability Classification - Touhou Gensou Mahjong (Switch Version)
 
+<details>
+<summary>Ability Gauge Mechanics (Click to expand)</summary>
+
+**The ability gauge increases under these conditions:**
+- When drawing a tile from the wall (including initial deal and kan/nukidora)
+- When losing points (both ron and tsumo)
+
+**Gauge charging speed:**
+- Faster for lower-ranked players
+- When scores are tied, seat order determines rank:
+  -  North seat charges fastest
+  -  Dealer charges slowest
+
+**Charge Rate Reference:**
+| Value | Speed Level         | Example/Behavior                          |
+|-------|---------------------|-------------------------------------------|
+| 1.0   | Slowest            | (e.g., Byakuren Hijiri)          |
+| 1.6   | Very Slow          | Fails to fill 1 stock by East 1 exhaustive draw (0 honba) |
+| 2.0   | Moderate           | 1 stock = Initial deal + 13 tile draws   |
+| 2.4   | Fast               | 1 stock = Initial deal + 8 tile draws    |
+| 3.0   | Fastest            | (e.g., Aya Shameimaru)         |
+</details>
+
 This page classifies the special abilities found in Touhou Gensou Mahjong for Nintendo Switch. The classification is based on the one found on the Touhou Gensou Mahjong 3G wiki, and also references [this wiki](https://w.atwiki.jp/gensoumahjongswitch/pages/19.html).
 
 *   Abilities that fall into multiple categories are listed in each relevant category.

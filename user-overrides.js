@@ -5,6 +5,15 @@ user_pref("browser.urlbar.suggest.engines", false);
 // 1223: enable strict PKP (Public Key Pinning) 0=disabled, 1=allow user MiTM (default; such as your antivirus), 2=strict
 user_pref("security.cert_pinning.enforcement_level", 0); 
 
+// 2812, 2821, 2831
+user_pref("privacy.clearOnShutdown_v2.browsingHistoryAndDownloads", true); 
+user_pref("privacy.clearOnShutdown_v2.downloads", true);
+user_pref("privacy.clearSiteData.browsingHistoryAndDownloads", true);
+user_pref("privacy.clearHistory.browsingHistoryAndDownloads", true);
+
+// 4002: set global FPP overrides [FF114+]
+user_pref("privacy.fingerprintingProtection.overrides", "+AllTargets,-JSDateTimeUTC");
+
 // 5003: disable saving passwords
 user_pref("signon.rememberSignons", false); 
 
@@ -44,11 +53,3 @@ user_pref("permissions.default.camera", 2);
 user_pref("permissions.default.microphone", 2);
 user_pref("permissions.default.desktop-notification", 2);
 user_pref("permissions.default.xr", 2);
-
-// 4501: enable RFP
-user_pref("privacy.resistFingerprinting", true); 
-user_pref("privacy.resistFingerprinting.pbmode", true); 
-user_pref("privacy.resistFingerprinting.letterboxing", true); 
-user_pref("privacy.resistFingerprinting.letterboxing.dimensions", ""); 
-user_pref("privacy.resistFingerprinting.exemptedDomains", "*.example.invalid");
-user_pref("privacy.fingerprintingProtection.overrides", "+AllTargets,-JSDateTimeUTC");

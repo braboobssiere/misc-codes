@@ -77,7 +77,7 @@ Abilities that change parts of your hand into Red Dora.
 | Keine Kamishirasawa | 1 | 1.4 | On Draw | Reduces magic gauge from one random opponent. Changes a random number of tiles in hand to Red Dora proportional to the target's gauge. Max 4 tiles. |
 | Keine Kamishirasawa (EX) | 1 | 1.4 | On Draw | Reduces opponents' magic gauges. Changes a random number of tiles in hand to Red Dora inversely proportional to rank. Max 4 tiles. |
 | Reisen Udongein Inaba | 1 | 1.4 | On Win | Usable when winning. Changes tiles present in both your discard and hand to Red Dora. (Max 1 per type, up to 4 tiles total). |
-| Shizuha Aki | 1 | 1.8 | On Win (10+ tiles left) | Usable when winning with 10+ tiles left in the wall. Changes random tiles in hand to Red Dora. Number increases with more wall tiles left, max 4. |
+| Shizuha Aki | 1 | 1.8 | On Win (10+ tiles left) | Usable when winning with 10+ tiles left in the wall. Changes random tiles in hand to Red Dora. Number increases with more wall tiles left, max 4 (10/11+/21+/31+). |
 | Parsee Mizuhashi | 2 | 1.8 | On First Draw | Usable on first draw. If an opponent calls a tile, changes 1 random tile in hand to Red Dora. |
 | Raiko Horikawa | 1 | 1.4 | On First Draw | Usable on first draw. Each time you call a tile, the called tiles become Red Dora and Dora indicators increase. |
 | Sumireko Usami | 4 | 1.0 | On Draw | Changes a number of random tiles in hand to Red Dora equal to the number of terminal (1/9) types in your discard. Consumes all stock on use; number changed equals stock used. |

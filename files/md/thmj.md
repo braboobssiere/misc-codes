@@ -210,7 +210,7 @@ Abilities that change parts of your hand into specific tiles.
 
 | Character | Max Stock | Gauge Speed | Activation | Description |
 | :--- | :--- | :--- | :--- | :--- |
-| Suika Ibuki | 1 | 1.6 | On Draw | Returns odd number tiles to the wall and draws the same number of even number tiles of the same suit. |
+| Suika Ibuki | 1 | 1.6 | On Draw | Returns all odd number tiles to the wall and draws the same number of even number tiles of the same suit. |
 | Suwako Moriya | 1 | 2.4 | On Draw | Changes a random number of non-Bamboo tiles in hand to random Bamboo tiles. |
 | Tenshi Hinanawi | 1 | 1.8 | On First Draw | Usable on first draw. Changes 3 chosen tiles in hand to the next tile in sequence. Success rate decreases if it would create pairs/triplets/quads. Cannot Tsumo immediately after. |
 | Momoyo Himemushi | 4 | 1.4 | On First Draw | Usable on first draw. Returns Circles to the wall and draws the same number of Characters or Bamboos (whichever is more prevalent in hand). Consumes all stock; max tiles affected equals stock used. |

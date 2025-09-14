@@ -7,7 +7,7 @@
 | **Swap Calling**          | ❌                                                                     |
 | **Renchan**         | East Round: Agari Renchan <br>South Round: Tenpai Renchan                |
 | **Honba**           | 1,000 points per stick                                                  |
-| **Abortive Draws**  | ✅ Nine Terminals <br>✅ Three Ron l <br>✅ Four Kans <br>✅ Four Same Wind Discards <br>❌ Four Riichi |
+| **Abortive Draws**  | ✅ Nine Terminals <br>✅ Three Ron l <br>✅ Four Kans <br>❌ Four Same Wind Discards <br>❌ Four Riichi |
 | **Pao**             | ❌                                                                     |
 | **Yakuman Stacking**| ✅                                                                 |
 | **Yakuman Values**  | Daisuushii / Suuankou Tanki / Junsei Chuuren / Juusanmen Kokushi = Single Yakuman |

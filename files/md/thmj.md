@@ -1,5 +1,6 @@
 ### Rules
-The game use following rules unless room specific otherwise.
+<details>
+<summary>The game use following rules unless room specific otherwise.</summary>
 
 | Rule                | Setting                                                                 |
 |---------------------|-------------------------------------------------------------------------|
@@ -14,7 +15,8 @@ The game use following rules unless room specific otherwise.
 | **Yakuman Values**  | Daisuushii / Suuankou Tanki / Junsei Chuuren / Juusanmen Kokushi = Single Yakuman |
 | [**Nagashi Mangan**](https://riichi.wiki/Nagashi_mangan)  | ✅ Treated as a win                                                    |
 | [**Renhou**](https://riichi.wiki/Renhou)          | ✅ Baiman                                                              |
-| [**Sanma**](https://riichi.wiki/Sanma)          | ❌ Nukidora isn't a call <br>❌ Tsumo-loss disabled <br>🀃 North Wind is Yakuhai for all |
+| [**Sanma**](https://riichi.wiki/Sanma)          | ❌ Nukidora isn't a call <br>❌ Tsumo-loss disabled <br>🀃 North Wind is Yakuhai for all player |
+</details>
 
 
 ### Character index 
@@ -53,7 +55,7 @@ The game use following rules unless room specific otherwise.
 ### Ability Classification - Touhou Gensou Mahjong (Switch Version)
 
 <details>
-<summary>Ability Gauge Mechanics (Click to expand)</summary>
+<summary>Ability Gauge Mechanics</summary>
 
 **The ability gauge increases under these conditions:**
 - When drawing a tile from the wall (including initial deal and kan/nukidora)

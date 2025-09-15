@@ -1,17 +1,21 @@
 ### Rules
+The game use following rules unless room specific otherwise.
 
 | Rule                | Setting                                                                 |
 |---------------------|-------------------------------------------------------------------------|
 | **Starting Score**  | 25,000                                                                  |
-| **Target Score**    | ❌                                                                     
-| **Renchan**         | East Round: Agari Renchan <br>South Round: Tenpai Renchan                |
-| **Honba**           | 1,000 points per stick                                                  |
-| **Abortive Draws**  | ✅ Nine Terminals <br>✅ Three Ron <br>✅ Four Kans <br>❌ Four Same Wind Discards <br>❌ Four Riichi |
-| **Pao**             | ❌                                                                     |
-| **Yakuman Stacking**| ✅                                                                 |
+| **Target Score**    | ❌                                                                      |
+| [**Honba**](https://riichi.wiki/Honba)           | 1,000 points per stick                                                  |
+| [**Last turn riichi**](https://riichi.wiki/Rule_variations) | ✅                                                                     |
+| [**Renchan**](https://riichi.wiki/Renchan)         | East Round: Agari Renchan <br>South Round: Tenpai Renchan               |
+| [**Abortive Draws**](https://riichi.wiki/Tochuu_ryuukyoku)  | ✅ Nine Terminals <br>✅ Triple Ron <br>✅ Four Kans <br>❌ Four Same Wind Discards <br>❌ Four Riichi |
+| [**Pao**](https://riichi.wiki/Sekinin_barai)             | ❌                                                                     |
+| **Yakuman Stacking**| ✅                                                                     |
 | **Yakuman Values**  | Daisuushii / Suuankou Tanki / Junsei Chuuren / Juusanmen Kokushi = Single Yakuman |
-| **Nagashi Mangan**  | ✅ Treated as a win                                                |
-| **Renhou**          | ✅ Baiman                                                  |
+| [**Nagashi Mangan**](https://riichi.wiki/Nagashi_mangan)  | ✅ Treated as a win                                                    |
+| [**Renhou**](https://riichi.wiki/Renhou)          | ✅ Baiman                                                              |
+| [**Sanma**](https://riichi.wiki/Sanma)          | ❌ Nukidora isn't a call <br>❌ Tsumo-loss disabled <br>🀃 North Wind is Yakuhai for all |
+
 
 ### Character index 
  

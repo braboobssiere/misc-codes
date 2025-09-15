@@ -174,7 +174,7 @@ Abilities that stack specific tiles into your next starting hand.
 | Lily White | 4 | 2.4 | On Draw | Stacks White Dragons into your next starting hand, one for each activation. |
 | Sanae Kochiya | 1 | 1.4 | On Draw | Stacks a concealed triplet of wind tiles into your next starting hand. Wind is random. |
 | Kanako Yasaka | 1 | 1.4 | On Draw | Stacks the seeds for a Straight (Ittsu) into your next starting hand (min 6). |
-| Utsuho Reiuji | 1 | 1.4 | On Draw | Stacks 4 identical terminal/honor tiles into your next starting hand. May fail. |
+| Utsuho Reiuji | 1 | 1.4 | On Draw | Stacks 4 identical terminal tiles into your next starting hand. May fail. |
 | Shou Toramaru | 1 | 1.8 | On Draw | Stacks 1-2 Red Dora into your next starting hand. Creates Red Dora if none exist. |
 | Mononobe no Futo | 1 | 1.6 | On Draw | Stacks one of each wind tile into your next starting hand. |
 | Wakasagihime | 2 | 2.4 | On Draw | Stacks the last 4 discarded tiles into your next starting hand (once per round). |
@@ -194,7 +194,7 @@ Abilities that make specific tiles easier or harder to draw.
 | Flandre Scarlet | 1 | 1.2 | On Draw | Biases your draws towards wind tiles for the next 4 draws. (Fails if none in wall). |
 | Ran Yakumo | 1 | 2.0 | On Riichi | Increases draw rate of winning tiles for 3 turns after Riichi. Rate is higher for single waits and decreases per draw. |
 | Eirin Yagokoro | 1 | 2.4 | On Draw | For the next 5 draws, concentrates draws on one specific suit (Characters, Bamboos, or Circles), become normal draw if there's none of that suit left. |
-| Kaguya Houraisan | 1 | 1.6 | On Draw | For the next 3 draws, increases draw rate of Dora tiles from revealed indicator (including Kan Dora). Red Dora cannot be drawn. Rate decreases per draw. Cannot Tsumo, Riichi, or Kan during this effect. |
+| Kaguya Houraisan | 1 | 1.6 | On Draw | For the next 3 draws, slightly increases draw rate of Dora tiles from revealed indicator (including Kan Dora). Red Dora cannot be drawn. Rate decreases per draw. Cannot Tsumo, Riichi, or Kan during this effect. |
 | Yuugi Hoshiguma | 1 | 2.0 | On Draw |  For the next draw, increases draw rate of Dora tiles from revealed indicator (including Kan Dora). Red Dora cannot be drawn. Cannot Tsumo, Riichi, or Kan with the tile drawn this way. |
 | Nazrin | 1 | 1.6 | On First Draw | Increases draw rate of winning tiles for 5 turns after reaching Tenpai. Effect ends if you declare Riichi. |
 | Minamitsu Murasa | 1 | 2.2 | On Draw (12+ tiles left) | If in Tenpai with 4 or fewer tiles left, greatly increases draw rate of winning tile. Will create the tile if not in wall. |

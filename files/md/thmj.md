@@ -177,7 +177,7 @@ Abilities that stack specific tiles into your next starting hand.
 | Utsuho Reiuji | 1 | 1.4 | On Draw | Stacks 4 identical terminal/honor tiles into your next starting hand. May fail. |
 | Shou Toramaru | 1 | 1.8 | On Draw | Stacks 1-2 Red Dora into your next starting hand. Creates Red Dora if none exist. |
 | Mononobe no Futo | 1 | 1.6 | On Draw | Stacks one of each wind tile into your next starting hand. |
-| Wakasagihime | 2 | 2.4 | On Draw | Stacks the last 4 discarded tiles into your next starting hand (doesn't stack more than once). |
+| Wakasagihime | 2 | 2.4 | On Draw | Stacks the last 4 discarded tiles into your next starting hand (once per round). |
 | Sagume Kishin | 2 | 1.0 | On First Draw | Stacks your current hand into your next starting hand. |
 | Junko | 2 | 1.0 | On First Draw | If you win this round, biases your next starting hand towards a specific suit. Number of tiles biased is 2x the Han (excluding Dora). |
 | Eika Ebisu | 6 | 1.6 | On Draw | Stacks Circles (Pinzu) into your next starting hand equal to your stock count. Can be used once per round, consumes all stock. |
@@ -305,7 +305,7 @@ Abilities that force players to discard the tile they draw.
 
 | Character | Max Stock | Gauge Speed | Activation | Description |
 | :--- | :--- | :--- | :--- | :--- |
-| Cirno | 2 | 2.0 | On Draw | Freezes one player's hand, forcing them to discard their draws for 3 turns. Can target yourself. |
+| Cirno | 2 | 2.0 | On Draw | Freezes one player's hand, forcing them to discard their draws for 3 turns. If target yourself will discard immediately. |
 | Letty Whiterock | 2 | 1.8 | On First Draw | If an opponent calls a tile this round, forces them to discard their draws for 2 turns. |
 | Kisume | 1 | 2.0 | On Win | Forces the player(s) who lost points to discard their draws for the first 3 turns of the next round. |
 | Hata no Kokoro | 1 | 2.0 | On First Draw | Each time you Pon or Open Kan, forces opponents to discard their draws for 2 turns. |

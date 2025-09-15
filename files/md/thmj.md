@@ -60,9 +60,6 @@
 
 **Gauge charging speed:**
 - Faster for lower-ranked players
-- When scores are tied, seat order determines rank:
-  -  North seat charges fastest
-  -  Dealer charges slowest
 
 **Charge Rate Reference:**
 | Value | Speed Level         | Example/Behavior                          |
@@ -93,13 +90,13 @@ Abilities that change parts of your hand into Red Dora.
 | Lunasa Prismriver | 1 | 1.8 | On Draw | Changes a random number of tiles in hand to Red Dora, equal to half the number of 1/9 tiles in your discard. Max 4 tiles. Fractions rounded up. |
 | Keine Kamishirasawa | 1 | 1.4 | On Draw | Reduces magic gauge from one random opponent. Changes a random number of tiles in hand to Red Dora proportional to the target's gauge. Max 4 tiles. |
 | Keine Kamishirasawa (EX) | 1 | 1.4 | On Draw | Reduces opponents' magic gauges. Changes a random number of tiles in hand to Red Dora inversely proportional to rank. Max 4 tiles. |
-| Reisen Udongein Inaba | 1 | 1.4 | On Win | Usable when winning. Changes tiles present in both your discard and hand to Red Dora. (Max 1 per type, up to 4 tiles total). |
-| Shizuha Aki | 1 | 1.8 | On Win (10+ tiles left) | Usable when winning with 10+ tiles left in the wall. Changes random tiles in hand to Red Dora. Number increases with more wall tiles left, max 4 (10/11+/21+/31+). |
-| Parsee Mizuhashi | 2 | 1.8 | On First Draw | Usable on first draw. If an opponent calls a tile, changes 1 random tile in hand to Red Dora. |
-| Raiko Horikawa | 1 | 1.4 | On First Draw | Usable on first draw. Each time you call a tile, the called tiles become Red Dora and Dora indicators increase. |
+| Reisen Udongein Inaba | 1 | 1.4 | On Win | Changes tiles present in both your discard and hand to Red Dora. (Max 1 per type, up to 4 tiles total). |
+| Shizuha Aki | 1 | 1.8 | On Win (10+ tiles left) | Changes random tiles in hand to Red Dora. Number increases with more wall tiles left, max 4 (10/11+/21+/31+). |
+| Parsee Mizuhashi | 2 | 1.8 | On First Draw | If an opponent calls a tile, changes 1 random tile in hand to Red Dora. |
+| Raiko Horikawa | 1 | 1.4 | On First Draw | Each time you call a tile, the called tiles become Red Dora and Dora indicators increase. |
 | Sumireko Usami | 4 | 1.0 | On Draw | Changes a number of random tiles in hand to Red Dora equal to the number of terminal (1/9) types in your discard. Consumes all stock on use; number changed equals stock used. |
 | Ringo | 2 | 1.0 | On Draw | For the current round, called Circles (Pinzu) become Red Dora. |
-| Kutaka Niwatari | 1 | 1.0 | On First Draw | Usable on first draw. Tiles called via Pon/Chi become Red Dora. |
+| Kutaka Niwatari | 1 | 1.0 | On First Draw | Tiles called via Pon/Chi become Red Dora. |
 | Mayumi Joutouguu | 1 | 1.0 | On Draw | Changes Dora tiles in your hand to Red Dora. Called tiles (including concealed Kan) are not affected. |
 | Keiki Haniyasushin | 1 | 2.4 | On Draw First Draw (Last round) | Nothing happens immediately. Counts the number of activations. On the first draw of the last round of each quarter, changes a number of tiles in hand to Red Dora equal to the count, then resets count to 0. |
 | Takane Yamashiro | 1 | 1.4 | On Draw | Generates 1-4 Red Dora in the current wall. Number varies with remaining tiles. Red Dora may be generated in the dead wall. |
@@ -111,11 +108,11 @@ Abilities that multiply points paid/received.
 
 | Character | Max Stock | Gauge Speed | Activation | Description |
 | :--- | :--- | :--- | :--- | :--- |
-| Hong Meiling | 2 | 2.0 | On First Draw | Usable on first draw. Point exchanges for the current round are doubled (except penalty points). |
-| Joon Yorigami | 2 | 1.0 | On First Draw | Usable on first draw. Applies Wareme to an opponent. |
-| Shion Yorigami | 2 | 1.0 | On Ron Win | Usable on Ron win. Applies Wareme to yourself. However, Dora are no longer counted. |
-| Saki Kurokoma | 1 | 1.2 | On Tsumo Win (2nd place or lower) | Usable when in 2nd place or lower on a Tsumo win. Applies Wareme to yourself. |
-| Seija Kijin | 1 | 2.0 | On Win (as Non-Dealer) | Usable when winning as a non-dealer. Points are calculated as if you were the dealer and opponents were non-dealers. |
+| Hong Meiling | 2 | 2.0 | On First Draw | Point exchanges for the current round are doubled (except penalty points). |
+| Joon Yorigami | 2 | 1.0 | On First Draw | Applies Wareme to an opponent. |
+| Shion Yorigami | 2 | 1.0 | On Ron Win | Applies Wareme to yourself. However, Dora are no longer counted. |
+| Saki Kurokoma | 1 | 1.2 | On Tsumo Win (2nd place or lower) | Applies Wareme to yourself. |
+| Seija Kijin | 1 | 2.0 | On Win (as Non-Dealer) | Points are calculated as if you were the dealer and opponents were non-dealers. |
 
 #### Dora Manipulation
 Abilities that affect the Dora indicator.
@@ -124,34 +121,34 @@ Abilities that affect the Dora indicator.
 | :--- | :--- | :--- | :--- | :--- |
 | Merlin Prismriver | 2 | 1.6 | On Draw | Forces one Dora indicator to be revealed. |
 | Wriggle Nightbug | 1 | 1.4 | On Draw | Swaps 1 random tile from hand with the first Dora indicator tile. |
-| Tewi Inaba | 1 | 2.0 | On Win | Usable when winning. The first Ura Dora has a high chance of being a tile in your hand. |
-| Yuuka Kazami | 2 | 2.2 | On Kan | Usable on Kan (concealed, added, open). The Kan Dora will definitely be effective. |
-| Raiko Horikawa | 1 | 1.4 | On First Draw | Usable on first draw. Each time you call a tile, the called tiles become Red Dora and Dora indicators increase. |
+| Tewi Inaba | 1 | 2.0 | On Win | The first Ura Dora has a high chance of being a tile in your hand. |
+| Yuuka Kazami | 2 | 2.2 | On Kan | The Kan Dora will definitely be effective. |
+| Raiko Horikawa | 1 | 1.4 | On First Draw | Each time you call a tile, the called tiles become Red Dora and Dora indicators increase. |
 
 #### Fu/Han Increase
 Abilities that increase Fu or Han.
 
 | Character | Max Stock | Gauge Speed | Activation | Description |
 | :--- | :--- | :--- | :--- | :--- |
-| Minoriko Aki | 1 | 3.0 | On Win | Usable when winning. Adds 30 Fu for Ron wins, 40 Fu for Tsumo wins. |
-| Iku Nagae | 1 | 1.8 | On Ron Win | Usable on Ron. Adds 1 Han to all 1-3 Han yaku (excluding Pinfu, Riichi, Double Riichi, Ippatsu). |
-| Kogasa Tatara | 1 | 1.4 | On Win (Damaten) | Usable when winning. Adds 2 Han if winning with a concealed hand without declaring Riichi. |
-| Soga no Tojiko | 2 | 1.6 | On First Draw | Usable on first draw. If you win this round, the first Dora indicator tile counts as 2 Han. |
-| Shinmyoumaru Sukuna | 3 (Effectively 1.5) | 2.4 | On Concealed Win | Usable when winning with a concealed hand and having 2+ stock. Adds 1 Han to all 1-3 Han yaku (excluding Tsumo, Pinfu, Riichi, Double Riichi, Ippatsu). Consumes 2 stock. |
+| Minoriko Aki | 1 | 3.0 | On Win | Adds 30 Fu for Ron wins, 40 Fu for Tsumo wins. |
+| Iku Nagae | 1 | 1.8 | On Ron Win | Adds 1 Han to all 1-3 Han yaku (excluding Pinfu, Riichi, Double Riichi, Ippatsu). |
+| Kogasa Tatara | 1 | 1.4 | On Win (Damaten) | Adds 2 Han if winning with a concealed hand without declaring Riichi. |
+| Soga no Tojiko | 2 | 1.6 | On First Draw | If you win this round, the first Dora indicator tile counts as 2 Han. |
+| Shinmyoumaru Sukuna | 3 (Use 2) | 2.4 | On Concealed Win | Adds 1 Han to all 1-3 Han yaku (excluding Tsumo, Pinfu, Riichi, Double Riichi, Ippatsu). Consumes 2 stock. |
 | Mike Goutokuji | 1 | 1.2 | On Win | As non-dealer: Usable only on wins at 1 Honba or less. Forces Renchan but reduces Han by 2 (min 1). As dealer: Always usable on win. Loses Renchan but gains 2 Han. |
-| Son Biten | 2 | 1.4 | On Riichi | Usable on Riichi. If an opponent calls after activation, adds 1 Han and 30 Fu to your win. If the call cancels your Ippatsu, adds another 1 Han. |
-| Chiyari Tenkajin | 1 | 1.1 | On First Draw | Usable on first draw. Places one Onibi (Will-o-wisp) in each opponent's discard pile. When their discards reach the Onibi, it returns to you. On your win, adds Han equal to the number of Onibi collected. |
+| Son Biten | 2 | 1.4 | On Riichi | If an opponent calls after activation, adds 1 Han and 30 Fu to your win. If the call cancels your Ippatsu, adds another 1 Han. |
+| Chiyari Tenkajin | 1 | 1.1 | On First Draw | Places one Onibi (Will-o-wisp) in each opponent's discard pile. When their discards reach the Onibi, it returns to you. On your win, adds Han equal to the number of Onibi collected. |
 
 #### Point Bonus
 Abilities that add points directly to your winning score.
 
 | Character | Max Stock | Gauge Speed | Activation | Description |
 | :--- | :--- | :--- | :--- | :--- |
-| Kagerou Imaizumi | 1 | 2.4 | On Win | Usable when winning. Adds points equal to (number of Circles in your discard) x 300 (x200 in 3-player). |
-| Benben Tsukumo | 2 | 2.4 | On Win | Usable when winning. Adds 600 points for every 2 even number tiles or wind tiles in your discard. |
-| Yatsuhashi Tsukumo | 2 | 2.4 | On Win | Usable when winning. Adds 600 points for every 2 odd number tiles or dragon tiles in your discard. |
-| Satono Nishida | 2 | 1.0 | On Win | Usable when winning. Adds points equal to 3x the value of the Honba counter (2x in 3-player). (Max 4 Honba). |
-| Zanmu Nippaku | 2 | 1.6 | On Win (Furiten) | Usable when winning from Furiten. Adds points equal to (total number of your winning tiles visible in all discards and calls) x 600 (max 9000). |
+| Kagerou Imaizumi | 1 | 2.4 | On Win | Adds points equal to (number of Circles in your discard) x 300 (x200 in 3-player). |
+| Benben Tsukumo | 2 | 2.4 | On Win | Adds 600 points for every 2 even number tiles or wind tiles in your discard. |
+| Yatsuhashi Tsukumo | 2 | 2.4 | On Win | Adds 600 points for every 2 odd number tiles or dragon tiles in your discard. |
+| Satono Nishida | 2 | 1.0 | On Win | Adds points equal to 3x the value of the Honba counter (2x in 3-player). (Max 4 Honba). |
+| Zanmu Nippaku | 2 | 1.6 | On Win (Furiten) | Adds points equal to (total number of your winning tiles visible in all discards and calls) x 600 (max 9000). |
 
 #### Point Stealing
 Abilities that steal points directly from opponents.
@@ -178,11 +175,11 @@ Abilities that stack specific tiles into your next starting hand.
 | Shou Toramaru | 1 | 1.8 | On Draw | Stacks 1-2 Red Dora into your next starting hand. Creates Red Dora if none exist. |
 | Mononobe no Futo | 1 | 1.6 | On Draw | Stacks one of each wind tile into your next starting hand. |
 | Wakasagihime | 2 | 2.4 | On Draw | Stacks the last 4 discarded tiles into your next starting hand (doesn't stack more than once). |
-| Sagume Kishin | 2 | 1.0 | On First Draw | Usable on first draw. Stacks your current hand into your next starting hand. |
-| Junko | 2 | 1.0 | On First Draw | Usable on first draw. If you win this round, biases your next starting hand towards a specific suit. Number of tiles biased is 2x the Han (excluding Dora). |
+| Sagume Kishin | 2 | 1.0 | On First Draw | Stacks your current hand into your next starting hand. |
+| Junko | 2 | 1.0 | On First Draw | If you win this round, biases your next starting hand towards a specific suit. Number of tiles biased is 2x the Han (excluding Dora). |
 | Eika Ebisu | 6 | 1.6 | On Draw | Stacks Circles (Pinzu) into your next starting hand equal to your stock count. Can be used once per round, consumes all stock. |
-| Yuuma Toutetsu | 1 | 1.2 | On First Draw | Usable on first draw. Stacks dragon tiles into your next starting hand equal to the number of calls, Riichi, and wins by opponents this round (max 5). Cannot be used two rounds in a row. |
-| Enoko Mitsugashira | 1 | 1.0 | On Ron Win (Concealed) | Usable on a concealed Ron win. Stacks one random sequence into your next hand. For 3+ Han wins, stacks another sequence of the same or similar type in a different suit. |
+| Yuuma Toutetsu | 1 | 1.2 | On First Draw | Stacks dragon tiles into your next starting hand equal to the number of calls, Riichi, and wins by opponents this round (max 5). Cannot be used two rounds in a row. |
+| Enoko Mitsugashira | 1 | 1.0 | On Ron Win (Concealed) | Stacks one random sequence into your next hand. For 3+ Han wins, stacks another sequence of the same or similar type in a different suit. |
 | ZUN | 1 | 12.0 | Auto-Activate | 'Danmaku Stacking Ability': Each full POW gauge is converted to 1 Beer Count (max 6). At the start of each round, Beer Count is exchanged for stacked Circles. Losing points reduces Beer Count. |
 
 #### Draw Tile Manipulation
@@ -192,27 +189,27 @@ Abilities that make specific tiles easier or harder to draw.
 | :--- | :--- | :--- | :--- | :--- |
 | Patchouli Knowledge | 1 | 1.2 | On Draw | Makes honor tiles harder to draw for the current round. |
 | Flandre Scarlet | 1 | 1.2 | On Draw | Biases your draws towards wind tiles for the next 4 draws. (Fails if none in wall). |
-| Ran Yakumo | 1 | 2.0 | On Riichi | Usable on Riichi. Increases draw rate of winning tiles for 3 turns after Riichi. Rate is higher for single waits and decreases per draw. |
+| Ran Yakumo | 1 | 2.0 | On Riichi | Increases draw rate of winning tiles for 3 turns after Riichi. Rate is higher for single waits and decreases per draw. |
 | Eirin Yagokoro | 1 | 2.4 | On Draw | For the next 5 draws, concentrates draws on one specific suit (Characters, Bamboos, or Circles), become normal draw if there's none of that suit left. |
 | Kaguya Houraisan | 1 | 1.6 | On Draw | For the next 3 draws, increases draw rate of Dora tiles from revealed indicator (including Kan Dora). Red Dora cannot be drawn. Rate decreases per draw. Cannot Tsumo, Riichi, or Kan during this effect. |
 | Yuugi Hoshiguma | 1 | 2.0 | On Draw |  For the next draw, increases draw rate of Dora tiles from revealed indicator (including Kan Dora). Red Dora cannot be drawn. Cannot Tsumo, Riichi, or Kan with the tile drawn this way. |
-| Nazrin | 1 | 1.6 | On First Draw | Usable on first draw. Increases draw rate of winning tiles for 5 turns after reaching Tenpai. Effect ends if you declare Riichi. |
-| Minamitsu Murasa | 1 | 2.2 | On Draw (12+ tiles left) | Usable with 12+ tiles left in the wall. If in Tenpai with 4 or fewer tiles left, greatly increases draw rate of winning tile. Will create the tile if not in wall. |
+| Nazrin | 1 | 1.6 | On First Draw | Increases draw rate of winning tiles for 5 turns after reaching Tenpai. Effect ends if you declare Riichi. |
+| Minamitsu Murasa | 1 | 2.2 | On Draw (12+ tiles left) | If in Tenpai with 4 or fewer tiles left, greatly increases draw rate of winning tile. Will create the tile if not in wall. |
 | Hatate Himekaidou | 1 | 1.8 | On Draw | Declare a tile from your hand to draw on your next turn. Cannot draw Red Dora. May fail. Cannot Tsumo, Riichi, or Kan with the tile drawn this way. |
 | Kyouko Kasodani | 1 | 2.2 | On Draw | Draws the same tile as your previous draw on your next turn. Cannot draw Red Dora. May fail. Cannot Tsumo, Riichi, or Kan with the tile drawn this way. |
-| Aunn Komano | 2 | 1.0 | On Draw (Noten) | Usable when not in Tenpai. Next draw will likely be a tile of the same suit as an isolated tile in your hand. Effect ends if you call before drawing. |
-| Mizumaru Tamatsukuri | 1 | 1.2 | On Draw (8+ tiles left) | Usable once per round with 8+ tiles left. Attracts Circles to your future draw positions. Calling tiles can shift the positions. |
-| Hisami Yomotsu | 1 | 1.2 | On Draw (12+ discards, Noten) | Usable when you have 12+ discards and are Noten. Greatly increases draw rate of useful tiles until Tenpai. Cannot declare Riichi this round. |
+| Aunn Komano | 2 | 1.0 | On Draw (Noten) | Next draw will likely be a tile of the same suit as an isolated tile in your hand. Effect ends if you call before drawing. |
+| Mizumaru Tamatsukuri | 1 | 1.2 | On Draw (8+ tiles left) | Attracts Circles to your future draw positions. Calling tiles can shift the positions. |
+| Hisami Yomotsu | 1 | 1.2 | On Draw (12+ discards, Noten) | Greatly increases draw rate of useful tiles until Tenpai. Cannot declare Riichi this round. |
 
 #### Hand Redraw
 Abilities to randomly redraw your starting hand or drawn tiles.
 
 | Character | Max Stock | Gauge Speed | Activation | Description |
 | :--- | :--- | :--- | :--- | :--- |
-| Daiyousei | 1 | 1.8 | On First Draw | Usable on first draw. Redraws your starting hand. |
-| Koakuma | 2 | 2.0 | On Draw (Noten) | Usable when not in Tenpai. Exchanges 1 chosen tile from hand for a random tile from the wall. |
+| Daiyousei | 1 | 1.8 | On First Draw | Redraws your starting hand. |
+| Koakuma | 2 | 2.0 | On Draw (Noten) | Exchanges 1 chosen tile from hand for a random tile from the wall. |
 | Sakuya Izayoi | 1 | 1.4 | On Draw | Exchanges up to 3 chosen tiles from hand for random tiles from the wall. |
-| Hecatia Lapislazuli | 2 | 1.0 | On First Draw (Non-Dealer) | Usable on first draw as non-dealer. Redraws your starting hand, biasing it towards number tiles. |
+| Hecatia Lapislazuli | 2 | 1.0 | On First Draw (Non-Dealer) | Redraws your starting hand, biasing it towards number tiles. |
 | Kosuzu Motoori | 2 | 2.0 | On Draw | Returns the drawn tile to the wall and draws again. |
 
 #### Increased Draw Opportunities
@@ -229,18 +226,18 @@ Abilities that change parts of your hand into specific tiles.
 | :--- | :--- | :--- | :--- | :--- |
 | Suika Ibuki | 1 | 1.6 | On Draw | Returns all odd number tiles to the wall and draws the same number of even number tiles of the same suit. |
 | Suwako Moriya | 1 | 2.4 | On Draw | Changes a random number of non-Bamboo tiles in hand to random Bamboo tiles. |
-| Tenshi Hinanawi | 1 | 1.8 | On First Draw | Usable on first draw. Changes 3 chosen tiles in hand to the next tile in sequence. Success rate decreases if it would create pairs/triplets/quads. Cannot Tsumo immediately after. |
-| Momoyo Himemushi | 4 | 1.4 | On First Draw | Usable on first draw. Returns Circles to the wall and draws the same number of Characters or Bamboos (whichever is more prevalent in hand). Consumes all stock; max tiles affected equals stock used. |
+| Tenshi Hinanawi | 1 | 1.8 | On First Draw | Changes 3 chosen tiles in hand to the next tile in sequence. Success rate decreases if it would create pairs/triplets/quads. Cannot Tsumo immediately after. |
+| Momoyo Himemushi | 4 | 1.4 | On First Draw | Returns Circles to the wall and draws the same number of Characters or Bamboos (whichever is more prevalent in hand). Consumes all stock; max tiles affected equals stock used. |
 
 #### Tile Swapping
 Abilities to swap tiles between your hand and discards or Dora indicators.
 
 | Character | Max Stock | Gauge Speed | Activation | Description |
 | :--- | :--- | :--- | :--- | :--- |
-| Lyrica Prismriver | 2 | 2.0 | On Draw | Usable if all players have at least 1 discard. Swaps 1 chosen tile from an opponent's discard with 1 random tile from your hand. |
+| Lyrica Prismriver | 2 | 2.0 | On Draw | If all players have at least 1 discard. Swaps 1 chosen tile from an opponent's discard with 1 random tile from your hand. |
 | Wriggle Nightbug | 1 | 1.4 | On Draw | Swaps 1 random tile from hand with the first Dora indicator tile. |
-| Rin Kaenbyou | 1 | 1.8 | On Draw | Usable if you have at least 1 discard. Swaps 1 chosen tile from your discard with 1 chosen tile from your hand. Cannot Riichi, Tsumo, or Kan immediately after. |
-| Byakuren Hijiri | 1 | 1.0 | On Draw | Usable if all opponents have at least 1 discard. Swaps 1 chosen tile from an opponent's discard with 1 chosen tile from your hand. Cannot Riichi, Tsumo, or Kan immediately after. |
+| Rin Kaenbyou | 1 | 1.8 | On Draw | Swaps 1 chosen tile from your discard with 1 chosen tile from your hand. Cannot Riichi, Tsumo, or Kan immediately after. |
+| Byakuren Hijiri | 1 | 1.0 | On Draw | If all opponents have at least 1 discard. Swaps 1 chosen tile from an opponent's discard with 1 chosen tile from your hand. Cannot Riichi, Tsumo, or Kan immediately after. |
 
 #### Draw Tile Prediction
 Abilities to see your future draws.
@@ -260,18 +257,18 @@ Abilities that prevent or reduce points lost from dealing in.
 | Character | Max Stock | Gauge Speed | Activation | Description |
 | :--- | :--- | :--- | :--- | :--- |
 | Reimu Hakurei | 3 | 1.6 | On Draw | Makes your discards immune to Ron for 3 turns. Opponents do not become Furiten from unable Ron. |
-| Chen | 2 | 2.0 | On Riichi | Usable on Riichi. Makes your discards immune to Ron for 6 turns after activation. |
+| Chen | 2 | 2.0 | On Riichi | Makes your discards immune to Ron for 6 turns after activation. |
 | Alice Margatroid | 1 | 2.6 | On Draw | If you lose 12000+ points (excluding Honba points) this round, the loss is halved. |
-| Narumi Yatadera | 2 | 1.0 | On First Draw | Usable on first draw. If you deal in, reduces the winner's Han by 1 if they had Riichi, and by an additional 1 if they had Ippatsu. (Min 2 Han). |
+| Narumi Yatadera | 2 | 1.0 | On First Draw | If you deal in, reduces the winner's Han by 1 if they had Riichi, and by an additional 1 if they had Ippatsu. (Min 2 Han). |
 
 #### Hand Peeking
 Abilities to look at opponents' hands.
 
 | Character | Max Stock | Gauge Speed | Activation | Description |
 | :--- | :--- | :--- | :--- | :--- |
-| Satori Komeiji | 2 | 2.0 | On First Draw | Usable on first draw. Reads all players' hands. Tiles drawn after activation are not visible. |
+| Satori Komeiji | 2 | 2.0 | On First Draw | Reads all players' hands. Tiles drawn after activation are not visible. |
 | Mamizou Futatsuiwa | 3 | 1.6 | On Draw | Choose 3 tiles from your hand. If opponents have those tiles, they remain visible for the round. Tiles drawn after activation are not visible. |
-| Sekibanki | 1 | 2.2 | On First Draw | Usable on first draw. Peek at the other player hand during their turn. Cannot call tiles while peeking. |
+| Sekibanki | 1 | 2.2 | On First Draw | Peek at the other player hand during their turn. Cannot call tiles while peeking. |
 | Okina Matara | 2 | 1.0 | On Draw | Randomly chooses one opponent; their hand is visible for 3 turns. |
 
 #### Ready Hand / Winning Tile Detection
@@ -306,17 +303,17 @@ Abilities that force players to discard the tile they draw.
 | Character | Max Stock | Gauge Speed | Activation | Description |
 | :--- | :--- | :--- | :--- | :--- |
 | Cirno | 2 | 2.0 | On Draw | Freezes one player's hand, forcing them to discard their draws for 3 turns. Can target yourself. |
-| Letty Whiterock | 2 | 1.8 | On First Draw | Usable on first draw. If an opponent calls a tile this round, forces them to discard their draws for 2 turns. |
-| Kisume | 1 | 2.0 | On Win | Usable when winning. Forces the player(s) who lost points to discard their draws for the first 3 turns of the next round. |
-| Hata no Kokoro | 1 | 2.0 | On First Draw | Usable on first draw. Each time you Pon or Open Kan, forces opponents to discard their draws for 2 turns. |
-| Eternity Larva | 2 | 1.0 | On Win | Usable when winning. On Ron: The dealer who dealt in is forced to discard their draws and cannot call for the first 2 turns. On Tsumo: All opponents are forced to discard their draws and cannot call for the first turn. |
+| Letty Whiterock | 2 | 1.8 | On First Draw | If an opponent calls a tile this round, forces them to discard their draws for 2 turns. |
+| Kisume | 1 | 2.0 | On Win | Forces the player(s) who lost points to discard their draws for the first 3 turns of the next round. |
+| Hata no Kokoro | 1 | 2.0 | On First Draw | Each time you Pon or Open Kan, forces opponents to discard their draws for 2 turns. |
+| Eternity Larva | 2 | 1.0 | On Win | On Ron: The dealer who dealt in is forced to discard their draws and cannot call for the first 2 turns. On Tsumo: All opponents are forced to discard their draws and cannot call for the first turn. |
 
 #### Forced Draw Tile
 Abilities that force opponents to draw specific tiles.
 
 | Character | Max Stock | Gauge Speed | Activation | Description |
 | :--- | :--- | :--- | :--- | :--- |
-| Seiran | 2 | 1.0 | On Draw (2nd↓, 20+ tiles left) | Usable when 2nd place or lower with 20+ tiles left. For 3 turns, forces the current top player to draw your discards. These discards cannot be called. While active, if the target wins by Ron, you pay the points. |
+| Seiran | 2 | 1.0 | On Draw (2nd↓, 20+ tiles left) | For 3 turns, forces the current top player to draw your discards. These discards cannot be called. While active, if the target wins by Ron, you pay the points. |
 
 #### Call (Pon/Chi/Kan) Prohibition
 Abilities that prohibit opponents from calling tiles.
@@ -324,9 +321,9 @@ Abilities that prohibit opponents from calling tiles.
 | Character | Max Stock | Gauge Speed | Activation | Description |
 | :--- | :--- | :--- | :--- | :--- |
 | Youmu Konpaku | 1 | 1.8 | On Draw | Prohibits opponents from calling tiles for 4 turns. |
-| Medicine Melancholy | 1 | 1.4 | On Win | Usable when winning. Prohibits the player(s) who lost points from calling tiles in the next round. |
+| Medicine Melancholy | 1 | 1.4 | On Win | Prohibits the player(s) who lost points from calling tiles in the next round. |
 | Koishi Komeiji | 1 | 1.8 | On Draw | Prohibits opponents from calling your discards for the current round. |
-| Nemuno Sakata | 2 | 1.0 | On Win (Concealed) | Usable on a concealed win. For the first 8 turns of the next round, your discards cannot be called. Effect ends if you call or declare Riichi (Concealed Kan is OK). |
+| Nemuno Sakata | 2 | 1.0 | On Win (Concealed) | For the first 8 turns of the next round, your discards cannot be called. Effect ends if you call or declare Riichi (Concealed Kan is OK). |
 
 #### Riichi / Win Prohibition
 Abilities that prohibit opponents from declaring Riichi or winning.
@@ -334,8 +331,8 @@ Abilities that prohibit opponents from declaring Riichi or winning.
 | Character | Max Stock | Gauge Speed | Activation | Description |
 | :--- | :--- | :--- | :--- | :--- |
 | Toyosatomimi no Miko | 3 | 2.6 | On Draw | From activation until your next draw, all players cannot declare Riichi or win. |
-| Yachie Kicchou | 1 | 1.0 | On Riichi | Usable on Riichi. Opponents cannot declare Riichi after activation. |
-| Tsukasa Kudamaki | 2 | 1.6 | On Chase Riichi | Usable when declaring Riichi after someone else. Opponents who have declared Riichi cannot win by Ron for 2 turns after activation. Tsumo and Concealed Kan are still possible. |
+| Yachie Kicchou | 1 | 1.0 | On Riichi | Opponents cannot declare Riichi after activation. |
+| Tsukasa Kudamaki | 2 | 1.6 | On Chase Riichi | Opponents who have declared Riichi cannot win by Ron for 2 turns after activation. Tsumo and Concealed Kan are still possible. |
 
 #### Opponent Discard Interference
 Abilities that prevent opponents from discarding certain tiles.
@@ -343,15 +340,15 @@ Abilities that prevent opponents from discarding certain tiles.
 | Character | Max Stock | Gauge Speed | Activation | Description |
 | :--- | :--- | :--- | :--- | :--- |
 | Yamame Kurodani | 2 | 1.6 | On Draw | Prevents opponents from discarding 1 random tile from their hand for the current round. |
-| Mizuchi Miyadeguchi | 1 | 1.8 | On Ron Win | Usable on Ron win. Prevents the dealer who dealt in from discarding a number of random tiles from their hand for the first 2 turns of the next round. Number of tiles locked equals the Han of the win (excluding Dora), max 6. |
+| Mizuchi Miyadeguchi | 1 | 1.8 | On Ron Win | Prevents the dealer who dealt in from discarding a number of random tiles from their hand for the first 2 turns of the next round. Number of tiles locked equals the Han of the win (excluding Dora), max 6. |
 
 #### Opponent Starting Hand Manipulation
 Abilities that manipulate opponents' next starting hand.
 
 | Character | Max Stock | Gauge Speed | Activation | Description |
 | :--- | :--- | :--- | :--- | :--- |
-| Hina Kagiyama | 1 | 1.8 | On Win | Usable when winning. Curses the next starting hand of the player(s) who lost points to have worse Shanten. |
-| Clownpiece | 2 | 1.0 | On First Draw (No Double Riichi/No Calls) | Usable on first draw if no Double Riichi or no calls were made. Redraws opponents' starting hands. |
+| Hina Kagiyama | 1 | 1.8 | On Win | Curses the next starting hand of the player(s) who lost points to have worse Shanten. |
+| Clownpiece | 2 | 1.0 | On First Draw (No Double Riichi/No Calls) | Redraws opponents' starting hands. |
 | Chinyo Amefurashi | 2 | 1.4 | On Draw | For the next round, makes it highly likely that Dora (incl. Red) are not dealt into opponents' starting hands. |
 
 #### Han Reduction
@@ -386,7 +383,7 @@ Abilities that change the conditions for specific Yaku.
 
 | Character | Max Stock | Gauge Speed | Activation | Description |
 | :--- | :--- | :--- | :--- | :--- |
-| Komachi Onozuka | 3 | 2.4 | On Riichi | Usable on Riichi. Grants the Ippatsu yaku if you win within 3 turns. This effect is not affected by calls. |
+| Komachi Onozuka | 3 | 2.4 | On Riichi | Grants the Ippatsu yaku if you win within 3 turns. This effect is not affected by calls. |
 | Sunny Milk | 1 | 2.4 | On Draw | For the current round, the Riichi yaku is granted as long as the hand is concealed. |
 
 #### Call Condition Change (Uchuu Chi)
@@ -401,27 +398,27 @@ Abilities to return called melds to your hand.
 
 | Character | Max Stock | Gauge Speed | Activation | Description |
 | :--- | :--- | :--- | :--- | :--- |
-| Watatsuki no Yorihime | 1 | 2.4 | On Draw | Usable if you have an open triplet. Returns the last opened open triplet to your hand. |
-| Watatsuki no Toyohime | 2 | 2.0 | On Draw | Usable if you have an open sequence. Returns the last opened open sequence to your hand. |
+| Watatsuki no Yorihime | 1 | 2.4 | On Draw | Returns the last opened open triplet to your hand. |
+| Watatsuki no Toyohime | 2 | 2.0 | On Draw | Returns the last opened open sequence to your hand. |
 
 #### Wall Tile Count Change (Wall Reduction)
 Abilities that change the number of tiles remaining in the wall.
 
 | Character | Max Stock | Gauge Speed | Activation | Description |
 | :--- | :--- | :--- | :--- | :--- |
-| Yukari Yakumo | 2 | 2.2 | On Draw (8+ tiles left) | Usable with 8+ tiles left in the wall. Reduces the wall tile count by 8. |
+| Yukari Yakumo | 2 | 2.2 | On Draw (8+ tiles left) | Reduces the wall tile count by 8. |
 
 #### Point Transfer Rule Change
 Abilities that change how points are paid, or make the top player pay.
 
 | Character | Max Stock | Gauge Speed | Activation | Description |
 | :--- | :--- | :--- | :--- | :--- |
-| Fujiwara no Mokou | 1 | 1.6 | On First Draw | Usable on first draw. Cannot stack. If an opponent wins for less than 8000 points (including Honba), no points are transferred. |
-| Eiki Shiki, Yamaxanadu | 2 | 1.8 | On Draw (no more draw left) | Usable when 3 tiles remain (2 in 3-player). Forces you to be considered in Tenpai and doubles the tenpai payment calculation. |
-| Seija Kijin | 1 | 2.0 | On Win (as Non-Dealer) | Usable when winning as a non-dealer. Points are calculated as if you were the dealer and opponents were non-dealers. |
-| Kasen Ibaraki | 1 | 2.0 | On Win (3rd place or lower) | Usable when winning from 3rd place or lower. Makes only the top player pay the points. |
-| Satono Nishida | 2 | 1.0 | On Win | Usable when winning. Adds points equal to 3x the value of the Honba counter (2x in 3-player). (Max 4 Honba). |
-| Urumi Ushisaki | 2 | 1.0 | On First Draw | Usable on first draw. Affected players must pay an additional 2000-point deposit when declaring Riichi. |
+| Fujiwara no Mokou | 1 | 1.6 | On First Draw | Cannot stack. If an opponent wins for less than 8000 points (including Honba), no points are transferred. |
+| Eiki Shiki, Yamaxanadu | 2 | 1.8 | On Draw (no more draw left) | Forces you to be considered in Tenpai and doubles the tenpai payment calculation. |
+| Seija Kijin | 1 | 2.0 | On Win (as Non-Dealer) | Points are calculated as if you were the dealer and opponents were non-dealers. |
+| Kasen Ibaraki | 1 | 2.0 | On Win (3rd place or lower) | Makes only the top player pay the points. |
+| Satono Nishida | 2 | 1.0 | On Win | Adds points equal to 3x the value of the Honba counter (2x in 3-player). (Max 4 Honba). |
+| Urumi Ushisaki | 2 | 1.0 | On First Draw | Affected players must pay an additional 2000-point deposit when declaring Riichi. |
 
 #### Basic Rule Change (Furiten Invalid)
 Abilities that change fundamental Mahjong rules.
@@ -435,15 +432,15 @@ Abilities that increase the Honba counter.
 
 | Character | Max Stock | Gauge Speed | Activation | Description |
 | :--- | :--- | :--- | :--- | :--- |
-| Mai Teireida | 4 | 1.8 | On Draw | Consumes all stock to increase the Honba counter by the amount of stock consumed. Usable once per round. |
+| Mai Teireida | 4 | 1.8 | On Draw | Once per round, consumes all stock to increase the Honba counter by the amount of stock consumed.  |
 
 #### Renchan Condition Change
 Abilities that force or prevent the dealer retaining their seat (Renchan).
 
 | Character | Max Stock | Gauge Speed | Activation | Description |
 | :--- | :--- | :--- | :--- | :--- |
-| Mike Goutokuji | 1 | 1.2 | On Win | As non-dealer: Usable only on wins at 1 Honba or less. Forces Renchan but reduces Han by 2 (min 1). As dealer: Always usable on win. Loses Renchan but gains 2 Han. |
-| Miyoi Okunoda | 4 | 1.4 | On Draw (0 Honba only) | Usable only at 0 Honba. Forces Renchan after the round unless the game would end by someone busting. Requires stock >= current round number. Consumes all stock on use. |
+| Mike Goutokuji | 1 | 1.2 | On Win | As non-dealer: Usable only on wins at 1 Honba or less. Forces Renchan but reduces Han by 2 (min 1). As dealer: Always usable on win.  Loses Renchan but gains 2 Han. |
+| Miyoi Okunoda | 4 | 1.4 | On Draw (0 Honba only) | Forces Renchan after the round unless the game would end by someone busting. Requires stock >= current round number. Consumes all stock on use. |
 
 ---
 

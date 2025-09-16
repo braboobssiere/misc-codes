@@ -113,7 +113,7 @@ Abilities that multiply points paid/received.
 | Character | Max Stock | Gauge Speed | Activation | Description |
 | :--- | :--- | :--- | :--- | :--- |
 | Hong Meiling | 2 | 2.0 | On First Draw | Point exchanges for the current round are doubled (except penalty points). |
-| Joon Yorigami | 2 | 1.0 | On First Draw | Applies Wareme to an opponent. |
+| Joon Yorigami | 2 | 1.0 | On First Draw | Applies Wareme to a random opponent. |
 | Shion Yorigami | 2 | 1.0 | On Ron Win | Applies Wareme to yourself. However, Dora are no longer counted. |
 | Saki Kurokoma | 1 | 1.2 | On Tsumo Win (2nd place or lower) | Applies Wareme to yourself. |
 | Seija Kijin | 1 | 2.0 | On Win (as Non-Dealer) | Points are calculated as if you were the dealer and opponents were non-dealers. |

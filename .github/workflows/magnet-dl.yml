@@ -78,7 +78,7 @@ jobs:
       - name: Download files
         run: |
           mkdir -p magnet_output
-          download_output=$(webtorrent --verbose download "${{ inputs.source }}" --out magnet_output)
+          download_output=$(webtorrent --verbose download "${{ inputs.source }}" --out magnet_output | tee /dev/tty)
           files_name=$(echo "$download_output" | grep -oP '(?<=Downloading: ).*' | head -n 1)
           # sanitized_file_name=$(echo "$files_name" | tr -cd '[:alnum:]_.-[:space:]' | sed 's/^[_.-]*//;s/[_.-]*$//')
           echo "files_name=${files_name}" >> $GITHUB_ENV

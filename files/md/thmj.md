@@ -77,6 +77,7 @@
 This page classifies the special abilities found in Touhou Gensou Mahjong for Nintendo Switch. The classification is based on the one found on the Touhou Gensou Mahjong 3G wiki, and also references [this wiki](https://w.atwiki.jp/gensoumahjongswitch/pages/19.html).
 
 *   Abilities that fall into multiple categories are listed in each relevant category.
+*   Ability that activated on draw can also be used when Tsumo.
 
 ---
 

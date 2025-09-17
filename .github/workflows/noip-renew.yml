@@ -1,4 +1,4 @@
-name: Docker Deployment for NoIP Renew
+name: NoIP Renew
 
 on:
   workflow_dispatch:  

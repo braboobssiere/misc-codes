@@ -122,9 +122,14 @@ jobs:
 
           cd ..
 
-          caffeine &
-          # 3️⃣ Upload each file directly to FTP root (no dir creation)
-          lftp -u ${{ secrets.FTP_LOGIN }} -e "set ssl:verify-certificate false; set cache:size 524288000; mput -P 1 -c ftp_upload/*; bye"
+          # Check if any files were moved to ftp_upload
+          if [ -n "$(find ftp_upload -type f -print -quit)" ]; then
+            caffeine &
+            # 3️⃣ Upload each file directly to FTP root (no dir creation)
+            lftp -u ${{ secrets.FTP_LOGIN }} -e "set ssl:verify-certificate false; set cache:size 524288000; mput -P 1 -c ftp_upload/*; bye"
+          else
+            echo "No video files found. Skipping FTP upload."
+          fi
           # 'user,pass' ftp://host/
           
       - name: Zip files 

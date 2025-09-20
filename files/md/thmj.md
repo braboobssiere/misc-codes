@@ -175,7 +175,7 @@ Abilities that stack specific tiles into your next starting hand.
 | Lily White | 4 | 2.4 | On Draw | Stacks White Dragons into your next starting hand, one for each activation. |
 | Sanae Kochiya | 1 | 1.4 | On Draw | Stacks a concealed triplet of wind tiles into your next starting hand. Wind is random. |
 | Kanako Yasaka | 1 | 1.4 | On Draw | Stacks the seeds for a Straight (Ittsu) into your next starting hand (min 6). |
-| Utsuho Reiuji | 1 | 1.4 | On Draw | Stacks 4 identical terminal tiles into your next starting hand. May fail. |
+| Utsuho Reiuji | 1 | 1.4 | On Draw | Stacks 4 identical terminal/honor tiles into your next starting hand. May fail. |
 | Shou Toramaru | 1 | 1.8 | On Draw | Stacks 1-2 Red Dora into your next starting hand. Creates Red Dora if none exist. |
 | Mononobe no Futo | 1 | 1.6 | On Draw | Stacks one of each wind tile into your next starting hand. |
 | Wakasagihime | 2 | 2.4 | On Draw | Stacks the last 4 discarded tiles into your next starting hand (once per round). |

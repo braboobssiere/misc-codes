@@ -1,5 +1,5 @@
 {
-  ">Koromon": {
+  "1. Koromon": {
     "evolutions": [
       {
         "to": "Baby Godzilla",
@@ -81,7 +81,7 @@
       }
     ]
   },
-  ">>Baby Godzilla": {
+  "2. Baby Godzilla": {
     "evolutions": [
       {
         "to": "Godzillasaurus",
@@ -199,7 +199,7 @@
       }
     ]
   },
-  ">>Agumon": {
+  "2. Agumon": {
     "evolutions": [
       {
         "to": "Godzillasaurus",
@@ -291,7 +291,7 @@
       }
     ]
   },
-  ">>Monodramon": {
+  "2. Monodramon": {
     "evolutions": [
       {
         "to": "Greymon",
@@ -367,7 +367,7 @@
       }
     ]
   },
-  ">>>Little Godzilla": {
+  "3. Little Godzilla": {
     "evolutions": [
       {
         "to": "Godzilla Jr",
@@ -426,7 +426,7 @@
       }
     ]
   },
-  ">>>Greymon": {
+  "3. Greymon": {
     "evolutions": [
       {
         "to": "Metal Greymon: G-Erosion Mode",
@@ -466,7 +466,7 @@
       }
     ]
   },
-  ">>>Biollante": {
+  "3. Biollante": {
     "evolutions": [
       {
         "to": "Space Godzilla",
@@ -501,7 +501,7 @@
       }
     ]
   },
-  ">>>Godzillasaurus": {
+  "3. Godzillasaurus": {
     "evolutions": [
       {
         "to": "Godzilla Jr",
@@ -555,7 +555,7 @@
       }
     ]
   },
-  ">>>Raremon": {
+  "3. Raremon": {
     "evolutions": [
       {
         "to": "Skull Greymon: G-Erosion Mode",
@@ -583,7 +583,7 @@
       }
     ]
   },
-  ">>>Gigan": {
+  "3. Gigan": {
     "evolutions": [
       {
         "to": "Kiryu",
@@ -618,7 +618,7 @@
       }
     ]
   },
-  ">>>Mothra": {
+  "3. Mothra": {
     "evolutions": [
       {
         "to": "Space Godzilla",
@@ -653,7 +653,7 @@
       }
     ]
   },
-  ">>>King Ghidorah": {
+  "3. King Ghidorah": {
     "evolutions": [
       {
         "to": "Mecha-King Ghidorah",
@@ -688,7 +688,7 @@
       }
     ]
   },
-  ">>>Rodan": {
+  "3. Rodan": {
     "evolutions": [
       {
         "to": "Fire Rodan",
@@ -723,7 +723,7 @@
       }
     ]
   },
-  ">>>>Godzilla Jr": {
+  "4. Godzilla Jr": {
     "evolutions": [
       {
         "to": "Godzilla (1994)",
@@ -758,7 +758,7 @@
       }
     ]
   },
-  ">>>>Metal Greymon: G-Erosion Mode": {
+  "4. Metal Greymon: G-Erosion Mode": {
     "evolutions": [
       {
         "to": "War Greymon: G-Erosion Mode",
@@ -786,7 +786,7 @@
       }
     ]
   },
-  ">>>>Metal Greymon (Vaccine)": {
+  "4. Metal Greymon (Vaccine)": {
     "evolutions": [
       {
         "to": "War Greymon: G-Erosion Mode",
@@ -821,7 +821,7 @@
       }
     ]
   },
-  ">>>>Space Godzilla": {
+  "4. Space Godzilla": {
     "evolutions": [
       {
         "to": "Godzilla (1994)",
@@ -856,7 +856,7 @@
       }
     ]
   },
-  ">>>>Godzilla (1954)": {
+  "4. Godzilla (1954)": {
     "evolutions": [
       {
         "to": "Godzilla (1999)",
@@ -884,7 +884,7 @@
       }
     ]
   },
-  ">>>>Skull Greymon: G-Erosion Mode": {
+  "4. Skull Greymon: G-Erosion Mode": {
     "evolutions": [
       {
         "to": "Mugendramon: MFS-3",
@@ -900,7 +900,7 @@
       }
     ]
   },
-  ">>>>Kiryu": {
+  "4. Kiryu": {
     "evolutions": [
       {
         "to": "Mugendramon: MFS-3",
@@ -935,7 +935,7 @@
       }
     ]
   },
-  ">>>>Mecha-King Ghidorah": {
+  "4. Mecha-King Ghidorah": {
     "evolutions": [
       {
         "to": "Mechagodzilla",
@@ -951,7 +951,7 @@
       }
     ]
   },
-  ">>>>>Godzilla (1994)": {
+  "5. Godzilla (1994)": {
     "evolutions": [
       {
         "to": "Burning Godzilla",
@@ -969,3 +969,4 @@
   }
 
 }
+

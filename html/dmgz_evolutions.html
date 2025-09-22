@@ -211,12 +211,12 @@
       const pathDiv=document.createElement('div'); pathDiv.style.marginBottom='16px'; pathDiv.style.padding='8px'; pathDiv.style.border='1px solid #ddd'; pathDiv.style.borderRadius='8px'; pathDiv.style.background='#fafafa';
       const speciesLine=[start,...path.map(step=>step.to)];
       const displaySpecies=speciesLine.map((s,i)=>isRandom&&i!==0?'???':s);
-      let pathText=`Path ${idx+1}: ${displaySpecies.join(' -> ')}\n\n`;
+      let pathText=`Path ${idx+1}: ${displaySpecies.join(' -> ')}\n`;
       path.forEach((step,i)=>{
         const matches=matchingConditionsForEdge(step.evo,allowedG,allowedA);
-        pathText+=`  Step ${i+1}: ${isRandom?'???':step.from} -> ${isRandom?'???':step.to}\n`;
-        if(matches.length===0) pathText+='    (No specific conditions to show)\n\n';
-        else matches.forEach(m=>{ const text=m.text||'(no special conditions)'; pathText+=`    - ${text}\n\n`; });
+        pathText+=`\n  Step ${i+1}: ${isRandom?'???':step.from} -> ${isRandom?'???':step.to}\n`;
+        if(matches.length===0) pathText+='    (No specific conditions to show)\n';
+        else matches.forEach(m=>{ const text=m.text||'(no special conditions)'; pathText+=`    - ${text}\n`; });
       });
       const pre=document.createElement('pre'); pre.textContent=pathText; pathDiv.appendChild(pre);
       const copyBtn=document.createElement('button'); copyBtn.textContent='Copy'; copyBtn.style.marginTop='4px'; copyBtn.style.padding='4px 8px'; copyBtn.style.fontSize='13px';
@@ -232,4 +232,5 @@
 </script>
 </body>
 </html>
+
 

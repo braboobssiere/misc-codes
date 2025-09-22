@@ -30,8 +30,8 @@
 
     <div>
       <label>G-Cell</label>
-      <label><input type="radio" name="gcell" value="yes" checked> Yes</label>
-      <label><input type="radio" name="gcell" value="no"> No</label>
+      <label><input type="radio" name="gcell" value="yes"> Yes</label>
+      <label><input type="radio" name="gcell" value="no" checked> No</label>
     </div>
 
     <div style="margin-left:auto;">
@@ -43,13 +43,11 @@
     <div>
       <label>Start Digimon</label><br/>
       <select id="startSelect" style="min-width:220px;"></select>
-      <div class="small muted">Only digimon that can evolve further under current Area7/G-Cell choices.</div>
     </div>
 
     <div>
       <label>Target Digimon</label><br/>
       <select id="targetSelect" style="min-width:240px;"></select>
-      <div class="small muted">Final reachable forms. Choose <b>Random</b> to hide names in paths (shows "???").</div>
     </div>
 
     <div style="align-self:flex-end;">
@@ -213,12 +211,12 @@
       const pathDiv=document.createElement('div'); pathDiv.style.marginBottom='16px'; pathDiv.style.padding='8px'; pathDiv.style.border='1px solid #ddd'; pathDiv.style.borderRadius='8px'; pathDiv.style.background='#fafafa';
       const speciesLine=[start,...path.map(step=>step.to)];
       const displaySpecies=speciesLine.map((s,i)=>isRandom&&i!==0?'???':s);
-      let pathText=`Path ${idx+1}: ${displaySpecies.join(' -> ')}\n`;
+      let pathText=`Path ${idx+1}: ${displaySpecies.join(' -> ')}\n\n`;
       path.forEach((step,i)=>{
         const matches=matchingConditionsForEdge(step.evo,allowedG,allowedA);
         pathText+=`  Step ${i+1}: ${isRandom?'???':step.from} -> ${isRandom?'???':step.to}\n`;
-        if(matches.length===0) pathText+='    (No specific conditions to show)\n';
-        else matches.forEach(m=>{ const text=m.text||'(no special conditions)'; pathText+=`    - ${text}\n`; });
+        if(matches.length===0) pathText+='    (No specific conditions to show)\n\n';
+        else matches.forEach(m=>{ const text=m.text||'(no special conditions)'; pathText+=`    - ${text}\n\n`; });
       });
       const pre=document.createElement('pre'); pre.textContent=pathText; pathDiv.appendChild(pre);
       const copyBtn=document.createElement('button'); copyBtn.textContent='Copy'; copyBtn.style.marginTop='4px'; copyBtn.style.padding='4px 8px'; copyBtn.style.fontSize='13px';
@@ -234,3 +232,4 @@
 </script>
 </body>
 </html>
+

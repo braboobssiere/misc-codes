@@ -20,12 +20,10 @@
 </head>
 <body>
   <h1>Digimon Evolution Path Finder</h1>
-  <div class="muted">Reads <code>dmgz_evolutions.json</code> from same folder. Data file: dmgz_evolutions.json. :contentReference[oaicite:1]{index=1}</div>
-
+  
   <div class="row control">
     <div>
       <label>Area 7</label>
-      <!-- per your request: only Yes or No (no Any). Yes => allow true or "Any". No => allow false or "Any". -->
       <label><input type="radio" name="area7" value="yes" checked> Yes</label>
       <label><input type="radio" name="area7" value="no"> No</label>
     </div>
@@ -66,9 +64,7 @@
 
 <script>
 (async function(){
-  // Load JSON from same folder
   const DATA_URL = 'dmgz_evolutions.json';
-
   let data = {};
   try {
     const r = await fetch(DATA_URL);
@@ -79,32 +75,14 @@
     return;
   }
 
-  // Utilities
-  function allowedValuesFromChoice(choice) {
-    // choice: 'yes' or 'no'
-    // yes => allow true & "Any"
-    // no  => allow false & "Any"
-    return choice === 'yes' ? [true, 'Any'] : [false, 'Any'];
-  }
-
+  function allowedValuesFromChoice(choice) { return choice === 'yes' ? [true, 'Any'] : [false, 'Any']; }
   function condMatchesGArea(cond, allowedG, allowedA) {
-    const g = cond['G-Cell'];
-    const a = cond['area7'];
-    const gMatches = (g === 'Any') || allowedG.includes(g);
-    const aMatches = (a === 'Any') || allowedA.includes(a);
-    return gMatches && aMatches;
+    const g = cond['G-Cell'], a = cond['area7'];
+    return (g==='Any'||allowedG.includes(g)) && (a==='Any'||allowedA.includes(a));
   }
+  function edgeAllowed(evo, allowedG, allowedA) { return evo.conditions.some(c => condMatchesGArea(c, allowedG, allowedA)); }
 
-  // return true if there exists at least one condition object in 'conditions' that matches the chosen G-Cell & area7
-  function edgeAllowed(evo, allowedG, allowedA) {
-    return evo.conditions.some(c => condMatchesGArea(c, allowedG, allowedA));
-  }
-
-  // Build adjacency structure from loaded data
-  // data is object mapping digimon -> { evolutions: [ {to, conditions:[...]} ] }
   const digimonNames = Object.keys(data).sort((a,b)=>a.localeCompare(b));
-
-  // UI elements
   const startSelect = document.getElementById('startSelect');
   const targetSelect = document.getElementById('targetSelect');
   const refreshBtn = document.getElementById('refreshBtn');
@@ -118,332 +96,140 @@
     return 'yes';
   }
 
-  // Returns set of reachable nodes from 'start' following only edges allowed by area/gcell choices
   function reachableFrom(start, allowedG, allowedA) {
-    const visited = new Set();
-    const finalTargets = new Set();
-    const stack = [start];
+    const visited = new Set(), finalTargets = new Set(), stack = [start];
     visited.add(start);
-
-    while (stack.length) {
+    while(stack.length){
       const node = stack.pop();
-      const nodeData = data[node];
-      const evos = nodeData && nodeData.evolutions ? nodeData.evolutions : [];
+      const evos = data[node]?.evolutions || [];
       let hadAllowedChild = false;
-      for (const evo of evos) {
-        if (edgeAllowed(evo, allowedG, allowedA)) {
+      for(const evo of evos){
+        if(edgeAllowed(evo, allowedG, allowedA)){
           hadAllowedChild = true;
-          const child = evo.to;
-          if (!visited.has(child)) {
-            visited.add(child);
-            stack.push(child);
-          }
+          if(!visited.has(evo.to)) { visited.add(evo.to); stack.push(evo.to); }
         }
       }
-      if (!hadAllowedChild) {
-        // node is a final under current constraints
-        finalTargets.add(node);
-      }
+      if(!hadAllowedChild) finalTargets.add(node);
     }
     return { visited, finals: finalTargets };
   }
 
-  // For populating startSelect: include only digimon that have at least one reachable evolution (i.e. not final initially)
   function computeStartOptions(allowedG, allowedA) {
     const options = [];
-    for (const name of digimonNames) {
-      // if name has evolutions and at least one of those evolutions is allowed (directly or through subsequent allowed evolutions)
-      if (!data[name] || !Array.isArray(data[name].evolutions) || data[name].evolutions.length === 0) continue;
-      const res = reachableFrom(name, allowedG, allowedA);
-      // if there is any node other than start reachable or there's at least one allowed child (meaning start can evolve)
-      // We treat start as having further evolutions if any of its outgoing edges is allowed OR any descendant exists
-      // Simple check: if any outgoing evo allowed OR any final target different from start.
-      const nodeEvos = data[name].evolutions || [];
-      const hasAllowedChild = nodeEvos.some(e => edgeAllowed(e, allowedG, allowedA));
-      if (hasAllowedChild) options.push(name);
+    for(const name of digimonNames){
+      const nodeEvos = data[name]?.evolutions||[];
+      if(nodeEvos.some(e=>edgeAllowed(e, allowedG, allowedA))) options.push(name);
     }
     return options.sort((a,b)=>a.localeCompare(b));
   }
 
-  // For a selected start, compute final reachable targets to populate targetSelect
-  function computeFinalTargetsForStart(start, allowedG, allowedA) {
+  function computeFinalTargetsForStart(start, allowedG, allowedA){
     const res = reachableFrom(start, allowedG, allowedA);
-    // finals is set of nodes that are terminal under current constraints
     return Array.from(res.finals).sort((a,b)=>a.localeCompare(b));
   }
 
-  // Build human readable cond string per condition object (omit Any)
-  function condToReadable(c) {
-    const parts = [];
-    // G-Cell
-    if (c['G-Cell'] !== 'Any') {
-      parts.push(c['G-Cell'] === true ? 'Hatched from a G-Cell Fragment' : 'Not hatched from a G-Cell Fragment');
-    }
-    // area7
-    if (c['area7'] !== 'Any') {
-      parts.push(c['area7'] === true ? 'Clear Area 7' : 'Not clear Area 7');
-    }
-    // mistake
-    if (c['mistake'] && c['mistake'] !== 'Any') {
-      // "5-0" -> "Care Mistakes 5+", "2-4" -> "Care Mistakes 2-4", "0-1" -> "Care Mistakes 0-1"
-      const m = c['mistake'];
-      if (m.endsWith('-0')) {
-        const n = m.split('-')[0];
-        parts.push('Care Mistakes ' + n + '+');
-      } else {
-        parts.push('Care Mistakes ' + m);
-      }
-    }
-    // color
-    if (c['color'] && c['color'] !== 'Any') {
-      // format like 'b14-0', 'r5-9', 'y0-9'
-      const col = c['color'];
-      const m = col.match(/^([rby])(.+)$/i);
-      if (m) {
-        const letter = m[1].toLowerCase();
-        const nums = m[2];
-        const colorName = letter === 'r' ? 'Red' : letter === 'b' ? 'Blue' : 'Yellow';
-        if (nums.endsWith('-0')) {
-          const n = nums.split('-')[0];
-          parts.push(`${colorName} G-cells ${n}+`);
-        } else {
-          parts.push(`${colorName} G-cells ${nums}`);
-        }
-      } else {
-        parts.push('Color ' + col);
-      }
-    }
-    // battle
-    if (c['battle'] !== 'Any') {
-      if (c['battle'] === true) parts.push('Need Battles');
-      else if (c['battle'] === false) parts.push('No Battles');
-    }
+  function condToReadable(c){
+    const parts=[];
+    if(c['G-Cell']!=='Any') parts.push(c['G-Cell']===true?'Hatched from a G-Cell Fragment':'Not hatched from a G-Cell Fragment');
+    if(c['area7']!=='Any') parts.push(c['area7']===true?'Clear Area 7':'Not clear Area 7');
+    if(c['mistake'] && c['mistake']!=='Any') parts.push('Care Mistakes ' + (c['mistake'].endsWith('-0')?c['mistake'].split('-')[0]+'+':c['mistake']));
+    if(c['color'] && c['color']!=='Any'){ const m=c['color'].match(/^([rby])(.+)$/i); if(m){const letter=m[1].toLowerCase(),nums=m[2],colorName=letter==='r'?'Red':letter==='b'?'Blue':'Yellow'; parts.push(nums.endsWith('-0')?`${colorName} G-cells ${nums.split('-')[0]}+`:`${colorName} G-cells ${nums}`);} else parts.push('Color '+c['color']); }
+    if(c['battle']!=='Any') parts.push(c['battle']===true?'Need Battles':'No Battles');
     return parts.join(', ');
   }
 
-  // For an evolution edge, return array of condition strings that match allowed G/area choices.
-  function matchingConditionsForEdge(evo, allowedG, allowedA) {
-    const matched = evo.conditions.filter(c => condMatchesGArea(c, allowedG, allowedA));
-    // map to readable, but if readable string is empty (all Any) we should return an empty array meaning "no special conditions" -> we will show nothing
-    return matched.map(c => ({raw:c, text: condToReadable(c)}));
+  function matchingConditionsForEdge(evo, allowedG, allowedA){
+    return evo.conditions.filter(c=>condMatchesGArea(c, allowedG, allowedA)).map(c=>({raw:c,text:condToReadable(c)}));
   }
 
-  // Find all distinct paths from start to target where every traversed edge has at least one condition that matches allowedG & allowedA.
-  // We must allow revisits? to avoid infinite loops assume graph is acyclic-ish; to be safe keep visited set to prevent cycles.
-  function findAllPaths(start, target, allowedG, allowedA) {
-    const results = [];
-    const visited = new Set();
-    function dfs(node, path) {
-      if (path.length > 40) return; // safety
-      if (node === target) {
-        results.push([...path]);
-        return;
-      }
+  function findAllPaths(start, target, allowedG, allowedA){
+    const results=[];
+    const visited=new Set();
+    function dfs(node,path){
+      if(path.length>40) return;
+      if(node===target){ results.push([...path]); return; }
       visited.add(node);
-      const evos = (data[node] && data[node].evolutions) ? data[node].evolutions : [];
-      for (const evo of evos) {
-        if (!edgeAllowed(evo, allowedG, allowedA)) continue;
-        const child = evo.to;
-        if (visited.has(child)) continue;
-        path.push({from: node, to: child, evo});
-        dfs(child, path);
+      const evos=data[node]?.evolutions||[];
+      for(const evo of evos){
+        if(!edgeAllowed(evo, allowedG, allowedA)) continue;
+        const child=evo.to;
+        if(visited.has(child)) continue;
+        path.push({from:node,to:child,evo});
+        dfs(child,path);
         path.pop();
       }
       visited.delete(node);
     }
-    dfs(start, []);
+    dfs(start,[]);
     return results;
   }
 
-  // Update UI lists
-  function populateStartAndTargets() {
-    const areaChoice = readChoice('area7');
-    const gcellChoice = readChoice('gcell');
-    const allowedG = allowedValuesFromChoice(gcellChoice);
-    const allowedA = allowedValuesFromChoice(areaChoice);
-
-    // start options
-    const starts = computeStartOptions(allowedG, allowedA);
-    startSelect.innerHTML = '';
-    const startPlaceholder = document.createElement('option');
-    startPlaceholder.value = '';
-    startPlaceholder.textContent = '-- Select start --';
-    startSelect.appendChild(startPlaceholder);
-    for (const s of starts) {
-      const o = document.createElement('option');
-      o.value = s;
-      o.textContent = s;
-      startSelect.appendChild(o);
-    }
-
-    // Clear targets until a start is selected
-    targetSelect.innerHTML = '';
-    const opt = document.createElement('option');
-    opt.value = '';
-    opt.textContent = '-- Select target --';
-    targetSelect.appendChild(opt);
-    targetSelect.disabled = true;
-
-    // summary
-    summaryEl.textContent = `Area7: ${areaChoice === 'yes' ? 'Yes (allow true & Any)' : 'No (allow false & Any)'}; G-Cell: ${gcellChoice === 'yes' ? 'Yes (allow true & Any)' : 'No (allow false & Any)'}`;
-    pathsEl.textContent = '';
-
-    // If a start was previously selected and still present, re-select it
-    // (Don't change selection automatically)
+  function populateStartAndTargets(){
+    const areaChoice=readChoice('area7'), gcellChoice=readChoice('gcell');
+    const allowedG=allowedValuesFromChoice(gcellChoice), allowedA=allowedValuesFromChoice(areaChoice);
+    const starts=computeStartOptions(allowedG, allowedA);
+    startSelect.innerHTML=''; const startPlaceholder=document.createElement('option'); startPlaceholder.value=''; startPlaceholder.textContent='-- Select start --'; startSelect.appendChild(startPlaceholder);
+    for(const s of starts){ const o=document.createElement('option'); o.value=s; o.textContent=s; startSelect.appendChild(o); }
+    targetSelect.innerHTML=''; const opt=document.createElement('option'); opt.value=''; opt.textContent='-- Select target --'; targetSelect.appendChild(opt); targetSelect.disabled=true;
+    summaryEl.textContent=`Area7: ${areaChoice==='yes'?'Yes (allow true & Any)':'No (allow false & Any)'}; G-Cell: ${gcellChoice==='yes'?'Yes (allow true & Any)':'No (allow false & Any)'}`;
+    pathsEl.textContent='';
   }
 
-  // When start changes, populate targets
-  startSelect.addEventListener('change', () => {
-    const start = startSelect.value;
-    targetSelect.innerHTML = '';
-    if (!start) {
-      targetSelect.disabled = true;
-      return;
-    }
-    const areaChoice = readChoice('area7');
-    const gcellChoice = readChoice('gcell');
-    const allowedG = allowedValuesFromChoice(gcellChoice);
-    const allowedA = allowedValuesFromChoice(areaChoice);
-
-    const finals = computeFinalTargetsForStart(start, allowedG, allowedA);
-    targetSelect.disabled = false;
-    // add Random option at top
-    const rand = document.createElement('option');
-    rand.value = '__RANDOM__';
-    rand.textContent = 'Random (mask species names)';
-    targetSelect.appendChild(rand);
-
-    for (const f of finals) {
-      const o = document.createElement('option'); o.value = f; o.textContent = f;
-      targetSelect.appendChild(o);
-    }
-    // if no finals, leave a disabled message
-    if (finals.length === 0) {
-      targetSelect.innerHTML = '';
-      const o = document.createElement('option'); o.value = ''; o.textContent = '-- No reachable final targets --';
-      targetSelect.appendChild(o);
-      targetSelect.disabled = true;
-    }
-    pathsEl.textContent = '';
+  startSelect.addEventListener('change',()=>{
+    const start=startSelect.value;
+    targetSelect.innerHTML='';
+    if(!start){ targetSelect.disabled=true; return; }
+    const areaChoice=readChoice('area7'), gcellChoice=readChoice('gcell');
+    const allowedG=allowedValuesFromChoice(gcellChoice), allowedA=allowedValuesFromChoice(areaChoice);
+    const finals=computeFinalTargetsForStart(start, allowedG, allowedA);
+    targetSelect.disabled=false;
+    const rand=document.createElement('option'); rand.value='__RANDOM__'; rand.textContent='Random (mask species names)'; targetSelect.appendChild(rand);
+    for(const f of finals){ const o=document.createElement('option'); o.value=f; o.textContent=f; targetSelect.appendChild(o); }
+    if(finals.length===0){ targetSelect.innerHTML=''; const o=document.createElement('option'); o.value=''; o.textContent='-- No reachable final targets --'; targetSelect.appendChild(o); targetSelect.disabled=true; }
+    pathsEl.textContent='';
   });
 
-  refreshBtn.addEventListener('click', () => {
-    populateStartAndTargets();
-  });
+  refreshBtn.addEventListener('click',()=>{ populateStartAndTargets(); });
 
-  // Show paths on click
-  showBtn.addEventListener('click', () => {
-    const start = startSelect.value;
-    const targetVal = targetSelect.value;
-    if (!start) {
-      pathsEl.textContent = 'Please select a Start Digimon.';
-      return;
-    }
-    if (!targetVal) {
-      pathsEl.textContent = 'Please select a Target Digimon (or Random).';
-      return;
-    }
-    const areaChoice = readChoice('area7');
-    const gcellChoice = readChoice('gcell');
-    const allowedG = allowedValuesFromChoice(gcellChoice);
-    const allowedA = allowedValuesFromChoice(areaChoice);
+  showBtn.addEventListener('click',()=>{
+    const start=startSelect.value, targetVal=targetSelect.value;
+    if(!start){ pathsEl.textContent='Please select a Start Digimon.'; return; }
+    if(!targetVal){ pathsEl.textContent='Please select a Target Digimon (or Random).'; return; }
+    const areaChoice=readChoice('area7'), gcellChoice=readChoice('gcell');
+    const allowedG=allowedValuesFromChoice(gcellChoice), allowedA=allowedValuesFromChoice(areaChoice);
+    const finals=computeFinalTargetsForStart(start, allowedG, allowedA);
+    if(finals.length===0){ pathsEl.textContent='No reachable final targets from selected start under current Area7/G-Cell settings.'; return; }
 
-    // find finals to ensure Random picks a real reachable final
-    const finals = computeFinalTargetsForStart(start, allowedG, allowedA);
-    if (finals.size === 0 && finals.length === 0) {
-      // no final because start can't evolve
-      pathsEl.textContent = 'No reachable final targets from selected start under current Area7/G-Cell settings.';
-      return;
-    }
+    let chosenTarget=targetVal;
+    const isRandom=targetVal==='__RANDOM__';
+    if(isRandom) chosenTarget=finals[Math.floor(Math.random()*finals.length)];
+    const allPaths=findAllPaths(start, chosenTarget, allowedG, allowedA);
+    if(allPaths.length===0){ pathsEl.textContent=start===chosenTarget?`Start is already the final form (${start}). No evolution steps.`:'No valid paths found from start to target under current settings.'; return; }
 
-    let chosenTarget = targetVal;
-    const isRandom = targetVal === '__RANDOM__';
-    if (isRandom) {
-      // pick random final
-      if (finals.length === 0) {
-        pathsEl.textContent = 'No reachable final targets to randomly pick.';
-        return;
-      }
-      chosenTarget = finals[Math.floor(Math.random() * finals.length)];
-    }
+    pathsEl.innerHTML='';
+    const summaryDiv=document.createElement('div'); summaryDiv.textContent=`Start: ${start}, Target: ${isRandom?'Random (masked)':chosenTarget}, Paths found: ${allPaths.length}`; summaryDiv.style.marginBottom='12px'; pathsEl.appendChild(summaryDiv);
 
-    const allPaths = findAllPaths(start, chosenTarget, allowedG, allowedA);
-    if (allPaths.length === 0) {
-      // It's possible chosenTarget === start (start is final already). Show a single empty path.
-      if (start === chosenTarget) {
-        pathsEl.textContent = `Start is already the final form (${start}). No evolution steps.`;
-        return;
-      }
-      pathsEl.textContent = 'No valid paths found from start to target under current settings.';
-      return;
-    }
-
-    // Format paths
-    let out = '';
-    out += `Start: ${start}\n`;
-    out += `Target: ${isRandom ? 'Random (masked)' : chosenTarget}\n\n`;
-    out += `Paths found: ${allPaths.length}\n\n`;
-
-    allPaths.forEach((path, idx) => {
-      out += `Path ${idx+1}:\n`;
-      // Show a list of species progression:
-      // show start name, then for each step either actual to/ from or "???" if random masking (but start remains visible)
-      const speciesLine = [];
-      speciesLine.push(start);
-      for (const step of path) {
-        speciesLine.push(step.to);
-      }
-      // Masking rules: if random, mask intermediate and final (but not the start)
-      const displaySpecies = speciesLine.map((s, i) => {
-        if (!isRandom) return s;
-        if (i === 0) return s; // start visible
-        return '???';
+    allPaths.forEach((path,idx)=>{
+      const pathDiv=document.createElement('div'); pathDiv.style.marginBottom='16px'; pathDiv.style.padding='8px'; pathDiv.style.border='1px solid #ddd'; pathDiv.style.borderRadius='8px'; pathDiv.style.background='#fafafa';
+      const speciesLine=[start,...path.map(step=>step.to)];
+      const displaySpecies=speciesLine.map((s,i)=>isRandom&&i!==0?'???':s);
+      let pathText=`Path ${idx+1}: ${displaySpecies.join(' -> ')}\n`;
+      path.forEach((step,i)=>{
+        const matches=matchingConditionsForEdge(step.evo,allowedG,allowedA);
+        pathText+=`  Step ${i+1}: ${isRandom?'???':step.from} -> ${isRandom?'???':step.to}\n`;
+        if(matches.length===0) pathText+='    (No specific conditions to show)\n';
+        else matches.forEach(m=>{ const text=m.text||'(no special conditions)'; pathText+=`    - ${text}\n`; });
       });
-      out += '  ' + displaySpecies.join(' -> ') + '\n';
-
-      // For each evolution step, show matching condition alternatives (only those cond objects that matched G-Cell & Area7)
-      for (let i=0;i<path.length;i++) {
-        const step = path[i];
-        const evo = step.evo;
-        const matches = matchingConditionsForEdge(evo, allowedG, allowedA);
-        out += `    Step ${i+1}: ${isRandom ? '???' : step.from} -> ${isRandom ? '???' : step.to}\n`;
-        if (matches.length === 0) {
-          // This should not happen (we only traversed edges that were allowed) but just in case:
-          out += `      (No specific conditions to show)\n`;
-        } else {
-          // For each matched condition, print converted string. If conversion yields empty (all Any), omit line or show "(no special conditions)"
-          matches.forEach((m, mi) => {
-            const text = m.text || '(no special conditions)';
-            out += `      - ${text}\n`;
-          });
-        }
-      }
-      out += '\n';
+      const pre=document.createElement('pre'); pre.textContent=pathText; pathDiv.appendChild(pre);
+      const copyBtn=document.createElement('button'); copyBtn.textContent='Copy'; copyBtn.style.marginTop='4px'; copyBtn.style.padding='4px 8px'; copyBtn.style.fontSize='13px';
+      copyBtn.addEventListener('click',()=>{ navigator.clipboard.writeText(pathText).then(()=>{ copyBtn.textContent='Copied!'; setTimeout(()=>copyBtn.textContent='Copy',1000); }); });
+      pathDiv.appendChild(copyBtn);
+      pathsEl.appendChild(pathDiv);
     });
-
-    // Show textual mapping legend for clarity
-    out += 'Legend / mapping notes:\n';
-    out += '  G-Cell true = Hatched from a G-Cell Fragment\n';
-    out += '  G-Cell false = Not hatched from a G-Cell Fragment\n';
-    out += '  area7 true = Clear Area 7\n';
-    out += '  area7 false = Not clear Area 7\n';
-    out += '  mistake 2-4 = Care Mistakes 2-4; 5-0 = 5+ (Care Mistakes 5+)\n';
-    out += '  color: r/b/y = Red/Blue/Yellow G-cells (e.g. r5-9 -> Red G-cells 5-9; b14-0 -> Blue G-cells 14+)\n';
-    out += '  battle true = Need Battles\n';
-    out += '\n';
-
-    pathsEl.textContent = out;
   });
 
-  // init
   populateStartAndTargets();
-
-  // If there's only one possible start, pre-select it
-  if (startSelect.options.length === 2) {
-    // index 0 is placeholder, 1 is the only option
-    startSelect.selectedIndex = 1;
-    startSelect.dispatchEvent(new Event('change'));
-  }
+  if(startSelect.options.length===2){ startSelect.selectedIndex=1; startSelect.dispatchEvent(new Event('change')); }
 })();
 </script>
 </body>

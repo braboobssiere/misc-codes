@@ -80,7 +80,7 @@
   }
   function edgeAllowed(evo, allowedG, allowedA) { return evo.conditions.some(c => condMatchesGArea(c, allowedG, allowedA)); }
 
-  const digimonNames = Object.keys(data).sort((a,b)=>a.localeCompare(b));
+  const digimonNames = Object.keys(data);
   const startSelect = document.getElementById('startSelect');
   const targetSelect = document.getElementById('targetSelect');
   const refreshBtn = document.getElementById('refreshBtn');
@@ -118,12 +118,12 @@
       const nodeEvos = data[name]?.evolutions||[];
       if(nodeEvos.some(e=>edgeAllowed(e, allowedG, allowedA))) options.push(name);
     }
-    return options.sort((a,b)=>a.localeCompare(b));
+    return options;
   }
 
   function computeFinalTargetsForStart(start, allowedG, allowedA){
     const res = reachableFrom(start, allowedG, allowedA);
-    return Array.from(res.finals).sort((a,b)=>a.localeCompare(b));
+    return Array.from(res.finals);
   }
 
   function condToReadable(c){
@@ -232,5 +232,6 @@
 </script>
 </body>
 </html>
+
 
 

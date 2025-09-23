@@ -2,8 +2,9 @@ name: Auto-Download YT Video
 
 on:
   workflow_dispatch:
-  # schedule: # use cron-job.org instead
+  # schedule: 
   #   - cron: '20,50 * * * *'
+  # use cron-job.org instead
 
 concurrency:
   group: Auto-Download YT Video
@@ -27,7 +28,8 @@ jobs:
       - name: Parse feed, check live & emit outputs
         id: check
         env:
-          FEED_URL: "https://www.youtube.com/feeds/videos.xml?channel_id=UCoiEtD4v1qMAqHV5MDI5Qpg" # 9arm
+          FEED_URL: "https://www.youtube.com/feeds/videos.xml?channel_id=UCt9H_RpQzhxzlyBxFqrdHqA"
+          # FEED_URL: "https://www.youtube.com/feeds/videos.xml?channel_id=UCoiEtD4v1qMAqHV5MDI5Qpg" # 9arm
           YT_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
         run: |
           python <<'EOF'
@@ -37,7 +39,8 @@ jobs:
 
           # 1) Parse feed for last xx minutes
           now    = datetime.now(timezone.utc)
-          cutoff = now - timedelta(minutes=63)
+          # cutoff = now - timedelta(minutes=63)
+          cutoff = now - timedelta(minutes=300)
           feed   = feedparser.parse(os.environ['FEED_URL'])
 
           recent = []
@@ -99,17 +102,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
 
-      - name: Set weekly cache key
-        id: weekly-key
+      - name: Set monthly cache key
+        id: monthly-key
         run: |
-          WEEK=$(date +"%Y.%U")
-          echo "week=${WEEK}" >> $GITHUB_OUTPUT
+          MONTH=$(date +"%Y.%m")
+          echo "month=${MONTH}" >> $GITHUB_OUTPUT
           
       - name: Cache APT packages
         uses: awalsh128/cache-apt-pkgs-action@latest
         with:
-          packages: ffmpeg wireguard-tools
-          version: ${{ steps.weekly-key.outputs.week }}
+          packages: ffmpeg wireguard-tools lftp caffeine
+          version: ${{ steps.monthly-key.outputs.month }}
 
       - name: Prepare bgutil
         run: |
@@ -125,14 +128,14 @@ jobs:
       - name: Setup Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y ffmpeg wireguard-tools
+          sudo apt-get install -y ffmpeg wireguard-tools lftp caffeine
           echo -e "yt-dlp[default,curl-cffi]\nbgutil-ytdlp-pot-provider" > requirements.txt
           
       - name: Cache pip packages
         uses: actions/cache@v4
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}-${{ steps.weekly-key.outputs.week }}
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}-${{ steps.monthly-key.outputs.month }}
           restore-keys: |
             ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
             ${{ runner.os }}-pip-
@@ -217,6 +220,15 @@ jobs:
           path: output/
           compression-level: 1
           if-no-files-found: error
+
+      - name: Upload to FTP
+        run: |
+          if [ -n "$(find output -type f -print -quit)" ]; then
+            caffeine &
+            lftp -u ${{ secrets.FTP_LOGIN }} -e "set ssl:verify-certificate false; set cache:size 524288000; mput -P 1 -c output/*; bye"
+          else
+            echo "No files found. Skipping FTP upload."
+          fi
 
       - name: Upload to gofile
         run: |

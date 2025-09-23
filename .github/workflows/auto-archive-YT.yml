@@ -28,7 +28,7 @@ jobs:
       - name: Parse feed, check live & emit outputs
         id: check
         env:
-          FEED_URL: "https://www.youtube.com/feeds/videos.xml?channel_id=UCt9H_RpQzhxzlyBxFqrdHqA"
+          FEED_URL: "https://www.youtube.com/feeds/videos.xml?channel_id=UC6eWCld0KwmyHFbAqK3V-Rw"
           # FEED_URL: "https://www.youtube.com/feeds/videos.xml?channel_id=UCoiEtD4v1qMAqHV5MDI5Qpg" # 9arm
           YT_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
         run: |

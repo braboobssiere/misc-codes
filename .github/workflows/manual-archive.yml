@@ -1,8 +1,5 @@
 name: Archive Video
 
-permissions:
-  contents: write
-
 on:
   workflow_dispatch:
     inputs:
@@ -37,8 +34,6 @@ jobs:
   download_and_upload:
     runs-on: ubuntu-latest
     steps:
-    
-      - uses: actions/checkout@v4
 
       - name: Set monthly cache key
         id: monthly-key

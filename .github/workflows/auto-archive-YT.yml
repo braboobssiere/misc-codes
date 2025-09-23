@@ -211,47 +211,6 @@ jobs:
             exit 14
           fi
 
-      - name: Upload to FTP
-        run: |
-          mkdir -p ftp_upload
-          cd output
-
-          find . -type f \( -name "*.mp4" -o -name "*.mkv" -o -name "*.ts" -o -name "*.webm" \) \
-            -exec bash -c '
-              file="$1"
-              filename=$(basename -- "$file")
-              extension="${filename##*.}"
-              name_no_ext="${filename%.*}"
-
-              # Sanitize name
-              sanitized_name=$(printf "%s" "$name_no_ext" |
-                tr -s "[:space:]" "_" |
-                sed "s/[<>:\"\\|?*\/]/_/g" |
-                tr -d "[:cntrl:]")
-
-              # Fallback if empty
-              if [ -z "$sanitized_name" ]; then
-                sanitized_name="video_$(date +%s)_$RANDOM"
-              fi
-
-              sanitized_filename="${sanitized_name}.${extension}"
-              cp -- "$file" "../ftp_upload/$sanitized_filename"
-            ' _ {} \;
-
-          cd ..
-
-          if [ -n "$(find ftp_upload -type f -print -quit)" ]; then
-                # keep runner awake
-                caffeine &
-                lftp -u ${{ secrets.FTP_LOGIN }} -e "
-                        set ssl:verify-certificate false;
-                        set cache:size 524288000;
-                        mput -P 1 ftp_upload/*;
-                        bye"
-          else
-                echo "No files found. Skipping FTP upload."
-          fi
-
       - name: Upload to gofile
         run: |
           UPLOAD_URL="https://upload.gofile.io/uploadfile"
@@ -318,3 +277,21 @@ jobs:
             -H "Content-Type: application/json" \
             -d "{\"content\":\"File Uploads: $LINK \n$UPLOAD_LINKS\"}" \
             "${{ secrets.DISCORD_WEBHOOK }}"
+
+      - name: Upload to FTP
+        run: |
+          mkdir -p ftp_upload
+          find output -type f \( -name "*.mp4" -o -name "*.mkv" -o -name "*.ts" -o -name "*.webm" \) \
+            -exec cp -- {} ftp_upload/ \;
+          if [ "$(ls -A ftp_upload)" ]; then
+                # keep runner awake
+                caffeine &
+                lftp -u ${{ secrets.FTP_LOGIN }} -e "
+                        set ssl:verify-certificate false;
+                        set cache:size 524288000;
+                        mput -P 1 ftp_upload/*;
+                        bye"
+          else
+                echo "No files found. Skipping FTP upload."
+          fi
+          

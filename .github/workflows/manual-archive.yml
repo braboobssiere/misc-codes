@@ -13,10 +13,10 @@ on:
       vpn_location:
         description: 'Select VPN location or false'
         required: true
-        default: 'Harvard'
+        default: 'Grandcentral'
         type: choice
         options:
-          - 'Harvard'
+          - 'Grandcentral'
           - 'TradeWar'
       resolution:
         description: "Video resolution (default: 1080p)"
@@ -40,17 +40,17 @@ jobs:
     
       - uses: actions/checkout@v4
 
-      - name: Set weekly cache key
-        id: weekly-key
+      - name: Set monthly cache key
+        id: monthly-key
         run: |
-          WEEK=$(date +"%Y.%U")
-          echo "week=${WEEK}" >> $GITHUB_OUTPUT
+          MONTH=$(date +"%Y.%m")
+          echo "month=${MONTH}" >> $GITHUB_OUTPUT
       
       - name: Cache APT packages
         uses: awalsh128/cache-apt-pkgs-action@latest
         with:
-          packages: ffmpeg wireguard-tools
-          version: ${{ steps.weekly-key.outputs.week }}
+          packages: ffmpeg wireguard-tools lftp caffeine
+          version: ${{ steps.monthly-key.outputs.month }}
 
       - name: Prepare bgutil
         run: |
@@ -63,14 +63,14 @@ jobs:
       - name: Setup Environment
         run: |       
           sudo apt-get update
-          sudo apt-get install -y ffmpeg wireguard-tools
+          sudo apt-get install -y ffmpeg wireguard-tools lftp caffeine
           echo "yt-dlp[default,curl-cffi]" > requirements.txt
 
       - name: Cache pip packages
         uses: actions/cache@v4
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}-${{ steps.weekly-key.outputs.week }}
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}-${{ steps.monthly-key.outputs.month }}
           restore-keys: |
             ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
             ${{ runner.os }}-pip-
@@ -84,13 +84,13 @@ jobs:
         if: ${{ github.event.inputs.vpn_location != 'false' }}
         env:
           TradeWar_CONFIG: ${{ secrets.WIREGUARD_TRADEWAR  }}
-          Harvard_CONFIG: ${{ secrets.WIREGUARD_HARVARD  }}
+          Grandcentral_CONFIG: ${{ secrets.WIREGUARD_GRANDCENTRAL  }}
           
         run: |
           sudo mkdir -p /etc/wireguard/
           
           case "${{ github.event.inputs.vpn_location }}" in
-            Harvard) CONFIG_VAR="Harvard_CONFIG" ;;
+            Grandcentral) CONFIG_VAR="Grandcentral_CONFIG" ;;
             TradeWar) CONFIG_VAR="TradeWar_CONFIG" ;;
             *)
               echo "::error::Invalid location selection"
@@ -249,32 +249,43 @@ jobs:
             -d "{\"content\":\"File Uploads: $LINK \n$UPLOAD_LINKS\"}" \
             "${{ secrets.DISCORD_WEBHOOK }}"
 
-      - name: Generate tag and split large files
-        id: prep
+      - name: Upload to FTP
         run: |
-          TIMESTAMP=$(date -u +%Y%m%d-%H%M%S)
-          TAG="${TIMESTAMP}"
+          mkdir -p ftp_upload
           cd output
-          FILE_NAME=$(find . -type f ! -name '*.txt' -printf "%f\n" | head -n 1)
-          FILE_BASE="${FILE_NAME%.*}"
-          echo "TAG=$TAG" >> $GITHUB_OUTPUT 
-          echo "FILE_BASE=$FILE_BASE" >> $GITHUB_OUTPUT 
-          find . -type f -size +1792M -exec bash -c '
-            for file; do
-              zip -s 1792m -r "${file}.zip" "${file}"
-              rm "${file}"
-            done
-          ' bash {} +
 
-      - name: Create draft release
-        uses: softprops/action-gh-release@v2.3.2
-        with:
-          tag_name: ${{ steps.prep.outputs.TAG }}
-          name: "Release ${{ steps.prep.outputs.TAG }} ${{ steps.prep.outputs.FILE_BASE }}"
-          draft: true
-          files: |
-            output/**
+          find . -type f $ -name "*.mp4" -o -name "*.mkv" -o -name "*.ts" -o -name "*.webm" $ \
+            -exec bash -c '
+                file="$0"
+                filename=$(basename -- "$file")
+                extension="${filename##*.}"
+                name_no_ext="${filename%.*}"
 
-      - name: Cleanup tag
-        run: git push --delete origin "${{ steps.prep.outputs.TAG }}" || true
-        
+                # Sanitize name
+                sanitized_name=$(printf "%s" "$name_no_ext" |
+                  tr -s "[:space:]" "_" |
+                  sed "s/[<>:\"\\|?*\/]/_/g" |
+                  tr -d "[:cntrl:]")
+
+                # Fallback if empty
+                if [ -z "$sanitized_name" ]; then
+                  sanitized_name="video_$(date +%s)_$RANDOM"
+                fi
+
+                sanitized_filename="${sanitized_name}.${extension}"
+                cp -- "$file" "../ftp_upload/$sanitized_filename"
+            ' {} \;
+
+          cd ..
+
+          if [ -n "$(find ftp_upload -type f -print -quit)" ]; then
+                # keep runner awake
+                caffeine &
+                lftp -u ${{ secrets.FTP_LOGIN }} -e "
+                        set ssl:verify-certificate false;
+                        set cache:size 524288000;
+                        mput -P 1 ftp_upload/*;
+                        bye"
+          else
+                echo "No files found. Skipping FTP upload."
+          fi

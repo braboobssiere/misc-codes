@@ -162,15 +162,15 @@ jobs:
         continue-on-error: true
         run: |
           mkdir -p output
+          echo "${{ secrets.YT_COOKIES }}" >> yt_cookies.txt
           URLS=$(echo '${{ needs.check-feed.outputs.urls }}' | jq -r '.[].url')
           
           parallel -j4 \
           'cmd="yt-dlp -i --no-progress -S \"+res:1080\" --retry-sleep 3 \
-            --extractor-args \"youtube:player-client=default,mweb\" \
             --windows-filenames --live-from-start --write-thumbnail \
             --embed-metadata --no-embed-info-json --write-info-json \
+            --cookies yt_cookies.txt --extractor-args \"youtube:player-client=web_creator,default,mweb\" \
             -o \"output/%(title).170B [%(id)s] (%(resolution)s).%(ext)s\" {}";
-          # remove ,+vcodec:av01 from -S until youtube fixed it
           echo "Download command: $cmd";
           eval "$cmd"' ::: "${URLS[@]}" >> output/logs.txt 2>&1
 

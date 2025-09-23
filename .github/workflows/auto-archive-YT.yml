@@ -28,8 +28,7 @@ jobs:
       - name: Parse feed, check live & emit outputs
         id: check
         env:
-          FEED_URL: "https://www.youtube.com/feeds/videos.xml?channel_id=UC6eWCld0KwmyHFbAqK3V-Rw"
-          # FEED_URL: "https://www.youtube.com/feeds/videos.xml?channel_id=UCoiEtD4v1qMAqHV5MDI5Qpg" # 9arm
+          FEED_URL: "https://www.youtube.com/feeds/videos.xml?channel_id=UCoiEtD4v1qMAqHV5MDI5Qpg" # 9arm
           YT_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
         run: |
           python <<'EOF'
@@ -39,8 +38,7 @@ jobs:
 
           # 1) Parse feed for last xx minutes
           now    = datetime.now(timezone.utc)
-          # cutoff = now - timedelta(minutes=63)
-          cutoff = now - timedelta(minutes=300)
+          cutoff = now - timedelta(minutes=65)
           feed   = feedparser.parse(os.environ['FEED_URL'])
 
           recent = []

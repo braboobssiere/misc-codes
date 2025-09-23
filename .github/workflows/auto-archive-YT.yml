@@ -211,40 +211,32 @@ jobs:
             exit 14
           fi
 
-      - name: Upload Artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: downloaded-videos
-          path: output/
-          compression-level: 1
-          if-no-files-found: error
-
       - name: Upload to FTP
         run: |
           mkdir -p ftp_upload
           cd output
 
-          find . -type f $ -name "*.mp4" -o -name "*.mkv" -o -name "*.ts" -o -name "*.webm" $ \
+          find . -type f \( -name "*.mp4" -o -name "*.mkv" -o -name "*.ts" -o -name "*.webm" \) \
             -exec bash -c '
-                file="$0"
-                filename=$(basename -- "$file")
-                extension="${filename##*.}"
-                name_no_ext="${filename%.*}"
+              file="$1"
+              filename=$(basename -- "$file")
+              extension="${filename##*.}"
+              name_no_ext="${filename%.*}"
 
-                # Sanitize name
-                sanitized_name=$(printf "%s" "$name_no_ext" |
-                  tr -s "[:space:]" "_" |
-                  sed "s/[<>:\"\\|?*\/]/_/g" |
-                  tr -d "[:cntrl:]")
+              # Sanitize name
+              sanitized_name=$(printf "%s" "$name_no_ext" |
+                tr -s "[:space:]" "_" |
+                sed "s/[<>:\"\\|?*\/]/_/g" |
+                tr -d "[:cntrl:]")
 
-                # Fallback if empty
-                if [ -z "$sanitized_name" ]; then
-                  sanitized_name="video_$(date +%s)_$RANDOM"
-                fi
+              # Fallback if empty
+              if [ -z "$sanitized_name" ]; then
+                sanitized_name="video_$(date +%s)_$RANDOM"
+              fi
 
-                sanitized_filename="${sanitized_name}.${extension}"
-                cp -- "$file" "../ftp_upload/$sanitized_filename"
-            ' {} \;
+              sanitized_filename="${sanitized_name}.${extension}"
+              cp -- "$file" "../ftp_upload/$sanitized_filename"
+            ' _ {} \;
 
           cd ..
 

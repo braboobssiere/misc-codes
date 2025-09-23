@@ -10,12 +10,13 @@ on:
       vpn_location:
         description: 'Select VPN location or false'
         required: true
-        default: 'TradeWar'
+        default: 'TRADEWAR'
         type: choice
         options:
-          - 'TradeWar'
-          - 'GrandCentral'
-          - 'Shinkansen'
+          - 'TRADEWAR'
+          - 'GRANDCENTRAL'
+          - 'SHINKANSEN'
+          - 'SANOOK'
           - 'false'
       resolution:
         description: "Video resolution (default: 1080p)"
@@ -120,16 +121,18 @@ jobs:
       - name: VPN Setup
         if: ${{ github.event.inputs.vpn_location != 'false' }}
         env:
-          GrandCentral_CONFIG: ${{ secrets.WIREGUARD_GRANDCENTRAL }}
-          TradeWar_CONFIG: ${{ secrets.WIREGUARD_TRADEWAR }}
-          Shinkansen_CONFIG: ${{ secrets.WIREGUARD_Shinkansen }}
+          GRANDCENTRAL_CONFIG: ${{ secrets.WIREGUARD_GRANDCENTRAL }}
+          TRADEWAR_CONFIG: ${{ secrets.WIREGUARD_TRADEWAR }}
+          SHINKANSEN_CONFIG: ${{ secrets.WIREGUARD_SHINKANSEN }}
+          SANOOK_CONFIG: ${{ secrets.WIREGUARD_SANOOK }}
         run: |
           sudo mkdir -p /etc/wireguard/
           
           case "${{ github.event.inputs.vpn_location }}" in
-            GrandCentral) CONFIG_VAR="GrandCentral_CONFIG" ;;
-            Shinkansen) CONFIG_VAR="Shinkansen_CONFIG" ;;
-            TradeWar) CONFIG_VAR="TradeWar_CONFIG" ;;
+            GRANDCENTRAL) CONFIG_VAR="GRANDCENTRAL_CONFIG" ;;
+            SHINKANSEN) CONFIG_VAR="SHINKANSEN_CONFIG" ;;
+            TRADEWAR) CONFIG_VAR="TRADEWAR_CONFIG" ;;
+            SANOOK) CONFIG_VAR="SANOOK_CONFIG" ;;
             *)
               echo "::error::Invalid location selection"
               exit 11

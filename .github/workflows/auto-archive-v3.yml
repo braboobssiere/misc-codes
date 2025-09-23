@@ -273,7 +273,7 @@ jobs:
 
               # Sanitize name
               sanitized_name=$(printf "%s" "$name_no_ext" |
-                tr -s "[:space:]" "_" |
+                tr -s "[:space:]" " " |
                 sed "s/[<>:\"\\|?*\/]/_/g" |
                 tr -d "[:cntrl:]")
 

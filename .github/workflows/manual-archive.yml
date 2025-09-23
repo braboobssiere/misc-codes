@@ -254,9 +254,9 @@ jobs:
           mkdir -p ftp_upload
           cd output
 
-          find . -type f $ -name "*.mp4" -o -name "*.mkv" -o -name "*.ts" -o -name "*.webm" $ \
-            -exec bash -c '
-                file="$0"
+          find . -type f \( -name "*.mp4" -o -name "*.mkv" -o -name "*.ts" -o -name "*.webm" \) \
+          -exec bash -c '
+                file="$1"
                 filename=$(basename -- "$file")
                 extension="${filename##*.}"
                 name_no_ext="${filename%.*}"

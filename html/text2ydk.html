@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yu-Gi-Oh TCGPlayer Deck to YDK Converter</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        textarea {
+            width: 100%;
+            height: 200px;
+        }
+        button {
+            margin-top: 10px;
+        }
+    </style>
+    <script src="../lib/jszip.min.js"></script>
+</head>
+<body>
+    <h2>Yu-Gi-Oh TCGPlayer Deck to YDK Converter</h2>
+    <form id="converterForm">
+        <label for="fileInput">Select TCGPlayer text file(s):</label>
+        <input type="file" id="fileInput" accept=".txt" multiple>
+        <label for="textInput">Or paste it here:</label>
+        <br>
+        <textarea id="textInput" placeholder="Enter your deck content here..."></textarea>
+        <br>
+        <button type="submit">Convert to YDK</button>
+    </form>
+    <div id="downloadLinkContainer" style="display:none;">
+        <a id="downloadLink" href="#" download="deck.ydk">Download YDK File</a>
+    </div>
+    <div id="ydkeUrlContainer" style="display:none;">
+        <button id="copyUrlButton">Copy YDKE URL to Clipboard</button>
+        <pre id="ydkeUrl" style="display:inline-block; padding: 5px; background-color: #f4f4f4; border: 1px solid #ccc;"></pre>
+        <p id="copyFeedback" style="color: green; display: none;">YDKE URL copied!</p>
+    </div>
+    <div id="logDownloadContainer" style="display:none;">
+        <a id="logDownloadLink" href="#" download="error_log.txt">Download Error Log</a>
+    </div>
+    <script src="../js/text2ydk.js"></script>
+</body>
+</html>

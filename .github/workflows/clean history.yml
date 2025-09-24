@@ -1,0 +1,36 @@
+name: Clean Repository History
+
+on:
+  workflow_dispatch: # Allows manual triggering of the workflow
+
+permissions:
+  contents: write # Grant write access to the repository contents
+
+jobs:
+  clean-history:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Fetch all history for filter-branch to work
+
+      - name: Set up Git user
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+
+      - name: Determine and clean up current branch
+        run: |
+          CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+          git checkout --orphan latest_branch
+          git add -A
+          git commit -m "Add files via upload"
+          git branch -D "$CURRENT_BRANCH"
+          git branch -m "$CURRENT_BRANCH"
+          git push -f origin "$CURRENT_BRANCH"
+          git reflog expire --expire=now --all
+          git gc --prune=now --aggressive
+        env:
+          GITHUB_ENV: ${{ secrets.GITHUB_ENV }}

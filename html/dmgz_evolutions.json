@@ -1,0 +1,970 @@
+{
+  "Koromon": {
+    "evolutions": [
+      {
+        "to": "Baby Godzilla",
+        "conditions": [
+          {
+            "G-Cell": true,
+            "area7": "Any",
+            "mistake": "Any",
+            "color": "Any",
+            "battle": "Any"
+          },
+          {
+            "G-Cell": false,
+            "area7": "Any",
+            "mistake": "0-1",
+            "color": "b5-0",
+            "battle": "Any"
+          },
+          {
+            "G-Cell": false,
+            "area7": true,
+            "mistake": "2-4",
+            "color": "b10-0",
+            "battle": "Any"
+          },
+          {
+            "G-Cell": false,
+            "area7": false,
+            "mistake": "2-0",
+            "color": "b10-0",
+            "battle": "Any"
+          }
+        ]
+      },
+      {
+        "to": "Agumon",
+        "conditions": [
+          {
+            "G-Cell": false,
+            "area7": "Any",
+            "mistake": "0-1",
+            "color": "b0-4",
+            "battle": "Any"
+          },
+          {
+            "G-Cell": false,
+            "area7": true,
+            "mistake": "2-4",
+            "color": "b5-9",
+            "battle": "Any"
+          },
+          {
+            "G-Cell": false,
+            "area7": false,
+            "mistake": "2-0",
+            "color": "b0-9",
+            "battle": "Any"
+          }
+        ]
+      },
+      {
+        "to": "Monodramon",
+        "conditions": [
+          {
+            "G-Cell": false,
+            "area7": true,
+            "mistake": "2-4",
+            "color": "b0-4",
+            "battle": "Any"
+          },
+          {
+            "G-Cell": false,
+            "area7": true,
+            "mistake": "5-0",
+            "color": "Any",
+            "battle": "Any"
+          }
+        ]
+      }
+    ]
+  },
+  "Baby Godzilla": {
+    "evolutions": [
+      {
+        "to": "Godzillasaurus",
+        "conditions": [
+          {
+            "G-Cell": true,
+            "area7": "Any",
+            "mistake": "0-4",
+            "color": "Any",
+            "battle": true
+          },
+          {
+            "G-Cell": true,
+            "area7": "Any",
+            "mistake": "Any",
+            "color": "b0-13",
+            "battle": true
+          },
+          {
+            "G-Cell": false,
+            "area7": "Any",
+            "mistake": "0-1",
+            "color": "b0-13",
+            "battle": true
+          },
+          {
+            "G-Cell": false,
+            "area7": "Any",
+            "mistake": "2-4",
+            "color": "b14-0",
+            "battle": true
+          }
+        ]
+      },
+      {
+        "to": "Little Godzilla",
+        "conditions": [
+          {
+            "G-Cell": false,
+            "area7": "Any",
+            "mistake": "0-1",
+            "color": "b14-0",
+            "battle": true
+          }
+        ]
+      },
+      {
+        "to": "Biollante",
+        "conditions": [
+          {
+            "G-Cell": false,
+            "area7": true,
+            "mistake": "2-4",
+            "color": "b0-13",
+            "battle": true
+          },
+          {
+            "G-Cell": false,
+            "area7": true,
+            "mistake": "5-0",
+            "color": "b14-0",
+            "battle": true
+          },
+          {
+            "G-Cell": false,
+            "area7": false,
+            "mistake": "2-4",
+            "color": "b0-13",
+            "battle": true
+          },
+          {
+            "G-Cell": false,
+            "area7": false,
+            "mistake": "5-0",
+            "color": "Any",
+            "battle": true
+          }
+        ]
+      },
+      {
+        "to": "Mothra",
+        "conditions": [
+          {
+            "G-Cell": false,
+            "area7": true,
+            "mistake": "2-4",
+            "color": "b0-9",
+            "battle": true
+          }
+        ]
+      },
+      {
+        "to": "Rodan",
+        "conditions": [
+          {
+            "G-Cell": false,
+            "area7": true,
+            "mistake": "5-0",
+            "color": "b0-13",
+            "battle": true
+          }
+        ]
+      },
+      {
+        "to": "Chibi Godzilla/Mechagodzilla (50%)",
+        "conditions": [
+          {
+            "G-Cell": true,
+            "area7": "Any",
+            "mistake": "5-0",
+            "color": "b14-0",
+            "battle": true
+          }
+        ]
+      }
+    ]
+  },
+  "Agumon": {
+    "evolutions": [
+      {
+        "to": "Godzillasaurus",
+        "conditions": [
+          {
+            "G-Cell": "Any",
+            "area7": "Any",
+            "mistake": "0-1",
+            "color": "b14-0",
+            "battle": true
+          }
+        ]
+      },
+      {
+        "to": "Greymon",
+        "conditions": [
+          {
+            "G-Cell": "Any",
+            "area7": "Any",
+            "mistake": "0-1",
+            "color": "b0-13",
+            "battle": true
+          },
+          {
+            "G-Cell": "Any",
+            "area7": "Any",
+            "mistake": "2-4",
+            "color": "b14-0",
+            "battle": true
+          }
+        ]
+      },
+      {
+        "to": "Gigan",
+        "conditions": [
+          {
+            "G-Cell": "Any",
+            "area7": true,
+            "mistake": "2-4",
+            "color": "b0-9",
+            "battle": true
+          }
+        ]
+      },
+      {
+        "to": "Raremon",
+        "conditions": [
+          {
+            "G-Cell": "Any",
+            "area7": false,
+            "mistake": "2-4",
+            "color": "b0-13",
+            "battle": true
+          },
+          {
+            "G-Cell": "Any",
+            "area7": false,
+            "mistake": "5-0",
+            "color": "Any",
+            "battle": true
+          },
+          {
+            "G-Cell": "Any",
+            "area7": true,
+            "mistake": "2-4",
+            "color": "b0-13",
+            "battle": true
+          },
+          {
+            "G-Cell": "Any",
+            "area7": true,
+            "mistake": "5-0",
+            "color": "b14-0",
+            "battle": true
+          }
+        ]
+      },
+      {
+        "to": "Rodan",
+        "conditions": [
+          {
+            "G-Cell": "Any",
+            "area7": true,
+            "mistake": "5-0",
+            "color": "b0-13",
+            "battle": true
+          }
+        ]
+      }
+    ]
+  },
+  "Monodramon": {
+    "evolutions": [
+      {
+        "to": "Greymon",
+        "conditions": [
+          {
+            "G-Cell": "Any",
+            "area7": "Any",
+            "mistake": "0-1",
+            "color": "b14-0",
+            "battle": true
+          }
+        ]
+      },
+      {
+        "to": "Gigan",
+        "conditions": [
+          {
+            "G-Cell": "Any",
+            "area7": "Any",
+            "mistake": "0-1",
+            "color": "b0-13",
+            "battle": true
+          }
+        ]
+      },
+      {
+        "to": "King Ghidorah",
+        "conditions": [
+          {
+            "G-Cell": "Any",
+            "area7": "Any",
+            "mistake": "2-4",
+            "color": "b14-0",
+            "battle": true
+          }
+        ]
+      },
+      {
+        "to": "Rodan",
+        "conditions": [
+          {
+            "G-Cell": "Any",
+            "area7": "Any",
+            "mistake": "2-4",
+            "color": "b0-13",
+            "battle": true
+          }
+        ]
+      },
+      {
+        "to": "Raremon",
+        "conditions": [
+          {
+            "G-Cell": "Any",
+            "area7": "Any",
+            "mistake": "5-0",
+            "color": "b14-0",
+            "battle": true
+          }
+        ]
+      },
+      {
+        "to": "Mothra",
+        "conditions": [
+          {
+            "G-Cell": "Any",
+            "area7": "Any",
+            "mistake": "5-0",
+            "color": "b0-13",
+            "battle": true
+          }
+        ]
+      }
+    ]
+  },
+  "Little Godzilla": {
+    "evolutions": [
+      {
+        "to": "Godzilla Jr",
+        "conditions": [
+          {
+            "G-Cell": "Any",
+            "area7": "Any",
+            "mistake": "0-2",
+            "color": "y10-0",
+            "battle": true
+          }
+        ]
+      },
+      {
+        "to": "Kiryu",
+        "conditions": [
+          {
+            "G-Cell": "Any",
+            "area7": true,
+            "mistake": "0-2",
+            "color": "y0-9",
+            "battle": true
+          }
+        ]
+      },
+      {
+        "to": "Metal Greymon: G-Erosion Mode",
+        "conditions": [
+          {
+            "G-Cell": "Any",
+            "area7": false,
+            "mistake": "0-2",
+            "color": "y0-9",
+            "battle": true
+          },
+          {
+            "G-Cell": "Any",
+            "area7": "Any",
+            "mistake": "3-4",
+            "color": "y10-0",
+            "battle": true
+          }
+        ]
+      },
+      {
+        "to": "Zilla",
+        "conditions": [
+          {
+            "G-Cell": "Any",
+            "area7": "Any",
+            "mistake": "3-4",
+            "color": "y0-9",
+            "battle": true
+          }
+        ]
+      }
+    ]
+  },
+  "Greymon": {
+    "evolutions": [
+      {
+        "to": "Metal Greymon: G-Erosion Mode",
+        "conditions": [
+          {
+            "G-Cell": "Any",
+            "area7": "Any",
+            "mistake": "0-2",
+            "color": "y10-0",
+            "battle": true
+          }
+        ]
+      },
+      {
+        "to": "Metal Greymon (Vaccine)",
+        "conditions": [
+          {
+            "G-Cell": "Any",
+            "area7": "Any",
+            "mistake": "0-4",
+            "color": "y0-9",
+            "battle": true
+          }
+        ]
+      },
+      {
+        "to": "Skull Greymon: G-Erosion Mode",
+        "conditions": [
+          {
+            "G-Cell": "Any",
+            "area7": "Any",
+            "mistake": "3-4",
+            "color": "y10-0",
+            "battle": true
+          }
+        ]
+      }
+    ]
+  },
+  "Biollante": {
+    "evolutions": [
+      {
+        "to": "Space Godzilla",
+        "conditions": [
+          {
+            "G-Cell": "Any",
+            "area7": "Any",
+            "mistake": "0-2",
+            "color": "y10-0",
+            "battle": true
+          }
+        ]
+      },
+      {
+        "to": "Zilla",
+        "conditions": [
+          {
+            "G-Cell": "Any",
+            "area7": "Any",
+            "mistake": "0-2",
+            "color": "y0-9",
+            "battle": true
+          },
+          {
+            "G-Cell": "Any",
+            "area7": "Any",
+            "mistake": "3-4",
+            "color": "Any",
+            "battle": true
+          }
+        ]
+      }
+    ]
+  },
+  "Godzillasaurus": {
+    "evolutions": [
+      {
+        "to": "Godzilla Jr",
+        "conditions": [
+          {
+            "G-Cell": true,
+            "area7": "Any",
+            "mistake": "0-4",
+            "color": "Any",
+            "battle": true
+          },
+          {
+            "G-Cell": false,
+            "area7": "Any",
+            "mistake": "3-4",
+            "color": "y10-0",
+            "battle": true
+          }
+        ]
+      },
+      {
+        "to": "Godzilla (1954)",
+        "conditions": [
+          {
+            "G-Cell": false,
+            "area7": "Any",
+            "mistake": "0-2",
+            "color": "y10-0",
+            "battle": true
+          }
+        ]
+      },
+      {
+        "to": "Zilla",
+        "conditions": [
+          {
+            "G-Cell": false,
+            "area7": "Any",
+            "mistake": "0-2",
+            "color": "y0-9",
+            "battle": true
+          },
+          {
+            "G-Cell": false,
+            "area7": "Any",
+            "mistake": "3-4",
+            "color": "y0-9",
+            "battle": true
+          }
+        ]
+      }
+    ]
+  },
+  "Raremon": {
+    "evolutions": [
+      {
+        "to": "Skull Greymon: G-Erosion Mode",
+        "conditions": [
+          {
+            "G-Cell": "Any",
+            "area7": "Any",
+            "mistake": "0-2",
+            "color": "y10-0",
+            "battle": true
+          }
+        ]
+      },
+      {
+        "to": "Mecha-King Ghidorah",
+        "conditions": [
+          {
+            "G-Cell": "Any",
+            "area7": true,
+            "mistake": "0-2",
+            "color": "y0-9",
+            "battle": true
+          }
+        ]
+      }
+    ]
+  },
+  "Gigan": {
+    "evolutions": [
+      {
+        "to": "Kiryu",
+        "conditions": [
+          {
+            "G-Cell": "Any",
+            "area7": "Any",
+            "mistake": "0-2",
+            "color": "y10-0",
+            "battle": true
+          }
+        ]
+      },
+      {
+        "to": "Metal Greymon (Vaccine)",
+        "conditions": [
+          {
+            "G-Cell": "Any",
+            "area7": "Any",
+            "mistake": "0-2",
+            "color": "y0-9",
+            "battle": true
+          },
+          {
+            "G-Cell": "Any",
+            "area7": "Any",
+            "mistake": "3-4",
+            "color": "y10-0",
+            "battle": true
+          }
+        ]
+      }
+    ]
+  },
+  "Mothra": {
+    "evolutions": [
+      {
+        "to": "Space Godzilla",
+        "conditions": [
+          {
+            "G-Cell": "Any",
+            "area7": "Any",
+            "mistake": "0-2",
+            "color": "y10-0",
+            "battle": true
+          }
+        ]
+      },
+      {
+        "to": "Fire Rodan",
+        "conditions": [
+          {
+            "G-Cell": "Any",
+            "area7": "Any",
+            "mistake": "0-2",
+            "color": "y0-9",
+            "battle": true
+          },
+          {
+            "G-Cell": "Any",
+            "area7": "Any",
+            "mistake": "3-4",
+            "color": "y10-0",
+            "battle": true
+          }
+        ]
+      }
+    ]
+  },
+  "King Ghidorah": {
+    "evolutions": [
+      {
+        "to": "Mecha-King Ghidorah",
+        "conditions": [
+          {
+            "G-Cell": "Any",
+            "area7": "Any",
+            "mistake": "0-2",
+            "color": "y10-0",
+            "battle": true
+          }
+        ]
+      },
+      {
+        "to": "Fire Rodan",
+        "conditions": [
+          {
+            "G-Cell": "Any",
+            "area7": "Any",
+            "mistake": "0-2",
+            "color": "y0-9",
+            "battle": true
+          },
+          {
+            "G-Cell": "Any",
+            "area7": "Any",
+            "mistake": "3-4",
+            "color": "y10-0",
+            "battle": true
+          }
+        ]
+      }
+    ]
+  },
+  "Rodan": {
+    "evolutions": [
+      {
+        "to": "Fire Rodan",
+        "conditions": [
+          {
+            "G-Cell": "Any",
+            "area7": "Any",
+            "mistake": "0-2",
+            "color": "y10-0",
+            "battle": true
+          }
+        ]
+      },
+      {
+        "to": "Metal Greymon (Vaccine)",
+        "conditions": [
+          {
+            "G-Cell": "Any",
+            "area7": "Any",
+            "mistake": "0-2",
+            "color": "y0-9",
+            "battle": true
+          },
+          {
+            "G-Cell": "Any",
+            "area7": "Any",
+            "mistake": "3-4",
+            "color": "y10-0",
+            "battle": true
+          }
+        ]
+      }
+    ]
+  },
+  "Godzilla Jr": {
+    "evolutions": [
+      {
+        "to": "Godzilla (1994)",
+        "conditions": [
+          {
+            "G-Cell": true,
+            "area7": "Any",
+            "mistake": "0-4",
+            "color": "Any",
+            "battle": true
+          },
+          {
+            "G-Cell": false,
+            "area7": "Any",
+            "mistake": "0-2",
+            "color": "r10-0",
+            "battle": true
+          }
+        ]
+      },
+      {
+        "to": "Destoroyah",
+        "conditions": [
+          {
+            "G-Cell": false,
+            "area7": "Any",
+            "mistake": "0-2",
+            "color": "r0-9",
+            "battle": true
+          }
+        ]
+      }
+    ]
+  },
+  "Metal Greymon: G-Erosion Mode": {
+    "evolutions": [
+      {
+        "to": "War Greymon: G-Erosion Mode",
+        "conditions": [
+          {
+            "G-Cell": "Any",
+            "area7": "Any",
+            "mistake": "0-2",
+            "color": "r10-0",
+            "battle": true
+          }
+        ]
+      },
+      {
+        "to": "Godzilla (1999)",
+        "conditions": [
+          {
+            "G-Cell": "Any",
+            "area7": "Any",
+            "mistake": "0-2",
+            "color": "r0-9",
+            "battle": true
+          }
+        ]
+      }
+    ]
+  },
+  "Metal Greymon (Vaccine)": {
+    "evolutions": [
+      {
+        "to": "War Greymon: G-Erosion Mode",
+        "conditions": [
+          {
+            "G-Cell": "Any",
+            "area7": "Any",
+            "mistake": "0-1",
+            "color": "r10-0",
+            "battle": true
+          }
+        ]
+      },
+      {
+        "to": "War Greymon",
+        "conditions": [
+          {
+            "G-Cell": "Any",
+            "area7": "Any",
+            "mistake": "0-1",
+            "color": "r0-9",
+            "battle": true
+          },
+          {
+            "G-Cell": "Any",
+            "area7": "Any",
+            "mistake": "2-3",
+            "color": "Any",
+            "battle": true
+          }
+        ]
+      }
+    ]
+  },
+  "Space Godzilla": {
+    "evolutions": [
+      {
+        "to": "Godzilla (1994)",
+        "conditions": [
+          {
+            "G-Cell": "Any",
+            "area7": "Any",
+            "mistake": "0-1",
+            "color": "r10-0",
+            "battle": true
+          }
+        ]
+      },
+      {
+        "to": "Destoroyah",
+        "conditions": [
+          {
+            "G-Cell": "Any",
+            "area7": "Any",
+            "mistake": "0-1",
+            "color": "r0-9",
+            "battle": true
+          },
+          {
+            "G-Cell": "Any",
+            "area7": "Any",
+            "mistake": "2-3",
+            "color": "Any",
+            "battle": true
+          }
+        ]
+      }
+    ]
+  },
+  "Godzilla (1954)": {
+    "evolutions": [
+      {
+        "to": "Godzilla (1999)",
+        "conditions": [
+          {
+            "G-Cell": "Any",
+            "area7": "Any",
+            "mistake": "0-2",
+            "color": "r10-0",
+            "battle": true
+          }
+        ]
+      },
+      {
+        "to": "War Greymon: G-Erosion Mode",
+        "conditions": [
+          {
+            "G-Cell": "Any",
+            "area7": "Any",
+            "mistake": "0-2",
+            "color": "r0-9",
+            "battle": true
+          }
+        ]
+      }
+    ]
+  },
+  "Skull Greymon: G-Erosion Mode": {
+    "evolutions": [
+      {
+        "to": "Mugendramon: MFS-3",
+        "conditions": [
+          {
+            "G-Cell": "Any",
+            "area7": "Any",
+            "mistake": "0-2",
+            "color": "r10-0",
+            "battle": true
+          }
+        ]
+      }
+    ]
+  },
+  "Kiryu": {
+    "evolutions": [
+      {
+        "to": "Mugendramon: MFS-3",
+        "conditions": [
+          {
+            "G-Cell": "Any",
+            "area7": "Any",
+            "mistake": "0-1",
+            "color": "r10-0",
+            "battle": true
+          }
+        ]
+      },
+      {
+        "to": "Mechagodzilla",
+        "conditions": [
+          {
+            "G-Cell": "Any",
+            "area7": "Any",
+            "mistake": "0-1",
+            "color": "r0-9",
+            "battle": true
+          },
+          {
+            "G-Cell": "Any",
+            "area7": "Any",
+            "mistake": "2-3",
+            "color": "Any",
+            "battle": true
+          }
+        ]
+      }
+    ]
+  },
+  "Mecha-King Ghidorah": {
+    "evolutions": [
+      {
+        "to": "Mechagodzilla",
+        "conditions": [
+          {
+            "G-Cell": "Any",
+            "area7": "Any",
+            "mistake": "0-2",
+            "color": "Any",
+            "battle": true
+          }
+        ]
+      }
+    ]
+  },
+  "Godzilla (1994)": {
+    "evolutions": [
+      {
+        "to": "Burning Godzilla",
+        "conditions": [
+          {
+            "G-Cell": true,
+            "area7": "Any",
+            "mistake": "0-2",
+            "color": "Any",
+            "battle": true
+          }
+        ]
+      }
+    ]
+  }
+}

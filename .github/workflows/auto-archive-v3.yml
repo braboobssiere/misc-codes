@@ -51,7 +51,7 @@ jobs:
               
               title = entry.get('title', '')
 
-              if 'unarchive' not in title.lower() and 'no archive' not in title.lower() 
+              if 'unarchive' not in title.lower() and 'no archive' not in title.lower() \
               and 'アーカイブなし' not in title and 'はメン' not in title and 'バーストスト' not in title:
                   continue
 

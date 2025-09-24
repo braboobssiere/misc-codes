@@ -69,15 +69,6 @@ stripe as 3rd party
  _ stripe.network frame allow
  _ stripe.network script allow
 
-streamwish new domain
- * streamwish.com
- no-workers: _ false
- _ 1st-party cookie allow
- _ 1st-party script allow
- _ streamwish.com script allow
- _ sw-cdn-images.com image allow
- _ sw-cdnstream.com xhr allow
-
 disqus as 3rd party
  * disqus.com
  _ 1st-party script allow
@@ -119,24 +110,6 @@ BreezeWiki as 3rd party
  * fandom.com
  _ fandom.com css allow
  _ static.wikia.nocookie.net image allow
-
-! youtube embed indivious
-! * youtube.com
-! _ googlevideo.com media allow
-! _ vid.puffyan.us css allow
-! _ vid.puffyan.us frame allow
-! _ vid.puffyan.us image allow
-! _ vid.puffyan.us media allow
-! _ youtube.com frame allow
-
-! youtube embed indivious
-! * youtube-nocookie.com
-! _ googlevideo.com media allow
-! _ vid.puffyan.us css allow
-! _ vid.puffyan.us frame allow
-! _ vid.puffyan.us image allow
-! _ vid.puffyan.us media allow
-! _ youtube-nocookie.com frame allow
 
 vidguard video
 * guardstorage.net

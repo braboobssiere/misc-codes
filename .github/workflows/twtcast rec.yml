@@ -17,10 +17,6 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y wireguard-tools
-    
-      - name: Prepare working directory
-        run: |
-          mkdir -p download
 
       - name: Determine channel id
         id: get_id
@@ -76,7 +72,7 @@ jobs:
             echo "::error::VPN connection verification failed"
             exit 12
           fi
-
+          
       - name: Run TwitCasting recorder container
         env:
           CHANNEL_ID: ${{ steps.get_id.outputs.channel_id }}
@@ -84,19 +80,21 @@ jobs:
           if [[ -z "$CHANNEL_ID" ]]; then
             exit 1
           fi
-          docker run --rm -v ".:/download" ghcr.io/jim60105/twitcasting-recorder "$CHANNEL_ID" once
+          TMPDIR="$(mktemp -d)"
+          echo "HOST_MOUNT=$TMPDIR" >> $GITHUB_ENV
+          docker run --rm -v "$TMPDIR:/download" ghcr.io/jim60105/twitcasting-recorder "$CHANNEL_ID" once
 
       - name: VPN Cleanup
         if: ${{ always() }}
         run: sudo wg-quick down wg0 || true
-
+        
       - name: List download directory
         run: |
-          ls -al download || true
+          ls -al "${{ env.HOST_MOUNT }}" || true
 
       - name: Upload download artifact
         if: ${{ always() }}
         uses: actions/upload-artifact@v4
         with:
           name: twitcasting-download
-          path: download/
+          path: ${{ env.HOST_MOUNT }}/

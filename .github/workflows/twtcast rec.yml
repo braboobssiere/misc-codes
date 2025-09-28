@@ -84,7 +84,7 @@ jobs:
           if [[ -z "$CHANNEL_ID" ]]; then
             exit 1
           fi
-          docker run --rm -v "${{ github.workspace }}:/download" ghcr.io/jim60105/twitcasting-recorder "$CHANNEL_ID" once
+          docker run --rm -v ".:/download" ghcr.io/jim60105/twitcasting-recorder "$CHANNEL_ID" once
 
       - name: VPN Cleanup
         if: ${{ always() }}

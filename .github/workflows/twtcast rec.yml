@@ -1,0 +1,102 @@
+name: TwitCasting Recorder
+
+on:
+  workflow_dispatch:
+    inputs:
+      source:
+        description: 'TwitCasting channel URL or channel id'
+        required: true
+        default: ''
+
+jobs:
+  record:
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: Setup Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y wireguard-tools
+    
+      - name: Prepare working directory
+        run: |
+          mkdir -p download
+
+      - name: Determine channel id
+        id: get_id
+        shell: bash
+        run: |
+          src="${{ github.event.inputs.source }}"
+          src="$(echo -n "$src" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
+          if [[ -z "$src" ]]; then
+            echo "error=No source provided" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+          if [[ "$src" =~ ^https?://([^/]+)/([^/]+)/?.* ]]; then
+            id="${BASH_REMATCH[2]}"
+          else
+            id="$src"
+          fi
+          echo "channel_id=$id" >> $GITHUB_OUTPUT
+
+      - name: VPN Setup 
+        env: 
+          PRIMARY_CONFIG: ${{ secrets.WIREGUARD_TRADEWAR }}
+          SECONDARY_CONFIG: ${{ secrets.WIREGUARD_HARVARD }}
+        run: |
+          sudo mkdir -p /etc/wireguard/
+          WG_CONF="/etc/wireguard/wg0.conf"
+
+          handle_vpn_attempt() {
+            local config_content="$1"
+            local label="$2"
+            
+            echo "$config_content" | sudo tee $WG_CONF > /dev/null
+            sudo chmod 600 $WG_CONF
+
+            for i in {1..3}; do
+              if timeout 60 sudo wg-quick up wg0; then
+                return 0
+              fi
+              echo "${label^} VPN attempt $i/3 failed"
+              sleep 3
+            done
+            return 1
+          }
+
+          if ! handle_vpn_attempt "$PRIMARY_CONFIG" "primary"; then
+            echo "::warning::Primary failed - Trying secondary"
+            if ! handle_vpn_attempt "$SECONDARY_CONFIG" "secondary"; then
+              echo "::error::All VPN configurations failed after 3 attempts each"
+              exit 11
+            fi
+          fi
+
+          if ! sudo wg show wg0 >/dev/null 2>&1; then
+            echo "::error::VPN connection verification failed"
+            exit 12
+          fi
+
+      - name: Run TwitCasting recorder container
+        env:
+          CHANNEL_ID: ${{ steps.get_id.outputs.channel_id }}
+        run: |
+          if [[ -z "$CHANNEL_ID" ]]; then
+            exit 1
+          fi
+          docker run --rm -v "${{ github.workspace }}:/download" ghcr.io/jim60105/twitcasting-recorder "$CHANNEL_ID" once
+
+      - name: VPN Cleanup
+        if: ${{ always() }}
+        run: sudo wg-quick down wg0 || true
+
+      - name: List download directory
+        run: |
+          ls -al download || true
+
+      - name: Upload download artifact
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: twitcasting-download
+          path: download/

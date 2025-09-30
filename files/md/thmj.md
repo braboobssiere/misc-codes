@@ -40,21 +40,50 @@
 <details>
 <summary>Ability Gauge Mechanics</summary>
 
-**The ability gauge increases under these conditions:**
-- When drawing a tile from the wall (including initial deal and kan/nukidora)
-- When losing points (both ron and tsumo)
+<p><strong>The ability gauge increases under these conditions:</strong></p>
+<ul>
+  <li>When drawing a tile from the wall (including initial deal and kan/nukidora)</li>
+  <li>When losing points (both ron and tsumo)</li>
+</ul>
 
-**Gauge charging speed:**
-- Faster for lower-ranked players
+<p><strong>Gauge charging speed:</strong></p>
+<ul>
+  <li>Faster for lower-ranked players</li>
+</ul>
 
-**Charge Rate Reference:**
-| Value | Speed Level         | Example/Behavior                          |
-|-------|---------------------|-------------------------------------------|
-| 1.0   | Slowest            | (e.g., Byakuren Hijiri)          |
-| 1.6   | Very Slow          | Fails to fill 1 stock by East 1 exhaustive draw (0 honba) |
-| 2.0   | Moderate           | 1 stock = Initial deal + 13 tile draws   |
-| 2.4   | Fast               | 1 stock = Initial deal + 8 tile draws    |
-| 3.0   | Fastest            | (e.g., Aya Shameimaru)         |
+<p><strong>Charge Rate Reference:</strong></p>
+<table>
+  <tr>
+    <th>Value</th>
+    <th>Speed Level</th>
+    <th>Example/Behavior</th>
+  </tr>
+  <tr>
+    <td>1.0</td>
+    <td>Slowest</td>
+    <td>e.g. Byakuren Hijiri</td>
+  </tr>
+  <tr>
+    <td>1.6</td>
+    <td>Very Slow</td>
+    <td>Fails to fill 1 stock by East 1 exhaustive draw (0 honba)</td>
+  </tr>
+  <tr>
+    <td>2.0</td>
+    <td>Moderate</td>
+    <td>1 stock = Initial deal + 13 tile draws</td>
+  </tr>
+  <tr>
+    <td>2.4</td>
+    <td>Fast</td>
+    <td>1 stock = Initial deal + 8 tile draws</td>
+  </tr>
+  <tr>
+    <td>3.0</td>
+    <td>Fastest</td>
+    <td>e.g. Aya Shameimaru</td>
+  </tr>
+</table>
 </details>
 
 This page classifies the special abilities found in Touhou Gensou Mahjong for Nintendo Switch. The classification is based on the one found on the Touhou Gensou Mahjong 3G wiki, and also references [this wiki](https://w.atwiki.jp/gensoumahjongswitch/pages/19.html).

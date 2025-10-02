@@ -25,7 +25,7 @@ jobs:
       - name: Cache APT packages
         uses: awalsh128/cache-apt-pkgs-action@latest
         with:
-          packages: wireguard-tools lftp caffeine
+          packages: wireguard-tools lftp
           version: ${{ steps.monthly-key.outputs.month }}
 
       - name: Maximize space
@@ -36,7 +36,7 @@ jobs:
       - name: Install Dependency 
         run: |
           sudo apt-get update
-          sudo apt-get install -y wireguard-tools lftp caffeine
+          sudo apt-get install -y wireguard-tools lftp
           sudo npm install webtorrent-cli -g
 
       - name: VPN Setup 
@@ -124,7 +124,9 @@ jobs:
 
           # Check if any files were moved to ftp_upload
           if [ -n "$(find ftp_upload -type f -print -quit)" ]; then
-            caffeine &
+            ( while true; do printf '.'; sleep 30; done ) &
+            KEEPALIVE_PID=$!
+            trap 'kill $KEEPALIVE_PID' EXIT
             # 3️⃣ Upload each file directly to FTP root (no dir creation)
             lftp -u ${{ secrets.FTP_LOGIN }} -e "set ssl:verify-certificate false; set cache:size 524288000; mput -P 1 -c ftp_upload/*; bye"
           else

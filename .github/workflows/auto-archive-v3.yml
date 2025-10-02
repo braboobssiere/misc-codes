@@ -86,7 +86,7 @@ jobs:
       - name: Cache APT packages
         uses: awalsh128/cache-apt-pkgs-action@latest
         with:
-          packages: ffmpeg wireguard-tools lftp caffeine
+          packages: ffmpeg wireguard-tools lftp
           version: ${{ steps.weekly-key.outputs.week }}
 
       - name: Prepare bgutil
@@ -104,7 +104,7 @@ jobs:
       - name: Setup Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y ffmpeg wireguard-tools lftp caffeine
+          sudo apt-get install -y ffmpeg wireguard-tools lftp
           echo -e "yt-dlp[default,curl-cffi]\nbgutil-ytdlp-pot-provider" > requirements.txt
           
       - name: Cache pip packages
@@ -264,7 +264,9 @@ jobs:
             -exec mv -- {} ftp_upload/ \;
           if [ "$(ls -A ftp_upload)" ]; then
                 # keep runner awake
-                caffeine &
+                ( while true; do printf '.'; sleep 30; done ) &
+                KEEPALIVE_PID=$!
+                trap 'kill $KEEPALIVE_PID' EXIT
                 lftp -u ${{ secrets.FTP_LOGIN }} -e "
                         set ssl:verify-certificate false;
                         set cache:size 524288000;

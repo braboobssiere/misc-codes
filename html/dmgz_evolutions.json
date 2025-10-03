@@ -962,7 +962,22 @@
         ]
       }
     ]
+  },
+  "Godzilla (1994)": {
+    "evolutions": [
+      {
+        "to": "Burning Godzilla",
+        "conditions": [
+          {
+            "G-Cell": true,
+            "area7": "Any",
+            "mistake": "0-2",
+            "color": "Any",
+            "battle": true
+          }
+        ]
+      }
+    ]
   }
 
 }
-

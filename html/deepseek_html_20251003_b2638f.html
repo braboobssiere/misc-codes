@@ -29,7 +29,6 @@ button { padding:6px 8px; font-size:14px; }
 .owned-checkboxes { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px; }
 .owned-checkbox { display: flex; align-items: center; gap: 6px; }
 .owned-checkbox input { margin: 0; }
-.owned-actions { display: flex; gap: 8px; margin-top: 12px; }
 .owned-count { font-size: 12px; color: #666; margin-left: auto; }
 .toggle-icon { transition: transform 0.2s; }
 .toggle-icon.rotated { transform: rotate(90deg); }
@@ -65,11 +64,6 @@ button { padding:6px 8px; font-size:14px; }
     <div class="owned-container" id="ownedContainer">
       <div class="owned-checkboxes" id="ownedCheckboxes">
         <!-- Checkboxes will be populated by JavaScript -->
-      </div>
-      <div class="owned-actions">
-        <button id="selectAllBtn">Select All</button>
-        <button id="deselectAllBtn">Deselect All</button>
-        <button id="saveOwnedBtn">Save</button>
       </div>
     </div>
   </div>
@@ -108,29 +102,17 @@ button { padding:6px 8px; font-size:14px; }
     return;
   }
 
-  // Cookie functions
-  function setCookie(name, value, days = 365) {
-    const d = new Date();
-    d.setTime(d.getTime() + (days * 24 * 60 * 60 * 1000));
-    const expires = "expires=" + d.toUTCString();
-    document.cookie = name + "=" + JSON.stringify(value) + ";" + expires + ";path=/";
+  // localStorage functions
+  function setStorage(key, value) {
+    localStorage.setItem(key, JSON.stringify(value));
   }
 
-  function getCookie(name) {
-    const nameEQ = name + "=";
-    const ca = document.cookie.split(';');
-    for(let i = 0; i < ca.length; i++) {
-      let c = ca[i];
-      while (c.charAt(0) === ' ') c = c.substring(1, c.length);
-      if (c.indexOf(nameEQ) === 0) {
-        try {
-          return JSON.parse(c.substring(nameEQ.length, c.length));
-        } catch (e) {
-          return null;
-        }
-      }
+  function getStorage(key) {
+    try {
+      return JSON.parse(localStorage.getItem(key));
+    } catch (e) {
+      return null;
     }
-    return null;
   }
 
   // Get all unique Digimon names from both base forms and evolution targets
@@ -157,11 +139,11 @@ button { padding:6px 8px; font-size:14px; }
 
   // Owned Digimon functions
   function loadOwnedDigimon() {
-    return getCookie('dmgz_owned') || {};
+    return getStorage('dmgz_owned') || {};
   }
 
   function saveOwnedDigimon(owned) {
-    setCookie('dmgz_owned', owned);
+    setStorage('dmgz_owned', owned);
   }
 
   function updateOwnedCount() {
@@ -187,7 +169,7 @@ button { padding:6px 8px; font-size:14px; }
       container.appendChild(checkbox);
     });
     
-    // Add event listeners to checkboxes
+    // Add event listeners to checkboxes - auto-save on change
     container.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
       checkbox.addEventListener('change', function() {
         const owned = loadOwnedDigimon();
@@ -219,9 +201,6 @@ button { padding:6px 8px; font-size:14px; }
   const ownedHeader = document.getElementById('ownedHeader');
   const ownedContainer = document.getElementById('ownedContainer');
   const toggleIcon = ownedHeader.querySelector('.toggle-icon');
-  const selectAllBtn = document.getElementById('selectAllBtn');
-  const deselectAllBtn = document.getElementById('deselectAllBtn');
-  const saveOwnedBtn = document.getElementById('saveOwnedBtn');
 
   function readChoice(name) {
     const radios = document.getElementsByName(name);
@@ -372,59 +351,22 @@ button { padding:6px 8px; font-size:14px; }
   ownedHeader.addEventListener('click', () => {
     ownedContainer.classList.toggle('expanded');
     toggleIcon.classList.toggle('rotated');
-  });
-
-  selectAllBtn.addEventListener('click', () => {
-    document.querySelectorAll('#ownedCheckboxes input[type="checkbox"]').forEach(checkbox => {
-      checkbox.checked = true;
-    });
-    // Save immediately
-    const owned = {};
-    document.querySelectorAll('#ownedCheckboxes input[type="checkbox"]').forEach(checkbox => {
-      owned[checkbox.dataset.name] = true;
-    });
-    saveOwnedDigimon(owned);
-    updateOwnedCount();
-  });
-
-  deselectAllBtn.addEventListener('click', () => {
-    document.querySelectorAll('#ownedCheckboxes input[type="checkbox"]').forEach(checkbox => {
-      checkbox.checked = false;
-    });
-    // Save immediately
-    saveOwnedDigimon({});
-    updateOwnedCount();
-  });
-
-  saveOwnedBtn.addEventListener('click', () => {
-    const owned = {};
-    document.querySelectorAll('#ownedCheckboxes input[type="checkbox"]').forEach(checkbox => {
-      owned[checkbox.dataset.name] = checkbox.checked;
-    });
-    saveOwnedDigimon(owned);
-    updateOwnedCount();
-    alert('Owned Digimon saved!');
+    
+    // Save collapse state to localStorage
+    const isExpanded = ownedContainer.classList.contains('expanded');
+    setStorage('dmgz_owned_collapsed', isExpanded);
   });
 
   // Initialize the page
   populateStartAndTargets();
   populateOwnedCheckboxes();
   
-  // Load collapse state from cookie
-  const collapsedState = getCookie('dmgz_owned_collapsed');
-  if (collapsedState !== 'false') {
-    ownedContainer.classList.remove('expanded');
-    toggleIcon.classList.remove('rotated');
-  } else {
+  // Load collapse state from localStorage
+  const collapsedState = getStorage('dmgz_owned_collapsed');
+  if (collapsedState) {
     ownedContainer.classList.add('expanded');
     toggleIcon.classList.add('rotated');
   }
-
-  // Save collapse state when toggled
-  ownedHeader.addEventListener('click', () => {
-    const isExpanded = ownedContainer.classList.contains('expanded');
-    setCookie('dmgz_owned_collapsed', !isExpanded);
-  });
 
   if(startSelect.options.length===2){ startSelect.selectedIndex=1; startSelect.dispatchEvent(new Event('change')); }
 })();

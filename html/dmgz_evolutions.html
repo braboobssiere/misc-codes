@@ -19,6 +19,22 @@ button { padding:6px 8px; font-size:14px; }
 .small { font-size:13px; color:#555; }
 .muted { color:#666; font-size:13px; }
 .chip { padding:6px 8px; border-radius:999px; background:#eef3ff; color:#133; display:inline-block; margin-right:6px; font-weight:600; }
+
+/* Owned Digimon styles */
+.owned-section { margin-bottom: 12px; }
+.owned-header { cursor: pointer; padding: 8px 12px; background: #eef3ff; border-radius: 6px; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; }
+.owned-header:hover { background: #e0e7ff; }
+.owned-container { display: none; max-height: 300px; overflow-y: auto; border: 1px solid #e1e4e8; border-radius: 6px; padding: 12px; background: #fafbfc; }
+.owned-container.expanded { display: block; }
+.owned-checkboxes { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px; }
+.owned-checkbox { display: flex; align-items: center; gap: 6px; }
+.owned-checkbox input { margin: 0; }
+.owned-checkbox label { display: flex; align-items: center; gap: 6px; cursor: pointer; }
+.digimon-image { width: 36px; height: 36px; object-fit: contain; }
+.owned-count { font-size: 12px; color: #666; margin-left: auto; }
+.toggle-icon { transition: transform 0.2s; }
+.toggle-icon.rotated { transform: rotate(90deg); }
+.owned-note { margin-top: 10px; padding: 8px; background: #f0f7ff; border-radius: 4px; font-size: 12px; color: #555; border-left: 3px solid #4a90e2; }
 </style>
 </head>
 <body>
@@ -39,6 +55,22 @@ button { padding:6px 8px; font-size:14px; }
 
     <div style="margin-left:auto;">
       <button id="refreshBtn">Refresh lists</button>
+    </div>
+  </div>
+
+  <!-- New Owned Digimon Section -->
+  <div class="control owned-section">
+    <div class="owned-header" id="ownedHeader">
+      <span>Owned Digimon <span id="ownedCount" class="owned-count">(0 owned)</span></span>
+      <span class="toggle-icon">▶</span>
+    </div>
+    <div class="owned-container" id="ownedContainer">
+      <div class="owned-checkboxes" id="ownedCheckboxes">
+        <!-- Checkboxes will be populated by JavaScript -->
+      </div>
+      <div class="owned-note">
+        In Random mode, "?" indicates a Digimon you own.
+      </div>
     </div>
   </div>
 
@@ -76,6 +108,132 @@ button { padding:6px 8px; font-size:14px; }
     return;
   }
 
+  // Digimon name to image filename mapping
+  function getImageFilename(digimonName) {
+    const mapping = {
+      "Agumon": "agu_animated.gif",
+      "Baby Godzilla": "babygodzilla_animated.gif",
+      "Biollante": "biollante_animated.gif",
+      "Burning Godzilla": "burninggodzilla_animated.gif",
+      "Chibi Godzilla": "chibigodzilla_animated.gif",
+      "Chibi Mechagodzilla": "chibimechagodzilla_animated.gif",
+      "Destoroyah": "destoroyah_animated.gif",
+      "Fire Rodan": "firerodan_animated.gif",
+      "Gigan": "gigan_animated.gif",
+      "Godzilla (1954)": "godzilla_1954_animated.gif",
+      "Godzilla (1994)": "godzilla_1994_animated.gif",
+      "Godzilla (1999)": "godzilla_1999_animated.gif",
+      "Godzilla Jr": "godzillajr_animated.gif",
+      "Godzillasaurus": "godzillasaurus_animated.gif",
+      "Greymon": "grey_animated.gif",
+      "King Ghidorah": "kingghidorah_animated.gif",
+      "Kiryu": "kiryu_animated.gif",
+      "Koromon": "koro_animated.gif",
+      "Little Godzilla": "littlegodzilla_animated.gif",
+      "Mecha-King Ghidorah": "mechakingghidorah_animated.gif",
+      "Mechagodzilla": "mechagodzilla_animated.gif",
+      "Metal Greymon (Vaccine)": "metalgrey_va_animated.gif",
+      "Metal Greymon: G-Erosion Mode": "metalgrey_g_animated.gif",
+      "Monodramon": "monodra_animated.gif",
+      "Mothra": "mothra_animated.gif",
+      "Mugendramon: MFS-3": "mugendra_m_animated.gif",
+      "Raremon": "rare_animated.gif",
+      "Rodan": "rodan_animated.gif",
+      "Skull Greymon: G-Erosion Mode": "skullgrey_g_animated.gif",
+      "Space Godzilla": "spacegodzilla_animated.gif",
+      "War Greymon": "wargrey_animated.gif",
+      "War Greymon: G-Erosion Mode": "wargrey_g_animated.gif",
+      "Zilla": "zilla_animated.gif"
+    };
+    return mapping[digimonName] || 'bota_animated.gif';
+  }
+
+  // localStorage functions
+  function setStorage(key, value) {
+    localStorage.setItem(key, JSON.stringify(value));
+  }
+
+  function getStorage(key) {
+    try {
+      return JSON.parse(localStorage.getItem(key));
+    } catch (e) {
+      return null;
+    }
+  }
+
+  // Get all unique Digimon names from both base forms and evolution targets
+  function getAllDigimonNames() {
+    const allNames = new Set();
+    
+    // Add all base Digimon (keys in the data object)
+    Object.keys(data).forEach(name => {
+      allNames.add(name);
+    });
+    
+    // Add all evolution targets
+    Object.values(data).forEach(digimonData => {
+      if (digimonData.evolutions) {
+        digimonData.evolutions.forEach(evolution => {
+          allNames.add(evolution.to);
+        });
+      }
+    });
+    
+    // Convert to array
+    return Array.from(allNames);
+  }
+
+  // Owned Digimon functions
+  function loadOwnedDigimon() {
+    return getStorage('dmgz_owned') || {};
+  }
+
+  function saveOwnedDigimon(owned) {
+    setStorage('dmgz_owned', owned);
+  }
+
+  function updateOwnedCount() {
+    const owned = loadOwnedDigimon();
+    const count = Object.values(owned).filter(v => v).length;
+    document.getElementById('ownedCount').textContent = `(${count} owned)`;
+  }
+
+  function populateOwnedCheckboxes() {
+    const owned = loadOwnedDigimon();
+    const container = document.getElementById('ownedCheckboxes');
+    container.innerHTML = '';
+    
+    const allDigimonNames = getAllDigimonNames();
+    
+    allDigimonNames.forEach(name => {
+      const checkbox = document.createElement('div');
+      checkbox.className = 'owned-checkbox';
+      const imageFilename = getImageFilename(name);
+      const imagePath = `../image/DMGZ/${imageFilename}`;
+      
+      checkbox.innerHTML = `
+        <input type="checkbox" id="owned_${name}" data-name="${name}" ${owned[name] ? 'checked' : ''}>
+        <label for="owned_${name}">
+          <img src="${imagePath}" alt="${name}" class="digimon-image" onerror="this.style.display='none'">
+          ${name}
+        </label>
+      `;
+      container.appendChild(checkbox);
+    });
+    
+    // Add event listeners to checkboxes - auto-save on change
+    container.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+      checkbox.addEventListener('change', function() {
+        const owned = loadOwnedDigimon();
+        owned[this.dataset.name] = this.checked;
+        saveOwnedDigimon(owned);
+        updateOwnedCount();
+      });
+    });
+    
+    updateOwnedCount();
+  }
+
   function allowedValuesFromChoice(choice) { return choice === 'yes' ? [true, 'Any'] : [false, 'Any']; }
   function condMatchesGArea(cond, allowedG, allowedA) {
     const g = cond['G-Cell'], a = cond['area7'];
@@ -90,6 +248,11 @@ button { padding:6px 8px; font-size:14px; }
   const showBtn = document.getElementById('showPaths');
   const pathsEl = document.getElementById('paths');
   const summaryEl = document.getElementById('summary');
+
+  // Owned Digimon elements
+  const ownedHeader = document.getElementById('ownedHeader');
+  const ownedContainer = document.getElementById('ownedContainer');
+  const toggleIcon = ownedHeader.querySelector('.toggle-icon');
 
   function readChoice(name) {
     const radios = document.getElementsByName(name);
@@ -214,17 +377,30 @@ button { padding:6px 8px; font-size:14px; }
         }
     }
     
+    // Get owned Digimon for masking logic
+    const ownedDigimon = loadOwnedDigimon();
+    
     pathsEl.innerHTML='';
     const summaryDiv=document.createElement('div'); summaryDiv.textContent=`Start: ${start}, Target: ${isRandom?'Random (masked)':chosenTarget}, Paths found: ${allPaths.length}`; summaryDiv.style.marginBottom='12px'; pathsEl.appendChild(summaryDiv);
 
     allPaths.forEach((path,idx)=>{
       const pathDiv=document.createElement('div'); pathDiv.style.marginBottom='16px'; pathDiv.style.padding='8px'; pathDiv.style.border='1px solid #ddd'; pathDiv.style.borderRadius='8px'; pathDiv.style.background='#fafafa';
       const speciesLine=[start,...path.map(step=>step.to)];
-      const displaySpecies=speciesLine.map((s,i)=>isRandom&&i!==0?'???':s);
+      
+      // For random mode, show "?" for owned Digimon, "???" for unowned
+      const displaySpecies=speciesLine.map((s,i)=>{
+        if(!isRandom || i === 0) return s; // Don't mask the start
+        return ownedDigimon[s] ? '?' : '???';
+      });
+      
       let pathText=`Path ${idx+1}: ${displaySpecies.join(' -> ')}\n`;
       path.forEach((step,i)=>{
+        // For step details, also use "?" for owned Digimon in random mode
+        const fromDisplay = isRandom ? (ownedDigimon[step.from] ? '?' : '???') : step.from;
+        const toDisplay = isRandom ? (ownedDigimon[step.to] ? '?' : '???') : step.to;
+        
         const matches=matchingConditionsForEdge(step.evo,allowedG,allowedA);
-        pathText+=`\n  Step ${i+1}: ${isRandom?'???':step.from} -> ${isRandom?'???':step.to}\n`;
+        pathText+=`\n  Step ${i+1}: ${fromDisplay} -> ${toDisplay}\n`;
         if(matches.length===0) pathText+='    (No specific conditions to show)\n';
         else matches.forEach(m=>{ const text=m.text||'(no special conditions)'; pathText+=`    - ${text}\n`; });
       });
@@ -236,10 +412,29 @@ button { padding:6px 8px; font-size:14px; }
     });
   });
 
+  // Owned Digimon event listeners
+  ownedHeader.addEventListener('click', () => {
+    ownedContainer.classList.toggle('expanded');
+    toggleIcon.classList.toggle('rotated');
+    
+    // Save collapse state to localStorage
+    const isExpanded = ownedContainer.classList.contains('expanded');
+    setStorage('dmgz_owned_collapsed', isExpanded);
+  });
+
+  // Initialize the page
   populateStartAndTargets();
+  populateOwnedCheckboxes();
+  
+  // Load collapse state from localStorage
+  const collapsedState = getStorage('dmgz_owned_collapsed');
+  if (collapsedState) {
+    ownedContainer.classList.add('expanded');
+    toggleIcon.classList.add('rotated');
+  }
+
   if(startSelect.options.length===2){ startSelect.selectedIndex=1; startSelect.dispatchEvent(new Event('change')); }
 })();
 </script>
 </body>
 </html>
-

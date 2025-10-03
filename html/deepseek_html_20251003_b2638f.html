@@ -33,6 +33,7 @@ button { padding:6px 8px; font-size:14px; }
 .toggle-icon { transition: transform 0.2s; }
 .toggle-icon.rotated { transform: rotate(90deg); }
 .owned-note { margin-top: 10px; padding: 8px; background: #f0f7ff; border-radius: 4px; font-size: 12px; color: #555; border-left: 3px solid #4a90e2; }
+.digimon-image { width: 36px; height: 36px; object-fit: contain; }
 </style>
 </head>
 <body>
@@ -67,7 +68,7 @@ button { padding:6px 8px; font-size:14px; }
         <!-- Checkboxes will be populated by JavaScript -->
       </div>
       <div class="owned-note">
-        In Random mode, "?" indicates a Digimon you own.
+        <strong>Note:</strong> In Random mode, "?" indicates a Digimon you own, while "???" indicates one you don't own yet.
       </div>
     </div>
   </div>
@@ -105,6 +106,43 @@ button { padding:6px 8px; font-size:14px; }
     document.getElementById('paths').textContent = 'Error loading data: ' + e.message + '\nMake sure dmgz_evolutions.json is in the same folder as this HTML file.';
     return;
   }
+
+  // Manual mapping of Digimon names to image filenames
+  const digimonImageMap = {
+    "Agumon": "agu_animated.gif",
+    "Baby Godzilla": "babygodzilla_animated.gif",
+    "Biollante": "biollante_animated.gif",
+    "Burning Godzilla": "burninggodzilla_animated.gif",
+    "Chibi Godzilla": "chibigodzilla_animated.gif",
+    "Chibi Mechagodzilla": "chibimechagodzilla_animated.gif",
+    "Destoroyah": "destoroyah_animated.gif",
+    "Fire Rodan": "firerodan_animated.gif",
+    "Gigan": "gigan_animated.gif",
+    "Godzilla (1954)": "godzilla_1954_animated.gif",
+    "Godzilla (1994)": "godzilla_1994_animated.gif",
+    "Godzilla (1999)": "godzilla_1999_animated.gif",
+    "Godzilla Jr": "godzillajr_animated.gif",
+    "Godzillasaurus": "godzillasaurus_animated.gif",
+    "Greymon": "grey_animated.gif",
+    "King Ghidorah": "kingghidorah_animated.gif",
+    "Kiryu": "kiryu_animated.gif",
+    "Koromon": "koro_animated.gif",
+    "Little Godzilla": "littlegodzilla_animated.gif",
+    "Mecha-King Ghidorah": "mechakingghidorah_animated.gif",
+    "Mechagodzilla": "mechagodzilla_animated.gif",
+    "Metal Greymon (Vaccine)": "metalgrey_va_animated.gif",
+    "Metal Greymon: G-Erosion Mode": "metalgrey_g_animated.gif",
+    "Monodramon": "monodra_animated.gif",
+    "Mothra": "mothra_animated.gif",
+    "Mugendramon: MFS-3": "mugendra_m_animated.gif",
+    "Raremon": "rare_animated.gif",
+    "Rodan": "rodan_animated.gif",
+    "Skull Greymon: G-Erosion Mode": "skullgrey_g_animated.gif",
+    "Space Godzilla": "spacegodzilla_animated.gif",
+    "War Greymon": "wargrey_animated.gif",
+    "War Greymon: G-Erosion Mode": "wargrey_g_animated.gif",
+    "Zilla": "zilla_animated.gif"
+  };
 
   // localStorage functions
   function setStorage(key, value) {
@@ -166,8 +204,14 @@ button { padding:6px 8px; font-size:14px; }
     allDigimonNames.forEach(name => {
       const checkbox = document.createElement('div');
       checkbox.className = 'owned-checkbox';
+      
+      // Get image filename from mapping, or use empty string if not found
+      const imageFile = digimonImageMap[name] || '';
+      const imagePath = imageFile ? `../image/DMGZ/${imageFile}` : '';
+      
       checkbox.innerHTML = `
         <input type="checkbox" id="owned_${name}" data-name="${name}" ${owned[name] ? 'checked' : ''}>
+        ${imageFile ? `<img src="${imagePath}" alt="${name}" class="digimon-image">` : ''}
         <label for="owned_${name}">${name}</label>
       `;
       container.appendChild(checkbox);

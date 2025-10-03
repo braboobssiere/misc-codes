@@ -133,6 +133,28 @@ button { padding:6px 8px; font-size:14px; }
     return null;
   }
 
+  // Get all unique Digimon names from both base forms and evolution targets
+  function getAllDigimonNames() {
+    const allNames = new Set();
+    
+    // Add all base Digimon (keys in the data object)
+    Object.keys(data).forEach(name => {
+      allNames.add(name);
+    });
+    
+    // Add all evolution targets
+    Object.values(data).forEach(digimonData => {
+      if (digimonData.evolutions) {
+        digimonData.evolutions.forEach(evolution => {
+          allNames.add(evolution.to);
+        });
+      }
+    });
+    
+    // Convert to array and sort
+    return Array.from(allNames).sort();
+  }
+
   // Owned Digimon functions
   function loadOwnedDigimon() {
     return getCookie('dmgz_owned') || {};
@@ -153,7 +175,9 @@ button { padding:6px 8px; font-size:14px; }
     const container = document.getElementById('ownedCheckboxes');
     container.innerHTML = '';
     
-    Object.keys(data).sort().forEach(name => {
+    const allDigimonNames = getAllDigimonNames();
+    
+    allDigimonNames.forEach(name => {
       const checkbox = document.createElement('div');
       checkbox.className = 'owned-checkbox';
       checkbox.innerHTML = `

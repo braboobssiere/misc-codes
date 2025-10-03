@@ -416,25 +416,15 @@ button { padding:6px 8px; font-size:14px; }
   ownedHeader.addEventListener('click', () => {
     ownedContainer.classList.toggle('expanded');
     toggleIcon.classList.toggle('rotated');
-    
-    // Save collapse state to localStorage
-    const isExpanded = ownedContainer.classList.contains('expanded');
-    setStorage('dmgz_owned_collapsed', isExpanded);
   });
 
   // Initialize the page
   populateStartAndTargets();
   populateOwnedCheckboxes();
   
-  // Load collapse state from localStorage
-  const collapsedState = getStorage('dmgz_owned_collapsed');
-  if (collapsedState) {
-    ownedContainer.classList.add('expanded');
-    toggleIcon.classList.add('rotated');
-  }
-
   if(startSelect.options.length===2){ startSelect.selectedIndex=1; startSelect.dispatchEvent(new Event('change')); }
 })();
 </script>
 </body>
 </html>
+

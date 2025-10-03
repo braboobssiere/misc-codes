@@ -32,6 +32,7 @@ button { padding:6px 8px; font-size:14px; }
 .owned-count { font-size: 12px; color: #666; margin-left: auto; }
 .toggle-icon { transition: transform 0.2s; }
 .toggle-icon.rotated { transform: rotate(90deg); }
+.owned-note { margin-top: 10px; padding: 8px; background: #f0f7ff; border-radius: 4px; font-size: 12px; color: #555; border-left: 3px solid #4a90e2; }
 </style>
 </head>
 <body>
@@ -64,6 +65,9 @@ button { padding:6px 8px; font-size:14px; }
     <div class="owned-container" id="ownedContainer">
       <div class="owned-checkboxes" id="ownedCheckboxes">
         <!-- Checkboxes will be populated by JavaScript -->
+      </div>
+      <div class="owned-note">
+        <strong>Note:</strong> In Random mode, "?" indicates a Digimon you own, while "???" indicates one you don't own yet.
       </div>
     </div>
   </div>
@@ -325,17 +329,30 @@ button { padding:6px 8px; font-size:14px; }
         }
     }
     
+    // Get owned Digimon for masking logic
+    const ownedDigimon = loadOwnedDigimon();
+    
     pathsEl.innerHTML='';
     const summaryDiv=document.createElement('div'); summaryDiv.textContent=`Start: ${start}, Target: ${isRandom?'Random (masked)':chosenTarget}, Paths found: ${allPaths.length}`; summaryDiv.style.marginBottom='12px'; pathsEl.appendChild(summaryDiv);
 
     allPaths.forEach((path,idx)=>{
       const pathDiv=document.createElement('div'); pathDiv.style.marginBottom='16px'; pathDiv.style.padding='8px'; pathDiv.style.border='1px solid #ddd'; pathDiv.style.borderRadius='8px'; pathDiv.style.background='#fafafa';
       const speciesLine=[start,...path.map(step=>step.to)];
-      const displaySpecies=speciesLine.map((s,i)=>isRandom&&i!==0?'???':s);
+      
+      // For random mode, show "?" for owned Digimon, "???" for unowned
+      const displaySpecies=speciesLine.map((s,i)=>{
+        if(!isRandom || i === 0) return s; // Don't mask the start
+        return ownedDigimon[s] ? '?' : '???';
+      });
+      
       let pathText=`Path ${idx+1}: ${displaySpecies.join(' -> ')}\n`;
       path.forEach((step,i)=>{
+        // For step details, also use "?" for owned Digimon in random mode
+        const fromDisplay = isRandom ? (ownedDigimon[step.from] ? '?' : '???') : step.from;
+        const toDisplay = isRandom ? (ownedDigimon[step.to] ? '?' : '???') : step.to;
+        
         const matches=matchingConditionsForEdge(step.evo,allowedG,allowedA);
-        pathText+=`\n  Step ${i+1}: ${isRandom?'???':step.from} -> ${isRandom?'???':step.to}\n`;
+        pathText+=`\n  Step ${i+1}: ${fromDisplay} -> ${toDisplay}\n`;
         if(matches.length===0) pathText+='    (No specific conditions to show)\n';
         else matches.forEach(m=>{ const text=m.text||'(no special conditions)'; pathText+=`    - ${text}\n`; });
       });

@@ -77,7 +77,7 @@
             "color": "Any",
             "battle": "Any"
           }
-        ]
+        ]    
       }
     ]
   },
@@ -186,7 +186,19 @@
         ]
       },
       {
-        "to": "Chibi Godzilla/Mechagodzilla (50%)",
+        "to": "Chibi Godzilla",
+        "conditions": [
+          {
+            "G-Cell": true,
+            "area7": "Any",
+            "mistake": "5-0",
+            "color": "b14-0",
+            "battle": true
+          }
+        ]
+      },
+      {
+        "to": "Chibi Mechagodzilla",
         "conditions": [
           {
             "G-Cell": true,
@@ -967,4 +979,5 @@
       }
     ]
   }
+
 }

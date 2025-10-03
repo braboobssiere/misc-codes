@@ -947,6 +947,22 @@
       }
     ]
   },
+  "Mecha-King Ghidorah": {
+    "evolutions": [
+      {
+        "to": "Mechagodzilla",
+        "conditions": [
+          {
+            "G-Cell": "Any",
+            "area7": "Any",
+            "mistake": "0-2",
+            "color": "Any",
+            "battle": true
+          }
+        ]
+      }
+    ]
+  },
   "Godzilla (1994)": {
     "evolutions": [
       {
@@ -965,4 +981,3 @@
   }
 
 }
-

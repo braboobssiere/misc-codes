@@ -1,0 +1,430 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Digimon Godzilla Evolution Path Finder</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+<style>
+html { overflow-x:hidden; }
+body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial; padding:18px; background:#f6f8fa; color:#111; }
+h1 { margin-top:0; }
+.row { display:flex; gap:12px; align-items:center; margin-bottom:8px; flex-wrap:wrap; max-width:100%; box-sizing:border-box; }
+.control { background:white; padding:10px; border-radius:8px; box-shadow:0 1px 4px rgba(0,0,0,0.05); max-width:100%; box-sizing:border-box; }
+.paths { white-space:pre-wrap; background:#fff; padding:12px; border-radius:8px; margin-top:12px; box-shadow:0 1px 4px rgba(0,0,0,0.05); max-width:100%; box-sizing:border-box; }
+pre { white-space:pre-wrap; word-break:break-word; max-width:100%; box-sizing:border-box; }
+label { margin-right:8px; font-weight:600; }
+select { padding:6px 8px; font-size:14px; }
+button { padding:6px 8px; font-size:14px; }
+.alt { margin-left:8px; color:#333; }
+.small { font-size:13px; color:#555; }
+.muted { color:#666; font-size:13px; }
+.chip { padding:6px 8px; border-radius:999px; background:#eef3ff; color:#133; display:inline-block; margin-right:6px; font-weight:600; }
+
+/* Owned Digimon styles */
+.owned-section { margin-bottom: 12px; }
+.owned-header { cursor: pointer; padding: 8px 12px; background: #eef3ff; border-radius: 6px; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; }
+.owned-header:hover { background: #e0e7ff; }
+.owned-container { display: none; max-height: 300px; overflow-y: auto; border: 1px solid #e1e4e8; border-radius: 6px; padding: 12px; background: #fafbfc; }
+.owned-container.expanded { display: block; }
+.owned-checkboxes { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px; }
+.owned-checkbox { display: flex; align-items: center; gap: 6px; }
+.owned-checkbox input { margin: 0; }
+.owned-checkbox label { display: flex; align-items: center; gap: 6px; cursor: pointer; }
+.digimon-image { width: 36px; height: 36px; object-fit: contain; }
+.owned-count { font-size: 12px; color: #666; margin-left: auto; }
+.toggle-icon { transition: transform 0.2s; }
+.toggle-icon.rotated { transform: rotate(90deg); }
+.owned-note { margin-top: 10px; padding: 8px; background: #f0f7ff; border-radius: 4px; font-size: 12px; color: #555; border-left: 3px solid #4a90e2; }
+</style>
+</head>
+<body>
+  <h1>Digimon Godzilla Evolution Path Finder</h1>
+  
+  <div class="row control">
+    <div>
+      <label>Area 7</label>
+      <label><input type="radio" name="area7" value="yes" checked> Yes</label>
+      <label><input type="radio" name="area7" value="no"> No</label>
+    </div>
+
+    <div>
+      <label>G-Cell</label>
+      <label><input type="radio" name="gcell" value="yes"> Yes</label>
+      <label><input type="radio" name="gcell" value="no" checked> No</label>
+    </div>
+
+    <div style="margin-left:auto;">
+      <button id="refreshBtn">Refresh lists</button>
+    </div>
+  </div>
+
+  <!-- New Owned Digimon Section -->
+  <div class="control owned-section">
+    <div class="owned-header" id="ownedHeader">
+      <span>Owned Digimon <span id="ownedCount" class="owned-count">(0 owned)</span></span>
+      <span class="toggle-icon">▶</span>
+    </div>
+    <div class="owned-container" id="ownedContainer">
+      <div class="owned-checkboxes" id="ownedCheckboxes">
+        <!-- Checkboxes will be populated by JavaScript -->
+      </div>
+      <div class="owned-note">
+        In Random mode, "?" indicates a Digimon you own.
+      </div>
+    </div>
+  </div>
+
+  <div class="row control">
+    <div>
+      <label>Start Digimon</label><br/>
+      <select id="startSelect" style="min-width:220px;"></select>
+    </div>
+
+    <div>
+      <label>Target Digimon</label><br/>
+      <select id="targetSelect" style="min-width:240px;"></select>
+    </div>
+
+    <div style="align-self:flex-end;">
+      <button id="showPaths">Show paths</button>
+    </div>
+  </div>
+
+  <div class="control">
+    <div id="summary" class="small"></div>
+    <div id="paths" class="paths"></div>
+  </div>
+
+<script>
+(async function(){
+  const DATA_URL = 'dmgz_evolutions.json';
+  let data = {};
+  try {
+    const r = await fetch(DATA_URL);
+    if (!r.ok) throw new Error('Failed to fetch ' + DATA_URL + ' (status ' + r.status + ')');
+    data = await r.json();
+  } catch (e) {
+    document.getElementById('paths').textContent = 'Error loading data: ' + e.message + '\nMake sure dmgz_evolutions.json is in the same folder as this HTML file.';
+    return;
+  }
+
+  // Digimon name to image filename mapping
+  function getImageFilename(digimonName) {
+    const mapping = {
+      "Agumon": "agu_animated.gif",
+      "Baby Godzilla": "babygodzilla_animated.gif",
+      "Biollante": "biollante_animated.gif",
+      "Burning Godzilla": "burninggodzilla_animated.gif",
+      "Chibi Godzilla": "chibigodzilla_animated.gif",
+      "Chibi Mechagodzilla": "chibimechagodzilla_animated.gif",
+      "Destoroyah": "destoroyah_animated.gif",
+      "Fire Rodan": "firerodan_animated.gif",
+      "Gigan": "gigan_animated.gif",
+      "Godzilla (1954)": "godzilla_1954_animated.gif",
+      "Godzilla (1994)": "godzilla_1994_animated.gif",
+      "Godzilla (1999)": "godzilla_1999_animated.gif",
+      "Godzilla Jr": "godzillajr_animated.gif",
+      "Godzillasaurus": "godzillasaurus_animated.gif",
+      "Greymon": "grey_animated.gif",
+      "King Ghidorah": "kingghidorah_animated.gif",
+      "Kiryu": "kiryu_animated.gif",
+      "Koromon": "koro_animated.gif",
+      "Little Godzilla": "littlegodzilla_animated.gif",
+      "Mecha-King Ghidorah": "mechakingghidorah_animated.gif",
+      "Mechagodzilla": "mechagodzilla_animated.gif",
+      "Metal Greymon (Vaccine)": "metalgrey_va_animated.gif",
+      "Metal Greymon: G-Erosion Mode": "metalgrey_g_animated.gif",
+      "Monodramon": "monodra_animated.gif",
+      "Mothra": "mothra_animated.gif",
+      "Mugendramon: MFS-3": "mugendra_m_animated.gif",
+      "Raremon": "rare_animated.gif",
+      "Rodan": "rodan_animated.gif",
+      "Skull Greymon: G-Erosion Mode": "skullgrey_g_animated.gif",
+      "Space Godzilla": "spacegodzilla_animated.gif",
+      "War Greymon": "wargrey_animated.gif",
+      "War Greymon: G-Erosion Mode": "wargrey_g_animated.gif",
+      "Zilla": "zilla_animated.gif"
+    };
+    return mapping[digimonName] || 'bota_animated.gif';
+  }
+
+  // localStorage functions
+  function setStorage(key, value) {
+    localStorage.setItem(key, JSON.stringify(value));
+  }
+
+  function getStorage(key) {
+    try {
+      return JSON.parse(localStorage.getItem(key));
+    } catch (e) {
+      return null;
+    }
+  }
+
+  // Get all unique Digimon names from both base forms and evolution targets
+  function getAllDigimonNames() {
+    const allNames = new Set();
+    
+    // Add all base Digimon (keys in the data object)
+    Object.keys(data).forEach(name => {
+      allNames.add(name);
+    });
+    
+    // Add all evolution targets
+    Object.values(data).forEach(digimonData => {
+      if (digimonData.evolutions) {
+        digimonData.evolutions.forEach(evolution => {
+          allNames.add(evolution.to);
+        });
+      }
+    });
+    
+    // Convert to array
+    return Array.from(allNames);
+  }
+
+  // Owned Digimon functions
+  function loadOwnedDigimon() {
+    return getStorage('dmgz_owned') || {};
+  }
+
+  function saveOwnedDigimon(owned) {
+    setStorage('dmgz_owned', owned);
+  }
+
+  function updateOwnedCount() {
+    const owned = loadOwnedDigimon();
+    const count = Object.values(owned).filter(v => v).length;
+    document.getElementById('ownedCount').textContent = `(${count} owned)`;
+  }
+
+  function populateOwnedCheckboxes() {
+    const owned = loadOwnedDigimon();
+    const container = document.getElementById('ownedCheckboxes');
+    container.innerHTML = '';
+    
+    const allDigimonNames = getAllDigimonNames();
+    
+    allDigimonNames.forEach(name => {
+      const checkbox = document.createElement('div');
+      checkbox.className = 'owned-checkbox';
+      const imageFilename = getImageFilename(name);
+      const imagePath = `../image/DMGZ/${imageFilename}`;
+      
+      checkbox.innerHTML = `
+        <input type="checkbox" id="owned_${name}" data-name="${name}" ${owned[name] ? 'checked' : ''}>
+        <label for="owned_${name}">
+          <img src="${imagePath}" alt="${name}" class="digimon-image" onerror="this.style.display='none'">
+          ${name}
+        </label>
+      `;
+      container.appendChild(checkbox);
+    });
+    
+    // Add event listeners to checkboxes - auto-save on change
+    container.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+      checkbox.addEventListener('change', function() {
+        const owned = loadOwnedDigimon();
+        owned[this.dataset.name] = this.checked;
+        saveOwnedDigimon(owned);
+        updateOwnedCount();
+      });
+    });
+    
+    updateOwnedCount();
+  }
+
+  function allowedValuesFromChoice(choice) { return choice === 'yes' ? [true, 'Any'] : [false, 'Any']; }
+  function condMatchesGArea(cond, allowedG, allowedA) {
+    const g = cond['G-Cell'], a = cond['area7'];
+    return (g==='Any'||allowedG.includes(g)) && (a==='Any'||allowedA.includes(a));
+  }
+  function edgeAllowed(evo, allowedG, allowedA) { return evo.conditions.some(c => condMatchesGArea(c, allowedG, allowedA)); }
+
+  const digimonNames = Object.keys(data);
+  const startSelect = document.getElementById('startSelect');
+  const targetSelect = document.getElementById('targetSelect');
+  const refreshBtn = document.getElementById('refreshBtn');
+  const showBtn = document.getElementById('showPaths');
+  const pathsEl = document.getElementById('paths');
+  const summaryEl = document.getElementById('summary');
+
+  // Owned Digimon elements
+  const ownedHeader = document.getElementById('ownedHeader');
+  const ownedContainer = document.getElementById('ownedContainer');
+  const toggleIcon = ownedHeader.querySelector('.toggle-icon');
+
+  function readChoice(name) {
+    const radios = document.getElementsByName(name);
+    for (const r of radios) if (r.checked) return r.value;
+    return 'yes';
+  }
+
+  function reachableFrom(start, allowedG, allowedA) {
+    const visited = new Set(), finalTargets = new Set(), stack = [start];
+    visited.add(start);
+    while(stack.length){
+      const node = stack.pop();
+      const evos = data[node]?.evolutions || [];
+      let hadAllowedChild = false;
+      for(const evo of evos){
+        if(edgeAllowed(evo, allowedG, allowedA)){
+          hadAllowedChild = true;
+          if(!visited.has(evo.to)) { visited.add(evo.to); stack.push(evo.to); }
+        }
+      }
+      if(!hadAllowedChild) finalTargets.add(node);
+    }
+    return { visited, finals: finalTargets };
+  }
+
+  function computeStartOptions(allowedG, allowedA) {
+    const options = [];
+    for(const name of digimonNames){
+      const nodeEvos = data[name]?.evolutions||[];
+      if(nodeEvos.some(e=>edgeAllowed(e, allowedG, allowedA))) options.push(name);
+    }
+    return options;
+  }
+
+  function computeFinalTargetsForStart(start, allowedG, allowedA){
+    const res = reachableFrom(start, allowedG, allowedA);
+    return Array.from(res.finals);
+  }
+
+  function condToReadable(c){
+    const parts=[];
+    if(c['G-Cell']!=='Any') parts.push(c['G-Cell']===true?'Hatched from G-Cell':'Not hatched from G-Cell');
+    if(c['area7']!=='Any') parts.push(c['area7']===true?'Clear Area 7':'Not clear Area 7');
+    if(c['mistake'] && c['mistake']!=='Any') parts.push('Care Mistakes ' + (c['mistake'].endsWith('-0')?c['mistake'].split('-')[0]+'+':c['mistake']));
+    if(c['color'] && c['color']!=='Any'){ const m=c['color'].match(/^([rby])(.+)$/i); if(m){const letter=m[1].toLowerCase(),nums=m[2],colorName=letter==='r'?'Red':letter==='b'?'Blue':'Yellow'; parts.push(nums.endsWith('-0')?`${colorName} G-cells ${nums.split('-')[0]}+`:`${colorName} G-cells ${nums}`);} else parts.push('Color '+c['color']); }
+    if(c['battle']!=='Any') parts.push(c['battle']===true?'15+ Battles (80%+ Win)':'No Battles');
+    return parts.join(', ');
+  }
+
+  function matchingConditionsForEdge(evo, allowedG, allowedA){
+    return evo.conditions.filter(c=>condMatchesGArea(c, allowedG, allowedA)).map(c=>({raw:c,text:condToReadable(c)}));
+  }
+
+  function findAllPaths(start, target, allowedG, allowedA){
+    const results=[];
+    const visited=new Set();
+    function dfs(node,path){
+      if(path.length>40) return;
+      if(node===target){ results.push([...path]); return; }
+      visited.add(node);
+      const evos=data[node]?.evolutions||[];
+      for(const evo of evos){
+        if(!edgeAllowed(evo, allowedG, allowedA)) continue;
+        const child=evo.to;
+        if(visited.has(child)) continue;
+        path.push({from:node,to:child,evo});
+        dfs(child,path);
+        path.pop();
+      }
+      visited.delete(node);
+    }
+    dfs(start,[]);
+    return results;
+  }
+
+  function populateStartAndTargets(){
+    const areaChoice=readChoice('area7'), gcellChoice=readChoice('gcell');
+    const allowedG=allowedValuesFromChoice(gcellChoice), allowedA=allowedValuesFromChoice(areaChoice);
+    const starts=computeStartOptions(allowedG, allowedA);
+    startSelect.innerHTML=''; const startPlaceholder=document.createElement('option'); startPlaceholder.value=''; startPlaceholder.textContent='-- Select start --'; startSelect.appendChild(startPlaceholder);
+    for(const s of starts){ const o=document.createElement('option'); o.value=s; o.textContent=s; startSelect.appendChild(o); }
+    targetSelect.innerHTML=''; const opt=document.createElement('option'); opt.value=''; opt.textContent='-- Select target --'; targetSelect.appendChild(opt); targetSelect.disabled=true;
+    summaryEl.textContent=`Area7: ${areaChoice==='yes'?'Yes':'No'}; G-Cell: ${gcellChoice==='yes'?'Yes':'No'}`;
+    pathsEl.textContent='';
+  }
+
+  startSelect.addEventListener('change',()=>{
+    const start=startSelect.value;
+    targetSelect.innerHTML='';
+    if(!start){ targetSelect.disabled=true; return; }
+    const areaChoice=readChoice('area7'), gcellChoice=readChoice('gcell');
+    const allowedG=allowedValuesFromChoice(gcellChoice), allowedA=allowedValuesFromChoice(areaChoice);
+    const finals=computeFinalTargetsForStart(start, allowedG, allowedA);
+    targetSelect.disabled=false;
+    const rand=document.createElement('option'); rand.value='__RANDOM__'; rand.textContent='Random (mask species names)'; targetSelect.appendChild(rand);
+    for(const f of finals){ const o=document.createElement('option'); o.value=f; o.textContent=f; targetSelect.appendChild(o); }
+    if(finals.length===0){ targetSelect.innerHTML=''; const o=document.createElement('option'); o.value=''; o.textContent='-- No reachable final targets --'; targetSelect.appendChild(o); targetSelect.disabled=true; }
+    pathsEl.textContent='';
+  });
+
+  refreshBtn.addEventListener('click',()=>{ populateStartAndTargets(); });
+
+  showBtn.addEventListener('click',()=>{
+    const start=startSelect.value, targetVal=targetSelect.value;
+    if(!start){ pathsEl.textContent='Please select a Start Digimon.'; return; }
+    if(!targetVal){ pathsEl.textContent='Please select a Target Digimon (or Random).'; return; }
+    const areaChoice=readChoice('area7'), gcellChoice=readChoice('gcell');
+    const allowedG=allowedValuesFromChoice(gcellChoice), allowedA=allowedValuesFromChoice(areaChoice);
+    const finals=computeFinalTargetsForStart(start, allowedG, allowedA);
+    if(finals.length===0){ pathsEl.textContent='No reachable final targets from selected start under current Area7/G-Cell settings.'; return; }
+
+    let chosenTarget=targetVal;
+    const isRandom=targetVal==='__RANDOM__';
+    if(isRandom) chosenTarget=finals[Math.floor(Math.random()*finals.length)];
+    const allPaths=findAllPaths(start, chosenTarget, allowedG, allowedA);
+    if(allPaths.length===0){ pathsEl.textContent=start===chosenTarget?`Start is already the final form (${start}). No evolution steps.`:'No valid paths found from start to target under current settings.'; return; }
+
+    if(isRandom) {
+        for(let i = allPaths.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [allPaths[i], allPaths[j]] = [allPaths[j], allPaths[i]];
+        }
+    }
+    
+    // Get owned Digimon for masking logic
+    const ownedDigimon = loadOwnedDigimon();
+    
+    pathsEl.innerHTML='';
+    const summaryDiv=document.createElement('div'); summaryDiv.textContent=`Start: ${start}, Target: ${isRandom?'Random (masked)':chosenTarget}, Paths found: ${allPaths.length}`; summaryDiv.style.marginBottom='12px'; pathsEl.appendChild(summaryDiv);
+
+    allPaths.forEach((path,idx)=>{
+      const pathDiv=document.createElement('div'); pathDiv.style.marginBottom='16px'; pathDiv.style.padding='8px'; pathDiv.style.border='1px solid #ddd'; pathDiv.style.borderRadius='8px'; pathDiv.style.background='#fafafa';
+      const speciesLine=[start,...path.map(step=>step.to)];
+      
+      // For random mode, show "?" for owned Digimon, "???" for unowned
+      const displaySpecies=speciesLine.map((s,i)=>{
+        if(!isRandom || i === 0) return s; // Don't mask the start
+        return ownedDigimon[s] ? '?' : '???';
+      });
+      
+      let pathText=`Path ${idx+1}: ${displaySpecies.join(' -> ')}\n`;
+      path.forEach((step,i)=>{
+        // For step details, also use "?" for owned Digimon in random mode
+        const fromDisplay = isRandom ? (ownedDigimon[step.from] ? '?' : '???') : step.from;
+        const toDisplay = isRandom ? (ownedDigimon[step.to] ? '?' : '???') : step.to;
+        
+        const matches=matchingConditionsForEdge(step.evo,allowedG,allowedA);
+        pathText+=`\n  Step ${i+1}: ${fromDisplay} -> ${toDisplay}\n`;
+        if(matches.length===0) pathText+='    (No specific conditions to show)\n';
+        else matches.forEach(m=>{ const text=m.text||'(no special conditions)'; pathText+=`    - ${text}\n`; });
+      });
+      const pre=document.createElement('pre'); pre.textContent=pathText; pathDiv.appendChild(pre);
+      const copyBtn=document.createElement('button'); copyBtn.textContent='Copy'; copyBtn.style.marginTop='4px'; copyBtn.style.padding='4px 8px'; copyBtn.style.fontSize='13px';
+      copyBtn.addEventListener('click',()=>{ navigator.clipboard.writeText(pathText).then(()=>{ copyBtn.textContent='Copied!'; setTimeout(()=>copyBtn.textContent='Copy',1000); }); });
+      pathDiv.appendChild(copyBtn);
+      pathsEl.appendChild(pathDiv);
+    });
+  });
+
+  // Owned Digimon event listeners
+  ownedHeader.addEventListener('click', () => {
+    ownedContainer.classList.toggle('expanded');
+    toggleIcon.classList.toggle('rotated');
+  });
+
+  // Initialize the page
+  populateStartAndTargets();
+  populateOwnedCheckboxes();
+  
+  if(startSelect.options.length===2){ startSelect.selectedIndex=1; startSelect.dispatchEvent(new Event('change')); }
+})();
+</script>
+</body>
+</html>
+

@@ -1,0 +1,116 @@
+name: Song Recognition
+
+on: 
+  workflow_dispatch:
+    inputs:
+      media_url:
+        description: 'Optional URL to media file for processing'
+        required: false
+
+permissions:
+  contents: write
+
+jobs:
+  recognize:
+    runs-on: ubuntu-latest
+    outputs:
+      results: ${{ steps.songrec.outputs.responses }}
+    steps:
+
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y software-properties-common ffmpeg
+        wget -qO- 'http://keyserver.ubuntu.com/pks/lookup?op=get&search=0x6888550b2fc77d09' | sudo tee /etc/apt/trusted.gpg.d/songrec.asc
+        sudo add-apt-repository ppa:marin-m/songrec -y
+        sudo apt-get install -y songrec
+
+    - name: Process audio files
+      id: songrec
+      run: |
+        cd input/songrec
+        :> entries.json
+
+        # Download from URL if provided
+        if [[ -n "${{ inputs.media_url }}" ]]; then
+          echo "Downloading media from URL..."
+          curl -L -o "url_media_$(date +%s)" "${{ inputs.media_url }}" || {
+            echo "::warning:: Failed to download media from URL"
+            exit 0
+          }
+        fi
+
+        for file in *; do
+            [[ "$file" == entries.json || "$file" == output.json ]] && continue
+            
+            # File validation
+            mime_type=$(file --mime-type -b "$file")
+            has_audio=false
+            
+            if [[ $mime_type == audio/* ]]; then
+                has_audio=true
+            elif [[ $mime_type == video/* ]]; then
+                ffmpeg -nostdin -i "$file" -hide_banner 2>&1 | grep -qi 'audio' && has_audio=true
+            else
+                echo "::notice:: Skipping non-media file: $file (MIME: $mime_type)"
+                continue
+            fi
+            
+            [[ $has_audio != true ]] && continue
+
+            # Recognition process
+            response=$(songrec audio-file-to-recognized-song "$file" 2>&1 || echo '{"error":"no_match"}')
+            
+            if ! jq -e . >/dev/null 2>&1 <<< "$response"; then
+                response='{"error":"invalid_response"}'
+            fi
+            
+            url=$(jq -r '
+                if .error? then
+                    "❌ Error: " + (.error | tostring)
+                elif .track?.url? then
+                    .track.url
+                else
+                    "❌ No match found"
+                end' <<< "$response" 2>/dev/null || echo "🛑 Processing error")
+
+            # File management
+            if [[ "$url" == http* ]]; then
+                rm "$file"
+                echo "🗑️ Deleted successfully matched file: $file"
+            else
+                echo "🔍 Keeping file with result: $url"
+            fi
+
+            # Documentation
+            echo "### \`$file\`" >> $GITHUB_STEP_SUMMARY
+            echo "**Track URL**: ${url}" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            
+            # Structured output
+            jq -n \
+                --arg fn "$file" \
+                --arg url "$url" \
+                '{file: $fn, url: $url}' >> entries.json
+        done
+
+        # Final output
+        if [ -s entries.json ]; then
+            jq -s '{responses: .}' entries.json > output.json
+            echo "results=$(jq -c . output.json)" >> $GITHUB_OUTPUT
+        else
+            echo "⚠️ No processable files found" >> $GITHUB_STEP_SUMMARY
+            echo "results=[]" >> $GITHUB_OUTPUT
+        fi
+        rm -f entries.json output.json
+
+    - name: Commit processed file removals
+      run: |
+        git config --local user.name "github-actions"
+        git config --local user.email "github-actions@github.com"
+        git add -A
+        git commit -m "Clear Input" || echo "No changes to commit"
+        git push

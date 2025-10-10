@@ -135,7 +135,7 @@
             "G-Cell": false,
             "area7": true,
             "mistake": "2-4",
-            "color": "b0-13",
+            "color": "b10-13",
             "battle": true
           },
           {
@@ -277,7 +277,7 @@
             "G-Cell": "Any",
             "area7": true,
             "mistake": "2-4",
-            "color": "b0-13",
+            "color": "b10-13",
             "battle": true
           },
           {
@@ -981,3 +981,4 @@
   }
 
 }
+

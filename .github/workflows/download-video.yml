@@ -201,7 +201,7 @@ jobs:
             COOKIE_FLAG="--cookies twitter_cookies.txt"
           fi
 
-          ADDITIONAL_ARGS="${{ github.event.inputs.additional_args }}"
+          ADDITIONAL_ARGS=${{ github.event.inputs.additional_args }}
 
           # Build the download command
           COMMAND="yt-dlp -i --no-progress ${COOKIE_FLAG} ${LIVE_FLAG} \

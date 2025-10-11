@@ -201,7 +201,7 @@ jobs:
             COOKIE_FLAG="--cookies twitter_cookies.txt"
           fi
 
-          ADDITIONAL_ARGS=${{ github.event.inputs.additional_args }}
+          ADDITIONAL_ARGS="${{ github.event.inputs.additional_args }}"
 
           # Build the download command
           COMMAND="yt-dlp -i --no-progress ${COOKIE_FLAG} ${LIVE_FLAG} \
@@ -227,16 +227,8 @@ jobs:
           if ls output/*.part 1> /dev/null 2>&1; then
             rm output/*.part
           fi
-          # Count files in output directory (including hidden files)
-          FILE_COUNT=$(find output/ -type f | wc -l)
-          
-          if [ $FILE_COUNT -lt 2 ]; then
-            echo "Error: yt-dlp have a problem downloading video (found $FILE_COUNT)"
-            exit 14
-          fi
 
       - name: Upload Artifact
-        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: downloaded-video

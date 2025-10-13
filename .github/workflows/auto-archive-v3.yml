@@ -185,9 +185,11 @@ jobs:
           fi
           # Count files in output directory (including hidden files)
           FILE_COUNT=$(find output/ -type f | wc -l)      
-          if [ $FILE_COUNT -lt 2 ]; then
+          if [ "${FILE_COUNT:-0}" -lt 2 ]; then
             echo "logs_needed=true" >> "$GITHUB_OUTPUT"
             exit 13
+          else
+            echo "logs_needed=false" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Upload Artifact

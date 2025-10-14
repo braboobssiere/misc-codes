@@ -69,7 +69,7 @@ button { padding:6px 8px; font-size:14px; }
         <!-- Checkboxes will be populated by JavaScript -->
       </div>
       <div class="owned-note">
-        In Random mode, "?" indicates a Digimon you own.
+        In Random mode, "◓" indicates a Digimon you own.
       </div>
     </div>
   </div>
@@ -387,17 +387,17 @@ button { padding:6px 8px; font-size:14px; }
       const pathDiv=document.createElement('div'); pathDiv.style.marginBottom='16px'; pathDiv.style.padding='8px'; pathDiv.style.border='1px solid #ddd'; pathDiv.style.borderRadius='8px'; pathDiv.style.background='#fafafa';
       const speciesLine=[start,...path.map(step=>step.to)];
       
-      // For random mode, show "?" for owned Digimon, "???" for unowned
+      // For random mode, show "?" for owned Digimon, "?" for unowned
       const displaySpecies=speciesLine.map((s,i)=>{
-        if(!isRandom || i === 0) return s; // Don't mask the start
-        return ownedDigimon[s] ? '?' : '???';
+        if(!isRandom || i === 0) return s; 
+        return ownedDigimon[s] ? '◓' : '?';
       });
       
       let pathText=`Path ${idx+1}: ${displaySpecies.join(' -> ')}\n`;
       path.forEach((step,i)=>{
         // For step details, also use "?" for owned Digimon in random mode
-        const fromDisplay = isRandom ? (ownedDigimon[step.from] ? '?' : '???') : step.from;
-        const toDisplay = isRandom ? (ownedDigimon[step.to] ? '?' : '???') : step.to;
+        const fromDisplay = isRandom ? (ownedDigimon[step.from] ? '◓' : '?') : step.from;
+        const toDisplay = isRandom ? (ownedDigimon[step.to] ? '◓' : '?') : step.to;
         
         const matches=matchingConditionsForEdge(step.evo,allowedG,allowedA);
         pathText+=`\n  Step ${i+1}: ${fromDisplay} -> ${toDisplay}\n`;
@@ -427,4 +427,5 @@ button { padding:6px 8px; font-size:14px; }
 </script>
 </body>
 </html>
+
 

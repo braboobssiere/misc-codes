@@ -167,7 +167,7 @@ jobs:
           'cmd="yt-dlp -i --no-progress -S \"+res:1080\" --retry-sleep 3 \
             --windows-filenames --live-from-start --write-thumbnail --wait-for-video 60-3600 \
             --embed-metadata --no-embed-info-json --write-info-json \
-            // --cookies yt_cookies.txt --extractor-args \"youtube:player-client=web_creator,default\" \
+            # --cookies yt_cookies.txt --extractor-args \"youtube:player-client=web_creator,default\" \
             --cookies yt_cookies.txt --extractor-args \"youtube:player-client=default,mweb\" \
             -o \"output/%(title).170B [%(id)s] (%(resolution)s).%(ext)s\" {}";
           echo "Download command: $cmd";

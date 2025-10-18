@@ -115,7 +115,7 @@ Abilities that change parts of your hand into Red Dora.
 | Kutaka Niwatari | 1 | 1.0 | On First Draw | Tiles called via Pon/Chi become Red Dora. |
 | Mayumi Joutouguu | 1 | 1.0 | On Draw | Changes Dora tiles in your hand to Red Dora. Called tiles (including concealed Kan) are not affected. |
 | Keiki Haniyasushin | 1 | 2.4 | On Draw First Draw (Last round) | Nothing happens immediately. Counts the number of activations. On the first draw of the last round of each quarter, changes a number of tiles in hand to Red Dora equal to the count, then resets count to 0. |
-| Takane Yamashiro | 1 | 1.4 | On Draw | Generates 1-4 Red Dora in the current wall. Number varies with remaining tiles. Red Dora may be generated in the dead wall. |
+| Takane Yamashiro ᵈˡᶜ | 1 | 1.4 | On Draw | Generates 1-4 Red Dora in the current wall. Number varies with remaining tiles. Red Dora may be generated in the dead wall. |
 | Renko Usami | 1 | 1.6 | On Draw | Changes a random number of tiles in hand to Red Dora equal to the number of honor tile types in your discard. Max 4 tiles. |
 | Maribel Hearn | 1 | 1.6 | On Draw | Cancels all special abilities affecting all players and the table. Changes a number of random tiles in hand to Red Dora equal to the number of abilities (panels) canceled. |
 
@@ -151,7 +151,7 @@ Abilities that increase Fu or Han.
 | Kogasa Tatara | 1 | 1.4 | On Win (Damaten) | Adds 2 Han if winning with a concealed hand without declaring Riichi. |
 | Soga no Tojiko | 2 | 1.6 | On First Draw | If you win this round, the first Dora indicator tile counts as 2 Han. |
 | Shinmyoumaru Sukuna | 3 (Use 2) | 2.4 | On Concealed Win | Adds 1 Han to all 1-3 Han yaku (excluding Tsumo, Pinfu, Riichi, Double Riichi, Ippatsu). Consumes 2 stock. |
-| Mike Goutokuji | 1 | 1.2 | On Win | As non-dealer: Usable only on wins at 1 Honba or less. Forces Renchan but reduces Han by 2 (min 1). As dealer: Always usable on win. Loses Renchan but gains 2 Han. |
+| Mike Goutokuji ᵈˡᶜ | 1 | 1.2 | On Win | As non-dealer: Usable only on wins at 1 Honba or less. Forces Renchan but reduces Han by 2 (min 1). As dealer: Always usable on win. Loses Renchan but gains 2 Han. |
 | Son Biten | 2 | 1.4 | On Riichi | If an opponent calls after activation, adds 1 Han and 30 Fu to your win. If the call cancels your Ippatsu, adds another 1 Han. |
 | Chiyari Tenkajin | 1 | 1.1 | On First Draw | Places one Onibi (Will-o-wisp) in each opponent's discard pile. When their discards reach the Onibi, it returns to you. On your win, adds Han equal to the number of Onibi collected. |
 
@@ -196,7 +196,7 @@ Abilities that stack specific tiles into your next starting hand.
 | Eika Ebisu | 6 | 1.6 | On Draw | Stacks Circles (Pinzu) into your next starting hand equal to your stock count. Can be used once per round, consumes all stock. |
 | Yuuma Toutetsu | 1 | 1.2 | On First Draw | Stacks dragon tiles into your next starting hand equal to the number of calls, Riichi, and wins by opponents this round (max 5). Cannot be used two rounds in a row. |
 | Enoko Mitsugashira | 1 | 1.0 | On Ron Win (Concealed) | Stacks one random sequence into your next hand. For 3+ Han wins, stacks another sequence of the same or similar type in a different suit. |
-| ZUN | 1 | 12.0 | Auto-Activate | 'Danmaku Stacking Ability': Each full POW gauge is converted to 1 Beer Count (max 6). At the start of each round, Beer Count is exchanged for stacked Circles. Losing points reduces Beer Count. |
+| ZUN ᵈˡᶜ | 1 | 12.0 | Auto-Activate | 'Danmaku Stacking Ability': Each full POW gauge is converted to 1 Beer Count (max 6). At the start of each round, Beer Count is exchanged for stacked Circles. Losing points reduces Beer Count. |
 
 #### Draw Tile Manipulation
 Abilities that make specific tiles easier or harder to draw.
@@ -243,7 +243,7 @@ Abilities that change parts of your hand into specific tiles.
 | Suika Ibuki | 1 | 1.6 | On Draw | Returns all odd number tiles to the wall and draws the same number of even number tiles of the same suit. |
 | Suwako Moriya | 1 | 2.4 | On Draw | Changes a random number of non-Bamboo tiles in hand to random Bamboo tiles. |
 | Tenshi Hinanawi | 1 | 1.8 | On First Draw | Changes 3 chosen tiles in hand to the next tile in sequence. Success rate decreases if it would create pairs/triplets/quads. Cannot Tsumo immediately after. |
-| Momoyo Himemushi | 4 | 1.4 | On First Draw | Returns Circles to the wall and draws the same number of Characters or Bamboos (whichever is more prevalent in hand). Consumes all stock; max tiles affected equals stock used. |
+| Momoyo Himemushi ᵈˡᶜ | 4 | 1.4 | On First Draw | Returns Circles to the wall and draws the same number of Characters or Bamboos (whichever is more prevalent in hand). Consumes all stock; max tiles affected equals stock used. |
 
 #### Tile Swapping
 Abilities to swap tiles between your hand and discards or Dora indicators.
@@ -348,7 +348,7 @@ Abilities that prohibit opponents from declaring Riichi or winning.
 | :--- | :--- | :--- | :--- | :--- |
 | Toyosatomimi no Miko | 3 | 2.6 | On Draw | From activation until your next draw, all players cannot declare Riichi or win. |
 | Yachie Kicchou | 1 | 1.0 | On Riichi | Opponents cannot declare Riichi after activation. |
-| Tsukasa Kudamaki | 2 | 1.6 | On Chase Riichi | Opponents who have declared Riichi cannot win by Ron for 2 turns after activation. Tsumo and Concealed Kan are still possible. |
+| Tsukasa Kudamaki ᵈˡᶜ | 2 | 1.6 | On Chase Riichi | Opponents who have declared Riichi cannot win by Ron for 2 turns after activation. Tsumo and Concealed Kan are still possible. |
 
 #### Opponent Discard Interference
 Abilities that prevent opponents from discarding certain tiles.
@@ -365,14 +365,14 @@ Abilities that manipulate opponents' next starting hand.
 | :--- | :--- | :--- | :--- | :--- |
 | Hina Kagiyama | 1 | 1.8 | On Win | Curses the next starting hand of the player(s) who lost points to have worse Shanten. |
 | Clownpiece | 2 | 1.0 | On First Draw (No Double Riichi/No Calls) | Redraws opponents' starting hands. |
-| Chinyo Amefurashi | 2 | 1.4 | On Draw | For the next round, makes it highly likely that Dora (incl. Red) are not dealt into opponents' starting hands. |
+| Chimata Tenkyuu ᵈˡᶜ | 2 | 1.4 | On Draw | For the next round, makes it highly likely that Dora (incl. Red) are not dealt into opponents' starting hands. |
 
 #### Han Reduction
 Abilities that reduce the Han value of wins for all players.
 
 | Character | Max Stock | Gauge Speed | Activation | Description |
 | :--- | :--- | :--- | :--- | :--- |
-| Komakusa Sangyou | 1 | 1.4 | On First Draw | Halves the Han from Dora for all players (including yourself) on wins (rounded up). |
+| Komakusa Sannyo ᵈˡᶜ | 1 | 1.4 | On First Draw | Halves the Han from Dora for all players (including yourself) on wins (rounded up). |
 
 #### Magic Gauge Reduction
 Abilities that reduce opponents' magic gauges.
@@ -434,7 +434,7 @@ Abilities that change how points are paid, or make the top player pay.
 | Seija Kijin | 1 | 2.0 | On Win (as Non-Dealer) | Points are calculated as if you were the dealer and opponents were non-dealers. |
 | Kasen Ibaraki | 1 | 2.0 | On Win (3rd place or lower) | Makes only the top player pay the points. |
 | Satono Nishida | 2 | 1.0 | On Win | Adds points equal to 3x the value of the Honba counter (2x in 3-player). (Max 4 Honba). |
-| Urumi Ushisaki | 2 | 1.0 | On First Draw | Affected players must pay an additional 2000-point deposit when declaring Riichi. |
+| Urumi Ushisaki | 2 | 1.0 | On First Draw | Other players must pay an additional 2000-point deposit when declaring Riichi. |
 
 #### Basic Rule Change (Furiten Invalid)
 Abilities that change fundamental Mahjong rules.
@@ -455,7 +455,7 @@ Abilities that force or prevent the dealer retaining their seat (Renchan).
 
 | Character | Max Stock | Gauge Speed | Activation | Description |
 | :--- | :--- | :--- | :--- | :--- |
-| Mike Goutokuji | 1 | 1.2 | On Win | As non-dealer: Usable only on wins at 1 Honba or less. Forces Renchan but reduces Han by 2 (min 1). As dealer: Always usable on win.  Loses Renchan but gains 2 Han. |
+| Mike Goutokuji ᵈˡᶜ | 1 | 1.2 | On Win | As non-dealer: Usable only on wins at 1 Honba or less. Forces Renchan but reduces Han by 2 (min 1). As dealer: Always usable on win.  Loses Renchan but gains 2 Han. |
 | Miyoi Okunoda | 4 | 1.4 | On Draw (0 Honba only) | Forces Renchan after the round unless the game would end by someone busting. Requires stock >= current round number. Consumes all stock on use. |
 
 ---
@@ -465,6 +465,6 @@ Abilities that randomly trigger one of several effects.
 
 | Character | Max Stock | Gauge Speed | Activation | Description |
 | :--- | :--- | :--- | :--- | :--- |
-| Ryuu Iizunamaru | 2 | 1.6 | On Draw | Randomly triggers one ability from Reimu, Marisa, Sanae, Meiling, Kanako, or Cirno. Cirno's ability targets a random seat (including yourself), others target yourself. Effects are slightly weaker than the original. |
+| Megumu Iizunamaru ᵈˡᶜ | 2 | 1.6 | On Draw | Randomly triggers one ability from Reimu, Marisa, Sanae, Meiling, Kanako, or Cirno. Cirno's ability targets a random seat (including yourself), others target yourself. Effects are slightly weaker than the original. |
 
 ---

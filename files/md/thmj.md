@@ -214,7 +214,7 @@ Abilities that make specific tiles easier or harder to draw.
 | Hatate Himekaidou | 1 | 1.8 | On Draw | Declare a tile from your hand to draw on your next turn. Cannot draw Red Dora. May fail. Cannot Tsumo, Riichi, or Kan with the tile drawn this way. |
 | Kyouko Kasodani | 1 | 2.2 | On Draw | Draws the same tile as your previous draw on your next turn. Cannot draw Red Dora. May fail. Cannot Tsumo, Riichi, or Kan with the tile drawn this way. |
 | Aunn Komano | 2 | 1.0 | On Draw (Noten) | Next draw will likely be a tile of the same suit as an isolated tile in your hand. Effect ends if you call before drawing. |
-| Mizumaru Tamatsukuri | 1 | 1.2 | On Draw (8+ tiles left) | Attracts Circles to your future draw positions. Calling tiles can shift the positions. |
+| Misumaru Tamatsukuri ᵈˡᶜ | 1 | 1.2 | On Draw (8+ tiles left) | Attracts Circles to your future draw positions. Calling tiles can shift the positions. |
 | Hisami Yomotsu | 1 | 1.2 | On Draw (12+ discards, Noten) | Greatly increases draw rate of useful tiles until Tenpai. Cannot declare Riichi this round. |
 
 #### Hand Redraw

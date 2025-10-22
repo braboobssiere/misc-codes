@@ -283,6 +283,12 @@ jobs:
                         set cache:size 524288000;
                         mput -P 1 ftp_upload/*;
                         bye"
+                # Archive upload
+                lftp -u ${{ secrets.FTP_LOGIN_ARCHIVE }} -e "
+                        set ssl:verify-certificate false;
+                        set cache:size 524288000;
+                        mput -P 1 ftp_upload/*;
+                        bye"
           else
                 echo "No files found. Skipping FTP upload."
           fi

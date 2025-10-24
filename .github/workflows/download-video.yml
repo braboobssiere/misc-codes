@@ -182,9 +182,9 @@ jobs:
             if [[ "${{ github.event.inputs.cookies }}" == 'true' ]]; then
               echo "${{ secrets.YT_COOKIES }}" >> yt_cookies.txt
               COOKIE_FLAG="--cookies yt_cookies.txt"
-              EXTRACTOR="--extractor-args \"youtube:player-client=default,mweb\""
+              EXTRACTOR="--extractor-args \"youtube:player-client=default\""
             else
-              EXTRACTOR="--extractor-args \"youtube:player-client=default,mweb\""
+              EXTRACTOR="--extractor-args \"youtube:player-client=default\""
             fi
 
             LIVE_STATUS=$(yt-dlp ${COOKIE_FLAG} --print live_status "$URL")

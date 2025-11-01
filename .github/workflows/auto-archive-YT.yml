@@ -186,10 +186,9 @@ jobs:
           yt-dlp -i --no-progress -S "+res:1080" --retry-sleep 3 \
           --windows-filenames --live-from-start --write-thumbnail \
           --embed-metadata --no-embed-info-json --write-info-json \
-          --wait-for-video 60-3600 --extractor-args "youtube:player-client=default" \
+          --cookies yt_cookies.txt --extractor-args "youtube:player-client=default" \
           -o "output/%(title).170B [%(id)s] (%(resolution)s).%(ext)s" \
           "$URL" 2>&1 | tee >(awk '{ print strftime("[%Y-%m-%d %H:%M:%S UTC]"), $0 }' >> output/logs.txt)
-          # removed --cookies yt_cookies.txt 
 
       - name: VPN Cleanup
         if: ${{ always() }}

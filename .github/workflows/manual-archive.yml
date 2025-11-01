@@ -142,6 +142,7 @@ jobs:
           fi
 
           if [[ "$URL" == *"youtube.com"* || "$URL" == *"youtu.be"* ]]; then
+            YT_ARGS="--js-runtimes node --cookies yt_cookies.txt --extractor-args \"youtube:player-client=default\""
             LIVE_STATUS=$(yt-dlp --print live_status "$URL")
             echo "Live status: '$LIVE_STATUS'"
             if [[ "$LIVE_STATUS" =~ ^(is_live|post_live)$ ]]; then
@@ -152,10 +153,9 @@ jobs:
           ADDITIONAL_ARGS="${{ github.event.inputs.additional_args }}"
 
           # Build the download command
-          COMMAND="yt-dlp -i --no-progress ${LIVE_FLAG} \
+          COMMAND="yt-dlp -i --no-progress ${LIVE_FLAG} ${YT_ARGS} \
           ${ADDITIONAL_ARGS} ${FORMAT_OPTION} --windows-filenames \
           --embed-metadata --no-embed-info-json --write-info-json --retry-sleep 3 \
-          --cookies yt_cookies.txt --extractor-args \"youtube:player-client=default\" \
           -o \"output/%(title).170B [%(id)s] (%(resolution)s).%(ext)s\" \
           --embed-subs --sub-langs all,-live_chat --write-thumbnail ${URL}"
 

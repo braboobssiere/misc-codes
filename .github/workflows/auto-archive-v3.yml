@@ -166,7 +166,7 @@ jobs:
           parallel -j4 \
           'cmd="yt-dlp -i --no-progress -S \"+res:1080\" --retry-sleep 3 \
             --windows-filenames --live-from-start --write-thumbnail --wait-for-video 60-3600 \
-            --embed-metadata --no-embed-info-json --write-info-json \
+            --embed-metadata --no-embed-info-json --write-info-json --js-runtimes node \
             --cookies yt_cookies.txt --extractor-args \"youtube:player-client=default\" \
             -o \"output/%(title).170B [%(id)s] (%(resolution)s).%(ext)s\" {}";
           echo "Download command: $cmd";

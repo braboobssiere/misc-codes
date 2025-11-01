@@ -197,6 +197,8 @@ jobs:
             if [[ "$LIVE_STATUS" =~ ^(is_live|post_live)$ ]]; then
               LIVE_FLAG="--live-from-start"
             fi
+            
+            YT_ARGS="--js-runtimes node"
           fi
 
           # Handle Twitter downloads using cookies if provided
@@ -209,7 +211,7 @@ jobs:
           ADDITIONAL_ARGS="${{ github.event.inputs.additional_args }}"
 
           # Build the download command
-          COMMAND="yt-dlp -i --no-progress ${COOKIE_FLAG} ${LIVE_FLAG} \
+          COMMAND="yt-dlp -i --no-progress ${COOKIE_FLAG} ${LIVE_FLAG} ${YT_ARGS} \
           ${EXTRACTOR} ${ADDITIONAL_ARGS} ${FORMAT_OPTION} --windows-filenames \
           --embed-metadata --no-embed-info-json --write-info-json --retry-sleep 3 \
           -o \"output/%(title).170B [%(id)s] (%(resolution)s).%(ext)s\" \

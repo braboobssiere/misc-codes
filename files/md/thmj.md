@@ -31,7 +31,7 @@
 | 23  | Saki Kurokoma               | Yuuma Toutetsu              | Son Biten                   | Enoko Mitsugashira           | Chiyari Tenkajin            |
 | 24  | Hisami Yomotsu              | Zanmu Nippaku               | Renko Usami                 | Maribel Hearn                | Rinnosuke Morichika         |
 | 25  | Hieda no Akyuu              | Watatsuki no Yorihime       | Watatsuki no Toyohime       | Kosuzu Motoori              | Miyoi Okunoda             |
-| 26 | Mizuchi Miyadeguchi     |                        |                        |                     |                           |
+| 26 | Mizuchi Miyadeguchi     | Mima                       |                        |                     |                           |
 
 ---
 
@@ -197,6 +197,7 @@ Abilities that stack specific tiles into your next starting hand.
 | Yuuma Toutetsu | 1 | 1.2 | On First Draw | Stacks dragon tiles into your next starting hand equal to the number of calls, Riichi, and wins by opponents this round (max 5). Cannot be used two rounds in a row. |
 | Enoko Mitsugashira | 1 | 1.0 | On Ron Win (Concealed) | Stacks one random sequence into your next hand. For 3+ Han wins, stacks another sequence of the same or similar type in a different suit. |
 | ZUN ᵈˡᶜ | 1 | 12.0 | Auto-Activate | 'Danmaku Stacking Ability': Each full POW gauge is converted to 1 Beer Count (max 6). At the start of each round, Beer Count is exchanged for stacked Circles. Losing points reduces Beer Count. |
+| Mima | 1 | 1.0 | On Draw | Stacks 2 tiles of one type of dragon tile into the next starting hand. If you are in last place, additionally stacks 2 tiles of another type of dragon tile. |
 
 #### Draw Tile Manipulation
 Abilities that make specific tiles easier or harder to draw.

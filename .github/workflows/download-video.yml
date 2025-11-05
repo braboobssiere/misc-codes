@@ -192,7 +192,7 @@ jobs:
               EXTRACTOR="--extractor-args \"youtube:player-client=default\""
             fi
             
-            YT_ARGS="--live-from-start --js-runtimes node"
+            YT_ARGS="--live-from-start --js-runtimes node --wait-for-video 60-3600"
           fi
 
           # Handle Twitter downloads using cookies if provided

@@ -408,7 +408,7 @@ Abilities that change your own calling conditions.
 
 | Character | Max Stock | Gauge Speed | Activation | Description |
 | :--- | :--- | :--- | :--- | :--- |
-| Luna Child | 3 | 2.4 | On Draw | Allows Chi from players other than your immediate left for the current round. (Pon/Kan take priority if applicable). |
+| Luna Child | 3 | 2.4 | On Draw | Allows Chi from players other than your immediate left for the current round, also enable Chi in 3 players. (Pon/Kan take priority if applicable). |
 
 #### Return Called Melds
 Abilities to return called melds to your hand.

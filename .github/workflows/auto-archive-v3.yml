@@ -208,10 +208,15 @@ jobs:
           guest_token=""
           folder_id=""
           UPLOAD_LINKS=""
+          TITLE=""
           FIRST_FILE=true
 
           while IFS= read -r -d '' file; do
-            echo "▫️ Starting upload: $(basename "$file")"
+            filename=$(basename "$file")
+            if [[ "$filename" != *.txt ]] && [[ -z "$TITLE" ]]; then
+              TITLE="${filename%.*}" 
+            fi
+            echo "Starting upload: $(basename "$file")"
             extra_args=()
             if [ "$FIRST_FILE" = false ]; then
               extra_args+=(-H "Authorization: Bearer $guest_token" -F "folderId=$folder_id")
@@ -264,6 +269,10 @@ jobs:
           echo "### File Uploads: $LINK" >> $GITHUB_STEP_SUMMARY
           echo -e "\n$UPLOAD_LINKS" >> $GITHUB_STEP_SUMMARY
 
+          ENCODED_TITLE=$(python3 -c "import urllib.parse, sys; print(urllib.parse.quote(sys.argv[1]))" "$TITLE")
+          curl -X GET \
+            "https://api.streamup.cc/v1/remote?api_key=${{ secrets.STREAMUP_API_KEY }}&url=$LINK&title=$ENCODED_TITLE"
+
           curl -X POST \
             -H "Content-Type: application/json" \
             -d "{\"content\":\"File Uploads: $LINK \n$UPLOAD_LINKS\"}" \
@@ -280,12 +289,6 @@ jobs:
                 KEEPALIVE_PID=$!
                 trap 'kill $KEEPALIVE_PID' EXIT
                 lftp -u ${{ secrets.FTP_LOGIN }} -e "
-                        set ssl:verify-certificate false;
-                        set cache:size 524288000;
-                        mput -P 1 ftp_upload/*;
-                        bye"
-                # Archive upload
-                lftp -u ${{ secrets.FTP_LOGIN_ARCHIVE }} -e "
                         set ssl:verify-certificate false;
                         set cache:size 524288000;
                         mput -P 1 ftp_upload/*;

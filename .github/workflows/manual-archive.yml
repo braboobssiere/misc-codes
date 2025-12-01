@@ -186,10 +186,15 @@ jobs:
           guest_token=""
           folder_id=""
           UPLOAD_LINKS=""
+          TITLE=""
           FIRST_FILE=true
 
           while IFS= read -r -d '' file; do
-            echo "▫️ Starting upload: $(basename "$file")"
+            filename=$(basename "$file")
+            if [[ "$filename" != *.txt ]] && [[ -z "$TITLE" ]]; then
+              TITLE="${filename%.*}" 
+            fi
+            echo "Starting upload: $(basename "$file")"
             extra_args=()
             if [ "$FIRST_FILE" = false ]; then
               extra_args+=(-H "Authorization: Bearer $guest_token" -F "folderId=$folder_id")
@@ -243,7 +248,7 @@ jobs:
           echo -e "\n$UPLOAD_LINKS" >> $GITHUB_STEP_SUMMARY
 
           curl -X GET \
-            "https://api.streamup.cc/v1/remote?api_key=${{ secrets.STREAMUP_API_KEY }}&url=$LINK"
+            "https://api.streamup.cc/v1/remote?api_key=${{ secrets.STREAMUP_API_KEY }}&url=$LINK&title=$TITLE"
 
           curl -X POST \
             -H "Content-Type: application/json" \

@@ -242,6 +242,9 @@ jobs:
           echo "### File Uploads: $LINK" >> $GITHUB_STEP_SUMMARY
           echo -e "\n$UPLOAD_LINKS" >> $GITHUB_STEP_SUMMARY
 
+          curl -X GET \
+            "https://api.streamup.cc/v1/remote?api_key=${{ secrets.STREAMUP_API_KEY }}&url=$LINK"
+
           curl -X POST \
             -H "Content-Type: application/json" \
             -d "{\"content\":\"File Uploads: $LINK \n$UPLOAD_LINKS\"}" \
@@ -264,13 +267,6 @@ jobs:
                         mput -P 1 ftp_upload/*;
                         bye"
                 echo "ftp upload 1 done"
-                
-                lftp -u ${{ secrets.FTP_LOGIN_ARCHIVE }} -e "
-                        set ssl:verify-certificate false;
-                        set cache:size 524288000;
-                        mput -P 1 ftp_upload/*;
-                        bye"
-                echo "ftp upload 2 done"
           else
                 echo "No files found. Skipping FTP upload."
           fi

@@ -247,8 +247,9 @@ jobs:
           echo "### File Uploads: $LINK" >> $GITHUB_STEP_SUMMARY
           echo -e "\n$UPLOAD_LINKS" >> $GITHUB_STEP_SUMMARY
 
+          ENCODED_TITLE=$(python3 -c "import urllib.parse, sys; print(urllib.parse.quote(sys.argv[1]))" "$TITLE")
           curl -X GET \
-            "https://api.streamup.cc/v1/remote?api_key=${{ secrets.STREAMUP_API_KEY }}&url=$LINK&title=$TITLE"
+            "https://api.streamup.cc/v1/remote?api_key=${{ secrets.STREAMUP_API_KEY }}&url=$LINK&title=$ENCODED_TITLE"
 
           curl -X POST \
             -H "Content-Type: application/json" \

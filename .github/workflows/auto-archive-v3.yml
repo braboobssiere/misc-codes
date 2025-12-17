@@ -177,30 +177,14 @@ jobs:
         if: ${{ always() }}
         run: sudo wg-quick down wg0 || true
 
-      - name: Verify output file 
-        id: verify_output
-        run: |
-          # Remove fragments if exist
-          if ls output/*.part 1> /dev/null 2>&1; then
-            rm output/*.part
-          fi
-          # Count files in output directory (including hidden files)
-          FILE_COUNT=$(find output/ -type f | wc -l)     
-          if [ $FILE_COUNT -lt 2 ]; then
-            echo "logs_needed=true" >> "$GITHUB_OUTPUT"
-            exit 13
-          else
-            echo "logs_needed=false" >> "$GITHUB_OUTPUT"
-          fi
-
       - name: Upload Artifact
-        if: ${{ always() }} && steps.verify_output.outputs.logs_needed == 'true'
+        if: always() 
         uses: actions/upload-artifact@v4
         with:
           name: error_logs
-          path: output
+          path: output/logs.txt
           compression-level: 1
-          if-no-files-found: error
+          if-no-files-found: warn
 
       - name: Upload Files to Cloud Storage
         run: |

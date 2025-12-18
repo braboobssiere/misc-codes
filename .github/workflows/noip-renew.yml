@@ -3,7 +3,7 @@ name: NoIP Renew
 on:
   workflow_dispatch:  
   schedule: 
-    - cron: '20 7 8 * *'  
+    - cron: '20 7 * * 2'  
 
 jobs:
   deploy:
@@ -12,16 +12,65 @@ jobs:
     steps:
       - name: Checkout noip-renew repository
         run: |
-          git clone https://github.com/neothematrix/noip-renew.git
-          cd noip-renew
+          git clone https://github.com/Angel0ffDeath/noip-renew.git
 
-      - name: Set up environment variables and run Docker container
+      - name: Setup Dependencies
         run: |
-          # Split the single secret into individual variables your_username;your_password;your_2fa_secret_key
+          sudo apt-get update
+          sudo apt-get install -y wireguard-tools
+
+      - name: VPN Setup 
+        env: 
+          PRIMARY_CONFIG: ${{ secrets.WIREGUARD_TRADEWAR }}
+          SECONDARY_CONFIG: ${{ secrets.WIREGUARD_GRANDCENTRAL }}
+        run: |
+          sudo mkdir -p /etc/wireguard/
+          WG_CONF="/etc/wireguard/wg0.conf"
+
+          handle_vpn_attempt() {
+            local config_content="$1"
+            local label="$2"
+            
+            echo "$config_content" | sudo tee $WG_CONF > /dev/null
+            sudo chmod 600 $WG_CONF
+
+            for i in {1..3}; do
+              if timeout 60 sudo wg-quick up wg0; then
+                return 0
+              fi
+              echo "${label^} VPN attempt $i/3 failed"
+              sleep 3
+            done
+            return 1
+          }
+
+          if ! handle_vpn_attempt "$PRIMARY_CONFIG" "primary"; then
+            echo "::warning::Primary failed - Trying secondary"
+            if ! handle_vpn_attempt "$SECONDARY_CONFIG" "secondary"; then
+              echo "::error::All VPN configurations failed after 3 attempts each"
+              exit 11
+            fi
+          fi
+
+          if ! sudo wg show wg0 >/dev/null 2>&1; then
+            echo "::error::VPN connection verification failed"
+            exit 12
+          fi
+         
+      - name: Make setup executable and run with credentials
+        run: |
+          chmod +x noip-renew/setup.sh
           IFS=';' read -r NOIP_USERNAME NOIP_PASSWORD NOIP_2FA_SECRET_KEY <<< "${{ secrets.NOIP_CREDENTIALS }}"
           echo "::add-mask::$NOIP_USERNAME"
           echo "::add-mask::$NOIP_PASSWORD"
           echo "::add-mask::$NOIP_2FA_SECRET_KEY"
+          # Provide username, password, and 2FA each on their own line to the script's stdin
+          cat <<EOF | noip-renew/setup.sh
+          $NOIP_USERNAME
+          $NOIP_PASSWORD
+          $NOIP_2FA_SECRET_KEY
+          EOF
 
-          # Run Docker container with the environment variables
-          docker run --rm --network host -e "NOIP_USERNAME=${NOIP_USERNAME}" -e "NOIP_PASSWORD=${NOIP_PASSWORD}" -e "NOIP_2FA_SECRET_KEY=${NOIP_2FA_SECRET_KEY}" --shm-size=512m moebiuss/noip-renew
+      - name: VPN Cleanup
+        if: always()
+        run: sudo wg-quick down wg0 || true

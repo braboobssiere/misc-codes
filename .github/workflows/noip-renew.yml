@@ -12,16 +12,18 @@ jobs:
     steps:
       - name: Checkout noip-renew repository
         run: |
-          git clone https://github.com/neothematrix/noip-renew.git
-          cd noip-renew
-
-      - name: Set up environment variables and run Docker container
+          git clone https://github.com/Angel0ffDeath/noip-renew.git
+         
+      - name: Make setup executable and run with credentials
         run: |
-          # Split the single secret into individual variables your_username;your_password;your_2fa_secret_key
+          chmod +x noip-renew/setup.sh
           IFS=';' read -r NOIP_USERNAME NOIP_PASSWORD NOIP_2FA_SECRET_KEY <<< "${{ secrets.NOIP_CREDENTIALS }}"
           echo "::add-mask::$NOIP_USERNAME"
           echo "::add-mask::$NOIP_PASSWORD"
           echo "::add-mask::$NOIP_2FA_SECRET_KEY"
-
-          # Run Docker container with the environment variables
-          docker run --rm --network host -e "NOIP_USERNAME=${NOIP_USERNAME}" -e "NOIP_PASSWORD=${NOIP_PASSWORD}" -e "NOIP_2FA_SECRET_KEY=${NOIP_2FA_SECRET_KEY}" --shm-size=512m moebiuss/noip-renew
+          # Provide username, password, and 2FA each on their own line to the script's stdin
+          cat <<EOF | noip-renew/setup.sh
+          $NOIP_USERNAME
+          $NOIP_PASSWORD
+          $NOIP_2FA_SECRET_KEY
+          EOF

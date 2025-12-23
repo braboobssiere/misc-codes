@@ -262,31 +262,40 @@ jobs:
             -d "{\"content\":\"File Uploads: $LINK \n$UPLOAD_LINKS\"}" \
             "${{ secrets.DISCORD_WEBHOOK }}"
             
-      - name: Upload to FTP
+      - name: Prepare files for FTP upload
+        id: prepare-ftp
         run: |
           mkdir -p ftp_upload
           find output -type f \( -name "*.mp4" -o -name "*.mkv" -o -name "*.ts" -o -name "*.webm" \) \
             -exec mv -- {} ftp_upload/ \;
+          
           if [ "$(ls -A ftp_upload)" ]; then
-                # keep runner awake
-                ( while true; do printf '.'; sleep 30; done ) &
-                KEEPALIVE_PID=$!
-                trap 'kill $KEEPALIVE_PID' EXIT
-                lftp -u ${{ secrets.FTP_LOGIN }} -e "
-                        set ssl:verify-certificate false;
-                        set cache:size 524288000;
-                        mput -P 1 ftp_upload/*;
-                        bye"
-                echo "ftp upload 1 done"
-
-                lftp -u ${{ secrets.FTP_LOGIN_ARCHIVE }} -e "
-                        set ssl:verify-certificate false;
-                        set cache:size 524288000;
-                        mput -P 1 ftp_upload/*;
-                        bye"
-                echo "ftp upload 2 done"
-                        
+            echo "has_files=true" >> $GITHUB_OUTPUT
+            echo "Files found in ftp_upload directory"
           else
-                echo "No files found. Skipping FTP upload."
+            echo "has_files=false" >> $GITHUB_OUTPUT
+            echo "No files found. Skipping FTP upload."
           fi
+
+      - name: Upload to FTP (Server 1)
+        if: steps.prepare-ftp.outputs.has_files == 'true'
+        continue-on-error: true
+        run: |
+          lftp -u ${{ secrets.FTP_LOGIN }} -e "
+            set ssl:verify-certificate false;
+            set cache:size 524288000;
+            mput -P 1 ftp_upload/*;
+            bye"
+          echo "ftp upload 1 done"
+
+      - name: Upload to FTP (Server 2)
+        if: steps.prepare-ftp.outputs.has_files == 'true'
+        continue-on-error: true
+        run: |
+          lftp -u ${{ secrets.FTP_LOGIN_ARCHIVE }} -e "
+            set ssl:verify-certificate false;
+            set cache:size 524288000;
+            mput -P 1 ftp_upload/*;
+            bye"
+          echo "ftp upload 2 done"
           

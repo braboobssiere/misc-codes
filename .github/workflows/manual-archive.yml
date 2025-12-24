@@ -273,7 +273,6 @@ jobs:
 
       - name: Upload to FTP (Server 1)
         if: steps.prepare-ftp.outputs.has_files == 'true'
-        continue-on-error: true
         run: |
           lftp -u ${{ secrets.FTP_LOGIN }} -e "
             set ssl:verify-certificate false;
@@ -284,7 +283,6 @@ jobs:
 
       - name: Upload to FTP (Server 2)
         if: steps.prepare-ftp.outputs.has_files == 'true'
-        continue-on-error: true
         run: |
           lftp -u ${{ secrets.FTP_LOGIN_ARCHIVE }} -e "
             set ssl:verify-certificate false;

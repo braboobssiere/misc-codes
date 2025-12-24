@@ -86,55 +86,41 @@ jobs:
       - name: VPN Cleanup
         if: ${{ always() }}
         run: sudo wg-quick down wg0 || true
-
-      - name: Prepare and Upload to FTP
+        
+      - name: Prepare files for FTP upload
+        id: prepare-ftp
         run: |
-          # 1️⃣ Prepare upload folder
           mkdir -p ftp_upload
-          cd magnet_output
-
-          # 2️⃣ Find and sanitize video files, flatten into ftp_upload/
-          find . -type f \( -name "*.mp4" -o -name "*.mkv" -o -name "*.ts" -o -name "*.webm" \) \
-            -exec bash -c '
-              file="$1"
-              filename=$(basename -- "$file")
-              extension="${filename##*.}"
-              name_no_ext="${filename%.*}"
-
-              # Replace spaces with underscores, remove illegal chars, strip control chars
-              sanitized_name=$(
-                echo "$name_no_ext" |
-                tr " " "_" |
-                sed "s/[][<>:\"\\\\|?*]/_/g" |
-                sed "s/[[:cntrl:]]//g"
-              )
-
-              # Fallback if empty after sanitizing
-              if [ -z "$sanitized_name" ]; then
-                sanitized_name="video_$(date +%s%N)"
-              fi
-
-              sanitized_filename="${sanitized_name}.${extension}"
-
-              # Move into ftp_upload root
-              mv -- "$file" "../ftp_upload/$sanitized_filename"
-            ' _ {} \;
-
-          cd ..
-
-          # Check if any files were moved to ftp_upload
-          if [ -n "$(find ftp_upload -type f -print -quit)" ]; then
-            ( while true; do printf '.'; sleep 30; done ) &
-            KEEPALIVE_PID=$!
-            trap 'kill $KEEPALIVE_PID' EXIT
-            # 3️⃣ Upload each file directly to FTP root (no dir creation)
-            lftp -u ${{ secrets.FTP_LOGIN }} -e "set ssl:verify-certificate false; set cache:size 524288000; mput -P 1 -c ftp_upload/*; bye"
-            echo "ftp upload 1 done"
-            lftp -u ${{ secrets.FTP_LOGIN_ARCHIVE }} -e "set ssl:verify-certificate false; set cache:size 524288000; mput -P 1 -c ftp_upload/*; bye"
-            echo "ftp upload 2 done"
+          find output -type f \( -name "*.mp4" -o -name "*.mkv" -o -name "*.ts" -o -name "*.webm" \) \
+            -exec mv -- {} ftp_upload/ \;
+          
+          if [ "$(ls -A ftp_upload)" ]; then
+            echo "has_files=true" >> $GITHUB_OUTPUT
+            echo "Files found in ftp_upload directory"
           else
-            echo "No video files found. Skipping FTP upload."
+            echo "has_files=false" >> $GITHUB_OUTPUT
+            echo "No files found. Skipping FTP upload."
           fi
+
+      - name: Upload to FTP (Server 1)
+        if: steps.prepare-ftp.outputs.has_files == 'true'
+        run: |
+          lftp -u ${{ secrets.FTP_LOGIN }} -e "
+            set ssl:verify-certificate false;
+            set cache:size 524288000;
+            mput -P 1 ftp_upload/*;
+            bye"
+          echo "ftp upload 1 done"
+
+      - name: Upload to FTP (Server 2)
+        if: steps.prepare-ftp.outputs.has_files == 'true'
+        run: |
+          lftp -u ${{ secrets.FTP_LOGIN_ARCHIVE }} -e "
+            set ssl:verify-certificate false;
+            set cache:size 524288000;
+            mput -P 1 ftp_upload/*;
+            bye"
+          echo "ftp upload 2 done"
           # 'user,pass' ftp://host/
           
       - name: Zip files 

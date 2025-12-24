@@ -146,10 +146,14 @@ jobs:
             # removed --cookies yt_cookies.txt 
           fi
 
+          if [[ "$URL" == *.m3u8 ]]; then
+            M3U8_DL="--downloader ffmpeg --hls-use-mpegts"
+          fi
+
           ADDITIONAL_ARGS="${{ github.event.inputs.additional_args }}"
 
           # Build the download command
-          COMMAND="yt-dlp -i --no-progress ${YT_ARGS} \
+          COMMAND="yt-dlp -i --no-progress ${YT_ARGS} ${M3U8_DL} \
           ${ADDITIONAL_ARGS} ${FORMAT_OPTION} --windows-filenames \
           --embed-metadata --no-embed-info-json --write-info-json --retry-sleep 3 \
           -o \"output/%(title).170B [%(id)s] (%(resolution)s).%(ext)s\" \

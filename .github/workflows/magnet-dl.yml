@@ -91,7 +91,7 @@ jobs:
         id: prepare-ftp
         run: |
           mkdir -p ftp_upload
-          find output -type f \( -name "*.mp4" -o -name "*.mkv" -o -name "*.ts" -o -name "*.webm" \) \
+          find magnet_output -type f \( -name "*.mp4" -o -name "*.mkv" -o -name "*.ts" -o -name "*.webm" \) \
             -exec mv -- {} ftp_upload/ \;
           
           if [ "$(ls -A ftp_upload)" ]; then
@@ -147,7 +147,7 @@ jobs:
           FIRST_FILE=true
 
           while IFS= read -r -d '' file; do
-            echo "▫️ Starting upload: $(basename "$file")"
+            echo "Starting upload: $(basename "$file")"
             extra_args=()
             if [ "$FIRST_FILE" = false ]; then
               extra_args+=(-H "Authorization: Bearer $guest_token" -F "folderId=$folder_id")

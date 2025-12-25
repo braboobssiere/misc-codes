@@ -120,8 +120,8 @@ jobs:
         
       - name: VPN Setup 
         env: 
-          PRIMARY_CONFIG: ${{ secrets.WIREGUARD_TRADEWAR }}
-          SECONDARY_CONFIG: ${{ secrets.WIREGUARD_GRANDCENTRAL }}
+          PRIMARY_CONFIG: ${{ secrets.WIREGUARD_GRANDCENTRAL }}
+          SECONDARY_CONFIG: ${{ secrets.WIREGUARD_TRADEWAR }}
         run: |
           sudo mkdir -p /etc/wireguard/
           WG_CONF="/etc/wireguard/wg0.conf"
@@ -176,15 +176,6 @@ jobs:
       - name: VPN Cleanup
         if: ${{ always() }}
         run: sudo wg-quick down wg0 || true
-
-      - name: Upload Artifact
-        if: always() 
-        uses: actions/upload-artifact@v4
-        with:
-          name: error_logs
-          path: output/logs.txt
-          compression-level: 1
-          if-no-files-found: warn
 
       - name: Upload Files to Cloud Storage
         run: |

@@ -7,9 +7,9 @@ on:
         required: true
         type: string
 
-concurrency:
-  group: Magnet Downloader
-  cancel-in-progress: false
+# concurrency:
+#  group: Magnet Downloader
+#  cancel-in-progress: false
 
 jobs:
   process-downloader:

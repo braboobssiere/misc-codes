@@ -1,0 +1,37 @@
+name: PikPak CLI
+
+on:
+  workflow_dispatch:
+    inputs:
+      input:
+        description: 'Input for pikpakcli (excluding output folder)'
+        required: true
+        type: string
+
+jobs:
+  process:
+    runs-on: ubuntu-latest
+    
+    steps:
+
+      - name: Clone pikpakcli repository
+        run: |
+          git clone https://github.com/52funny/pikpakcli
+
+      - name: Build pikpakcli
+        run: go build -o pikpakcli
+
+      - name: Run pikpakcli
+        run: |
+          cd pikpakcli
+          echo ${{ secrets.pikpak_config }} > config.yml
+          chmod +x pikpakcli
+          mkdir -p download
+          pikpakcli "${{ github.event.inputs.input }}" -o download
+
+      - name: Upload download folder as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: pikpak-downloads
+          path: pikpakcli/download/
+          if-no-files-found: error

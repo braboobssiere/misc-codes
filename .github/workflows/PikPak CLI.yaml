@@ -14,11 +14,13 @@ jobs:
     
     steps:
 
-      - name: Clone pikpakcli repository
+      - name: Clone pikpakcli repository and Install Dependency 
         run: |
           git clone https://github.com/52funny/pikpakcli
+          sudo apt-get update
+          sudo apt-get install -y lftp
         
-      - name: Run pikpakcli
+      - name: Run pikpakcli 
         run: |
           cd pikpakcli
           go build -o pikpakcli

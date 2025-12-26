@@ -28,7 +28,7 @@ jobs:
           EOF
           chmod +x pikpakcli
           mkdir -p download
-          pikpakcli "${{ github.event.inputs.input }}" -o download
+          pikpakcli ${{ github.event.inputs.input }} -o download
 
       - name: Upload download folder as artifact
         uses: actions/upload-artifact@v4

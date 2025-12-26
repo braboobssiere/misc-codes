@@ -21,8 +21,8 @@ jobs:
           go build -o pikpakcli
 
       - name: Run pikpakcli
+        working-directory: ./pikpakcli
         run: |
-          cd pikpakcli
           echo ${{ secrets.pikpak_config }} > config.yml
           chmod +x pikpakcli
           mkdir -p download

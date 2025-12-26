@@ -7,10 +7,6 @@ on:
         required: true
         type: string
 
-# concurrency:
-#  group: Magnet Downloader
-#  cancel-in-progress: false
-
 jobs:
   process-downloader:
     runs-on: ubuntu-latest

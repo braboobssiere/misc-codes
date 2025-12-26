@@ -23,7 +23,9 @@ jobs:
       - name: Run pikpakcli
         working-directory: ./pikpakcli
         run: |
-          echo ${{ secrets.pikpak_config }} > config.yml
+          cat > config.yml << 'EOF'
+          ${{ secrets.pikpak_config }}
+          EOF
           chmod +x pikpakcli
           mkdir -p download
           pikpakcli "${{ github.event.inputs.input }}" -o download

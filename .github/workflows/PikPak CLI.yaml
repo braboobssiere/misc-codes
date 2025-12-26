@@ -7,6 +7,7 @@ on:
         description: 'Input for pikpakcli (excluding output folder)'
         required: true
         type: string
+        default: 'download -p "Pack From Shared"'
 
 jobs:
   process:

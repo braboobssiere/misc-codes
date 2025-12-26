@@ -17,9 +17,8 @@ jobs:
       - name: Clone pikpakcli repository
         run: |
           git clone https://github.com/52funny/pikpakcli
-
-      - name: Build pikpakcli
-        run: go build -o pikpakcli
+          cd pikpakcli
+          go build -o pikpakcli
 
       - name: Run pikpakcli
         run: |

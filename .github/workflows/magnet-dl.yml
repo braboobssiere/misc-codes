@@ -6,6 +6,11 @@ on:
         description: "Input link"
         required: true
         type: string
+      file_name:
+        description: "Optional: File name to download (leave empty for all files)"
+        required: false
+        type: string
+        default: ""
 
 jobs:
   process-downloader:
@@ -72,11 +77,91 @@ jobs:
           fi
         
       - name: Download files
+        id: download-files
         run: |
           mkdir -p magnet_output
-          download_output=$(webtorrent download "${{ inputs.source }}" --out magnet_output)
+          
+          # Check if file_name is provided
+          if [ -n "${{ github.event.inputs.file_name }}" ]; then
+            echo "File name specified: ${{ github.event.inputs.file_name }}"
+            echo "Listing torrent files to find closest match..."
+            
+            # First, list all files without downloading
+            torrent_list=$(webtorrent download "${{ github.event.inputs.source }}" --select 2>&1 | grep -E '^\s*[0-9]+\s+' || true)
+            
+            if [ -z "$torrent_list" ]; then
+              echo "Could not list torrent files. Falling back to download all files."
+              webtorrent download "${{ github.event.inputs.source }}" --out magnet_output
+            else
+              # Parse the output to find file indices and names
+              echo "Available files in torrent:"
+              echo "$torrent_list"
+              
+              # Find the file index with closest name match
+              selected_index=""
+              best_score=0
+              
+              # Convert input to lowercase for case-insensitive comparison
+              input_lower=$(echo "${{ github.event.inputs.file_name }}" | tr '[:upper:]' '[:lower:]')
+              
+              while IFS= read -r line; do
+                # Extract index and filename from the line
+                index=$(echo "$line" | sed -E 's/^\s*([0-9]+)\s+.*/\1/')
+                filename=$(echo "$line" | sed -E 's/^\s*[0-9]+\s+//' | sed -E 's/\s+\(.*$//')
+                
+                if [ -n "$index" ] && [ -n "$filename" ]; then
+                  # Convert filename to lowercase for case-insensitive matching
+                  filename_lower=$(echo "$filename" | tr '[:upper:]' '[:lower:]')
+                  
+                  # Calculate similarity score
+                  score=0
+                  
+                  # Check for exact case match first (highest priority)
+                  if [[ "$filename" == *"${{ github.event.inputs.file_name }}"* ]]; then
+                    # Exact case match gets a high base score
+                    score=1000
+                    # Add length bonus - longer matching substring is better
+                    score=$((score + ${#filename}))
+                    echo "  Found exact case match: $filename (score: $score)"
+                  # Check for case-insensitive match
+                  elif [[ "$filename_lower" == *"$input_lower"* ]]; then
+                    # Case-insensitive match gets lower base score
+                    score=500
+                    # Add length bonus
+                    score=$((score + ${#filename}))
+                    echo "  Found case-insensitive match: $filename (score: $score)"
+                  fi
+                  
+                  # If we have a match and it's the best score so far
+                  if [ $score -gt $best_score ]; then
+                    best_score=$score
+                    selected_index=$index
+                  fi
+                fi
+              done <<< "$torrent_list"
+              
+              if [ -n "$selected_index" ]; then
+                echo "Selected file index: $selected_index (best score: $best_score)"
+                webtorrent download "${{ github.event.inputs.source }}" --select "$selected_index" --out magnet_output
+              else
+                echo "No matching file found. Downloading all files."
+                webtorrent download "${{ github.event.inputs.source }}" --out magnet_output
+              fi
+            fi
+          else
+            echo "No file name specified. Downloading all files."
+            webtorrent download "${{ github.event.inputs.source }}" --out magnet_output
+          fi
+          
+          # Get the downloaded file name(s)
+          download_output=$(webtorrent download "${{ github.event.inputs.source }}" --out magnet_output 2>&1 | tail -20 || true)
           files_name=$(echo "$download_output" | grep -oP '(?<=Downloading: ).*' | head -n 1)
-          # sanitized_file_name=$(echo "$files_name" | tr -cd '[:alnum:]_.-[:space:]' | sed 's/^[_.-]*//;s/[_.-]*$//')
+          if [ -z "$files_name" ]; then
+            # Try to get file name from directory
+            if [ -d "magnet_output" ]; then
+              files_name=$(ls magnet_output/ 2>/dev/null | head -n 1)
+            fi
+          fi
           echo "files_name=${files_name}" >> $GITHUB_ENV
 
       - name: VPN Cleanup
@@ -117,7 +202,6 @@ jobs:
             mput -P 1 ftp_upload/*;
             bye"
           echo "ftp upload 2 done"
-          # 'user,pass' ftp://host/
           
       - name: Zip files 
         run: |

@@ -142,6 +142,8 @@ jobs:
               
               if [ -n "$selected_index" ]; then
                 echo "Selected file index: $selected_index (best score: $best_score)"
+                
+                # Download only the selected file
                 webtorrent download "${{ github.event.inputs.source }}" --select "$selected_index" --out magnet_output
               else
                 echo "No matching file found. Downloading all files."
@@ -152,17 +154,6 @@ jobs:
             echo "No file name specified. Downloading all files."
             webtorrent download "${{ github.event.inputs.source }}" --out magnet_output
           fi
-          
-          # Get the downloaded file name(s)
-          download_output=$(webtorrent download "${{ github.event.inputs.source }}" --out magnet_output 2>&1 | tail -20 || true)
-          files_name=$(echo "$download_output" | grep -oP '(?<=Downloading: ).*' | head -n 1)
-          if [ -z "$files_name" ]; then
-            # Try to get file name from directory
-            if [ -d "magnet_output" ]; then
-              files_name=$(ls magnet_output/ 2>/dev/null | head -n 1)
-            fi
-          fi
-          echo "files_name=${files_name}" >> $GITHUB_ENV
 
       - name: VPN Cleanup
         if: ${{ always() }}

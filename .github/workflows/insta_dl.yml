@@ -15,6 +15,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
 
+      - name: Maximize space
+        uses: easimon/maximize-build-space@v10
+        with:
+          swap-size-mb: 10240
+
       - name: Setup Dependencies
         run: |
           python -m pip install --upgrade pip
@@ -81,8 +86,7 @@ jobs:
           mkdir -p output
           if [ -d "$PROFILE" ]; then
             echo "Creating zip archive in output/ directory..."
-            zip -r "output/${PROFILE}.zip" "$PROFILE"
-           rm -rf "$PROFILE" 
+            zip -0 -r -m -s 2g "output/${PROFILE}.zip" "$PROFILE"
           else
             echo "Warning: Directory '$PROFILE' not found after instaloader"
             ls -la

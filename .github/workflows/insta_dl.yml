@@ -93,6 +93,7 @@ jobs:
           UPLOAD_LINKS=""
           TITLE=""
           FIRST_FILE=true
+          PROFILE="${{ inputs.profile }}"
 
           while IFS= read -r -d '' file; do
             filename=$(basename "$file")
@@ -154,5 +155,5 @@ jobs:
 
           curl -X POST \
             -H "Content-Type: application/json" \
-            -d "{\"content\":\"File Uploads: $LINK \n$UPLOAD_LINKS\"}" \
+            -d "{\"content\":\"File Uploads: $LINK \n$PROFILE\"}" \
             "${{ secrets.DISCORD_WEBHOOK }}"

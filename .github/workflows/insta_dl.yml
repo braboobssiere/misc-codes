@@ -74,10 +74,10 @@ jobs:
           PROFILE="${{ inputs.profile }}"
           if [ "${{ inputs.login }}" = "true" ]; then
             instaloader profile $PROFILE \
-              --sanitize-paths \
+              --sanitize-paths --no-captions --no-metadata-json \
               $insta_login
           else
-            instaloader profile $PROFILE --sanitize-paths
+            instaloader profile $PROFILE --sanitize-paths --no-captions --no-metadata-json
           fi
 
       - name: Zip file 

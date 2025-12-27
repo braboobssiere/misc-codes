@@ -68,7 +68,7 @@ jobs:
           if [ "${{ inputs.login }}" = "true" ]; then
             instaloader profile ${{ inputs.profile }} \
               --sanitize-paths \
-              ${{ insta_login }}
+              $insta_login
           else
             instaloader profile ${{ inputs.profile }} --sanitize-paths
           fi

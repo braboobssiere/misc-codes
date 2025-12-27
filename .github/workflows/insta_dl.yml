@@ -62,6 +62,7 @@ jobs:
 
       - name: Download profile
         id: download
+        continue-on-error: true
         env:
           insta_login: ${{ secrets.INSTA_LOGIN }}
         run: |

@@ -66,13 +66,15 @@ jobs:
         env:
           insta_login: ${{ secrets.INSTA_LOGIN }}
         run: |
+          PROFILE="${{ inputs.profile }}"
           if [ "${{ inputs.login }}" = "true" ]; then
-            instaloader profile ${{ inputs.profile }} \
+            instaloader profile $PROFILE \
               --sanitize-paths \
               $insta_login
           else
-            instaloader profile ${{ inputs.profile }} --sanitize-paths
+            instaloader profile $PROFILE --sanitize-paths
           fi
+          (cd "$PROFILE" && zip -r "${PROFILE}.zip" .)
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4

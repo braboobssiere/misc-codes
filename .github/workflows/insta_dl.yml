@@ -65,12 +65,12 @@ jobs:
         run: |
           if [ "${{ inputs.login }}" = "true" ]; then
             echo "${{ secrets.INSTA_COOKIES }}" > insta_cookies.txt
-            instaloader profile "${{ inputs.profile }}" \
+            instaloader profile ${{ inputs.profile }} \
               --sanitize-paths \
-              --load-cookies \
+              --load-cookies Chrome \
               --cookiefile insta_cookies.txt
           else
-            instaloader profile "${{ inputs.profile }}" --sanitize-paths
+            instaloader profile ${{ inputs.profile }} --sanitize-paths
           fi
 
       - name: Upload artifact

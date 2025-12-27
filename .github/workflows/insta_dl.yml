@@ -18,7 +18,7 @@ jobs:
       - name: Setup Dependencies
         run: |
           python -m pip install --upgrade pip
-          pip3 install --upgrade instaloader
+          pip install --upgrade instaloader browser-cookie3
           sudo apt-get update
           sudo apt-get install -y wireguard-tools
 
@@ -63,7 +63,6 @@ jobs:
       - name: Download profile
         id: download
         run: |
-          import browser_cookie3
           if [ "${{ inputs.login }}" = "true" ]; then
             echo "${{ secrets.INSTA_COOKIES }}" > insta_cookies.txt
             instaloader profile ${{ inputs.profile }} \

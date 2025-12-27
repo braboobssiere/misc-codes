@@ -63,10 +63,12 @@ jobs:
       - name: Download profile
         id: download
         run: |
+          import browser_cookie3
           if [ "${{ inputs.login }}" = "true" ]; then
             echo "${{ secrets.INSTA_COOKIES }}" > insta_cookies.txt
             instaloader profile ${{ inputs.profile }} \
               --sanitize-paths \
+              --load-cookies Chrome \
               --cookiefile insta_cookies.txt
           else
             instaloader profile ${{ inputs.profile }} --sanitize-paths

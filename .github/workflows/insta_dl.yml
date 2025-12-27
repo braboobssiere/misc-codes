@@ -74,14 +74,24 @@ jobs:
           else
             instaloader profile $PROFILE --sanitize-paths
           fi
-          (cd "$PROFILE" && zip -r "${PROFILE}.zip" .)
+
+      - name: Zip file 
+        run: |
+          PROFILE="${{ inputs.profile }}"
+          mkdir -p output
+          if [ -d "$PROFILE" ]; then
+            echo "Creating zip archive in output/ directory..."
+            zip -r "output/${PROFILE}.zip" "$PROFILE"
+          else
+            echo "Warning: Directory '$PROFILE' not found after instaloader"
+            ls -la
+          fi
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: instagram-${{ inputs.profile }}
-          path: |
-            ${{ inputs.profile }}
+          path: output/
 
       - name: VPN Cleanup
         if: ${{ always() }}
@@ -150,7 +160,7 @@ jobs:
               UPLOAD_LINKS+="- $(basename "$file")\n"
               echo "Success: $LINK"
             fi
-          done < <(find ${{ inputs.profile }} -type f -print0)
+          done < <(find output -type f -print0)
 
           echo "### Profile $PROFILE File Uploads: $LINK" >> $GITHUB_STEP_SUMMARY
 

@@ -150,8 +150,7 @@ jobs:
             fi
           done < <(find ${{ inputs.profile }} -type f -print0)
 
-          echo "### File Uploads: $LINK" >> $GITHUB_STEP_SUMMARY
-          echo -e "\n$UPLOAD_LINKS" >> $GITHUB_STEP_SUMMARY
+          echo "### Profile $PROFILE File Uploads: $LINK" >> $GITHUB_STEP_SUMMARY
 
           curl -X POST \
             -H "Content-Type: application/json" \

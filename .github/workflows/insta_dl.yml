@@ -67,7 +67,7 @@ jobs:
             echo "${{ secrets.INSTA_COOKIES }}" > insta_cookies.txt
             instaloader profile ${{ inputs.profile }} \
               --sanitize-paths \
-              --load-cookies Chrome \
+              --load-cookies Firefox \
               --cookiefile insta_cookies.txt
           else
             instaloader profile ${{ inputs.profile }} --sanitize-paths

@@ -1,4 +1,4 @@
-name: Archive Video
+name: Manual Archive
 
 on:
   workflow_dispatch:

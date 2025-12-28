@@ -90,6 +90,7 @@ jobs:
           else
             echo "Warning: Directory '$PROFILE' not found after instaloader"
             ls -la
+            exit 1
           fi
 
       - name: Upload artifact

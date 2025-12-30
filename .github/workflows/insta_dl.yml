@@ -6,7 +6,7 @@ on:
         description: 'Instagram profile to download'
         required: true
       login:
-        description: 'Use login cookies'
+        description: 'Use login'
         type: boolean
         default: false
 
@@ -68,14 +68,12 @@ jobs:
       - name: Download profile
         id: download
         continue-on-error: true
-        env:
-          insta_login: ${{ secrets.INSTA_LOGIN }}
         run: |
           PROFILE="${{ inputs.profile }}"
           if [ "${{ inputs.login }}" = "true" ]; then
-            instaloader profile $PROFILE \
-              --sanitize-paths --no-captions --no-metadata-json \
-              $insta_login
+            echo "${{ secrets.IG_SESSION_BASE64 }}" | base64 -d > IG_SESSION
+            instaloader profile $PROFILE --sanitize-paths --no-captions --no-metadata-json \
+            --login ${{ secrets.IG_USERNAME }} --sessionfile IG_SESSION
           else
             instaloader profile $PROFILE --sanitize-paths --no-captions --no-metadata-json
           fi

@@ -1,4 +1,4 @@
-name: Instagram Download
+name: IG Download
 on:
   workflow_dispatch:
     inputs:

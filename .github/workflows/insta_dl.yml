@@ -82,11 +82,24 @@ jobs:
         run: |
           PROFILE="${{ inputs.profile }}"
           mkdir -p output
-          if [ -d "$PROFILE" ]; then
-            echo "Creating zip archive in output/ directory..."
-            zip -0 -r -m -s 2g "output/${PROFILE}.zip" "$PROFILE"
+    
+          FOLDER_TO_ZIP=""
+          for dir in */; do
+            dir=${dir%/}  
+      
+            if [[ "${dir,,}" == *"${PROFILE,,}"* ]]; then
+              if find "$dir" -maxdepth 1 -type f \( -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.png" -o -iname "*.gif" \) | head -1 | grep -q .; then
+                FOLDER_TO_ZIP="$dir"
+                break
+              fi
+            fi
+          done
+    
+          if [[ -n "$FOLDER_TO_ZIP" ]]; then
+            zip -1 -r -m -s 2g "output/${PROFILE}.zip" "$FOLDER_TO_ZIP"
           else
-            echo "Warning: Directory '$PROFILE' not found after instaloader"
+            echo "Warning: No folder containing '$PROFILE' with image files found"
+            echo "Available directories:"
             ls -la
             exit 13
           fi

@@ -29,7 +29,7 @@ jobs:
 
       - name: VPN Setup 
         env: 
-          PRIMARY_CONFIG: ${{ secrets.WIREGUARD_GRANDCENTRAL }}
+          PRIMARY_CONFIG: ${{ secrets.WIREGUARD_SHINKANSEN }}
           SECONDARY_CONFIG: ${{ secrets.WIREGUARD_TRADEWAR }}
         run: |
           sudo mkdir -p /etc/wireguard/

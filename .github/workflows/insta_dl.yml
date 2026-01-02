@@ -23,7 +23,7 @@ jobs:
       - name: Setup Dependencies
         run: |
           python -m pip install --upgrade pip
-          pip3 install --upgrade instaloader
+          pip3 install --upgrade instaloader fake-useragent
           sudo apt-get update
           sudo apt-get install -y wireguard-tools
 
@@ -65,17 +65,29 @@ jobs:
             exit 12
           fi
 
+      - name: Generate User-Agent
+        id: ua_gen
+        run: |
+          python - <<'PY'
+          from fake_useragent import UserAgent
+          ua = UserAgent(platforms=['desktop', 'mobile'])
+          uastr = ua.random
+          print(f"::set-output name=user_agent::{uastr}")
+          PY
+
       - name: Download profile
         id: download
         continue-on-error: true
+        env:
+          UA: ${{ steps.ua_gen.outputs.user_agent }}
         run: |
           PROFILE="${{ inputs.profile }}"
           if [ "${{ inputs.login }}" = "true" ]; then
             echo "${{ secrets.IG_SESSION_BASE64 }}" | base64 -d > IG_SESSION
-            instaloader profile $PROFILE --sanitize-paths --no-captions --no-metadata-json \
+            instaloader profile $PROFILE --sanitize-paths --no-captions --no-metadata-json --user-agent "$UA" \
             --login ${{ secrets.IG_USERNAME }} --sessionfile IG_SESSION
           else
-            instaloader profile $PROFILE --sanitize-paths --no-captions --no-metadata-json
+            instaloader profile $PROFILE --sanitize-paths --no-captions --no-metadata-json --user-agent "$UA"
           fi
 
       - name: Zip file 

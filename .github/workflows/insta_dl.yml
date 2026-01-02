@@ -70,7 +70,7 @@ jobs:
         run: |
           python - <<'PY'
           from fake_useragent import UserAgent
-          ua = UserAgent(platforms=['desktop'])
+          ua = UserAgent(platforms='desktop')
           uastr = ua.random
           print(f"::set-output name=user_agent::{uastr}")
           PY

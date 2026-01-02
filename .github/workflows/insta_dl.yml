@@ -68,12 +68,12 @@ jobs:
       - name: Generate User-Agent
         id: ua_gen
         run: |
-          python - <<'PY'
+          echo "user_agent=$(python - <<'PY'
           from fake_useragent import UserAgent
-          ua = UserAgent(platforms='desktop')
-          uastr = ua.random
-          print(f"::set-output name=user_agent::{uastr}")
+          print(UserAgent(platforms=['desktop']).random)
           PY
+          )" >> $GITHUB_OUTPUT
+
 
       - name: Download profile
         id: download

@@ -13,7 +13,17 @@ on:
 jobs:
   download:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write 
     steps:
+
+      - name: Checkout stamps file
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          sparse-checkout: true
+          sparse-checkout-paths: |
+            input/instaloader/
 
       - name: Maximize space
         uses: easimon/maximize-build-space@v10
@@ -82,12 +92,15 @@ jobs:
           UA: ${{ steps.ua_gen.outputs.user_agent }}
         run: |
           PROFILE="${{ inputs.profile }}"
+          STAMPS_FILE="./input/instaloader/latest-stamps.ini"
           if [ "${{ inputs.login }}" = "true" ]; then
             echo "${{ secrets.IG_SESSION_BASE64 }}" | base64 -d > IG_SESSION
-            instaloader profile $PROFILE --sanitize-paths --no-captions --no-metadata-json --user-agent "$UA" \
+            instaloader profile $PROFILE --sanitize-paths --no-captions \
+            --no-metadata-json --user-agent "$UA" --latest-stamps "$STAMPS_FILE" \
             --login ${{ secrets.IG_USERNAME }} --sessionfile IG_SESSION
           else
-            instaloader profile $PROFILE --sanitize-paths --no-captions --no-metadata-json --user-agent "$UA"
+            instaloader profile $PROFILE --sanitize-paths --no-captions \
+            --no-metadata-json --user-agent "$UA" --latest-stamps "$STAMPS_FILE"
           fi
 
       - name: Zip file 
@@ -116,15 +129,15 @@ jobs:
             exit 13
           fi
 
+      - name: VPN Cleanup
+        if: ${{ always() }}
+        run: sudo wg-quick down wg0 || true
+
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: instagram-${{ inputs.profile }}
           path: output/
-
-      - name: VPN Cleanup
-        if: ${{ always() }}
-        run: sudo wg-quick down wg0 || true
 
       - name: Upload Files to Cloud Storage
         run: |
@@ -197,3 +210,27 @@ jobs:
             -H "Content-Type: application/json" \
             -d "{\"content\":\"Profile $PROFILE File Uploads: $LINK \"}" \
             "${{ secrets.DISCORD_WEBHOOK }}"
+
+      - name: Check if stamps file has changed
+        id: check_diff
+        run: |
+          if [ -f "./input/instaloader/latest-stamps.ini" ]; then
+            # Check if file has changes
+            if git diff --quiet "./input/instaloader/latest-stamps.ini" 2>/dev/null; then
+              echo "changed=false" >> $GITHUB_OUTPUT
+            else
+              echo "changed=true" >> $GITHUB_OUTPUT
+            fi
+          else
+            echo "changed=false" >> $GITHUB_OUTPUT
+          fi
+          
+      - name: Commit stamps file
+        if: steps.check_diff.outputs.changed == 'true'
+        run: |
+          git config --local user.email "github-actions@github.com"
+          git config --local user.name "GitHub Actions"
+          git add input/instaloader/latest-stamps.ini
+          git commit -m "Update latest-stamps" || echo "no changes to commit"
+          git push
+      

@@ -10,25 +10,23 @@ on:
         type: boolean
         default: false
 
-
-permissions:
-  contents: write
-
 jobs:
   download:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write 
     steps:
+
+      - name: Maximize space
+        uses: easimon/maximize-build-space@v10
+        with:
+          swap-size-mb: 10240
 
       - name: Checkout stamps file
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
           sparse-checkout: ./input/instaloader/
-
-      - name: Maximize space
-        uses: easimon/maximize-build-space@v10
-        with:
-          swap-size-mb: 10240
 
       - name: Setup Dependencies
         run: |
@@ -218,4 +216,4 @@ jobs:
           git add input/instaloader/latest-stamps.ini
           git commit -m "Update latest-stamps" || echo "no changes to commit"
           git push
-      
+          

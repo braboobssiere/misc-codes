@@ -286,7 +286,7 @@ jobs:
                 ( while true; do printf '.'; sleep 30; done ) &
                 KEEPALIVE_PID=$!
                 trap 'kill $KEEPALIVE_PID' EXIT
-                lftp -u ${{ secrets.FTP_LOGIN }} -e "
+                lftp -u ${{ secrets.FTP_LOGIN_ARCHIVE }} -e "
                         set ssl:verify-certificate false;
                         set cache:size 524288000;
                         mput -P 1 ftp_upload/*;

@@ -283,7 +283,7 @@ jobs:
             -exec mv -- {} ftp_upload/ \;
           if [ "$(ls -A ftp_upload)" ]; then
 
-                lftp -u ${{ secrets.FTP_LOGIN_ARCHIVE }} -e "
+                lftp -u ${{ secrets.FTP_LOGIN }} -e "
                         set ssl:verify-certificate false;
                         set cache:size 524288000;
                         mput -P 1 ftp_upload/*;

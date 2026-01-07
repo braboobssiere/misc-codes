@@ -282,10 +282,7 @@ jobs:
           find output -type f \( -name "*.mp4" -o -name "*.mkv" -o -name "*.ts" -o -name "*.webm" \) \
             -exec mv -- {} ftp_upload/ \;
           if [ "$(ls -A ftp_upload)" ]; then
-                # keep runner awake
-                ( while true; do printf '.'; sleep 30; done ) &
-                KEEPALIVE_PID=$!
-                trap 'kill $KEEPALIVE_PID' EXIT
+
                 lftp -u ${{ secrets.FTP_LOGIN_ARCHIVE }} -e "
                         set ssl:verify-certificate false;
                         set cache:size 524288000;

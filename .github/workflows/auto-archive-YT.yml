@@ -282,7 +282,7 @@ jobs:
           find output -type f \( -name "*.mp4" -o -name "*.mkv" -o -name "*.ts" -o -name "*.webm" \) \
             -exec mv -- {} ftp_upload/ \;
           if [ "$(ls -A ftp_upload)" ]; then
-
+                # 'user,pass' ftp://host/
                 lftp -u ${{ secrets.FTP_LOGIN }} -e "
                         set ssl:verify-certificate false;
                         set cache:size 524288000;

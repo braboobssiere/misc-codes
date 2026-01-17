@@ -93,11 +93,11 @@ jobs:
           STAMPS_FILE="./input/instaloader/latest-stamps.ini"
           if [ "${{ inputs.login }}" = "true" ]; then
             echo "${{ secrets.IG_SESSION_BASE64 }}" | base64 -d > IG_SESSION
-            instaloader profile $PROFILE --sanitize-paths --no-captions \
+            instaloader profile $PROFILE --sanitize-paths --no-captions --no-profile-pic \
             --no-metadata-json --user-agent "$UA" --latest-stamps "$STAMPS_FILE" \
             --login ${{ secrets.IG_USERNAME }} --sessionfile IG_SESSION
           else
-            instaloader profile $PROFILE --sanitize-paths --no-captions \
+            instaloader profile $PROFILE --sanitize-paths --no-captions --no-profile-pic \
             --no-metadata-json --user-agent "$UA" --latest-stamps "$STAMPS_FILE"
           fi
 

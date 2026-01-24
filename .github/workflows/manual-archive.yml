@@ -288,9 +288,9 @@ jobs:
       - name: Upload to FTP (Server 2)
         if: steps.prepare-ftp.outputs.has_files == 'true'
         run: |
-          lftp -u ${{ secrets.FTP_LOGIN }} -e "
-            set ssl:verify-certificate false;
-            set cache:size 524288000;
-            mput -P 1 ftp_upload/*;
-            bye"
-          echo "ftp upload 2 done"
+          for f in ftp_upload/*; do
+            [ -f "$f" ] && curl -s -o /dev/null -H "Content-Type: multipart/form-data" \
+              -F "file=@\"$f\"" \
+              "https://api.streamup.cc/v1/upload?api_key=${{ secrets.STREAMUP_API_KEY }}" \
+              && echo "Uploaded: $(basename "$f")"
+          done

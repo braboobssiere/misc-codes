@@ -102,10 +102,10 @@ jobs:
         if: steps.prepare-ftp.outputs.has_files == 'true'
         run: |
           # Get list of files to upload
-          files=($(find "$UPLOAD_DIR" -type f -name "*.*"))
+          files=($(find "ftp_upload/" -type f -name "*.*"))
           
           if [ ${#files[@]} -eq 0 ]; then
-            echo "No files found in $UPLOAD_DIR"
+            echo "No files found in ftp_upload/"
             exit 0
           fi
 
@@ -122,7 +122,7 @@ jobs:
             response=$(curl -s -w "%{http_code}" \
               -H "Content-Type: multipart/form-data" \
               -F "file=@$file" \
-              "$API_URL?api_key=${{ secrets.STREAMUP_API_KEY }}")
+              "https://api.streamup.cc/v1/upload?api_key=${{ secrets.STREAMUP_API_KEY }}")
             
             # Separate response body and status code
             status_code=${response: -3}
@@ -130,7 +130,7 @@ jobs:
             
             if [ "$status_code" -eq 200 ] || [ "$status_code" -eq 201 ]; then
               echo "✓ Successfully uploaded: $filename"
-              echo "Response: $response_body"
+              echo "Response: $response_body"              
             else
               echo "✗ Failed to upload: $filename (Status: $status_code)"
               echo "Error response: $response_body"

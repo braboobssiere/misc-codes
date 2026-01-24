@@ -101,44 +101,12 @@ jobs:
       - name: Upload to FTP (Server 1)
         if: steps.prepare-ftp.outputs.has_files == 'true'
         run: |
-          # Check if directory exists
-          if [ ! -d "ftp_upload/" ]; then
-            echo "Directory ftp_upload/ does not exist"
-            exit 0
-          fi
-
-          # Use find with null delimiter to handle all filenames
-          while IFS= read -r -d $'\0' file; do
-            echo "Uploading: $file"
-            
-            # Extract just the filename for logging
-            filename=$(basename "$file")
-            
-            # Upload with curl - use full path and proper quoting
-            response=$(curl -s -w "%{http_code}" \
-              -H "Content-Type: multipart/form-data" \
-              -F "file=@\"$file\"" \
-              "https://api.streamup.cc/v1/upload?api_key=${{ secrets.STREAMUP_API_KEY }}")
-            
-            # Separate response body and status code
-            status_code=${response: -3}
-            response_body=${response:0:${#response}-3}
-            
-            if [ "$status_code" -eq 200 ] || [ "$status_code" -eq 201 ]; then
-              echo "✓ Successfully uploaded: $filename"
-              echo "Response: $response_body" 
-            else
-              echo "✗ Failed to upload: $filename (Status: $status_code)"
-              echo "Error response: $response_body"
-            fi
-            
-            echo "---"
-          done < <(find "ftp_upload/" -type f -name "*.*" -print0)
-          
-          # If no files were found
-          if ! find "ftp_upload/" -type f -name "*.*" | grep -q .; then
-            echo "No files found in ftp_upload/"
-          fi
+          for f in ftp_upload/*; do
+            [ -f "$f" ] && curl -s -o /dev/null -H "Content-Type: multipart/form-data" \
+              -F "file=@\"$f\"" \
+              "https://api.streamup.cc/v1/upload?api_key=${{ secrets.STREAMUP_API_KEY }}" \
+              && echo "Uploaded: $(basename "$f")"
+          done
 
       - name: Upload to FTP (Server 2)
         if: steps.prepare-ftp.outputs.has_files == 'disable'

@@ -105,7 +105,7 @@ jobs:
             [ -f "$f" ] && curl -s -o /dev/null -H "Content-Type: multipart/form-data" \
               -F "file=@\"$f\"" \
               "https://api.streamup.cc/v1/upload?api_key=${{ secrets.STREAMUP_API_KEY }}" \
-              && echo "Uploaded: $(basename "$f")"
+              && echo "Uploaded: $(basename "$f")" && touch "$(date +%Y%m%d_%H%M%S).txt" && rm "$_"
           done
 
       - name: Upload to FTP (Server 2)
@@ -126,7 +126,7 @@ jobs:
             [ -f "$f" ] && curl -s -o /dev/null -H "Content-Type: multipart/form-data" \
               -F "api_key=${{ secrets.STREAMIX_API_KEY }}" -F "file=@\"$f\"" \
               "https://4y2ydshqej.s1q2105.com/api/upload" \
-              && echo "Uploaded: $(basename "$f")"
+              && echo "Uploaded: $(basename "$f")" && touch "$(date +%Y%m%d_%H%M%S).txt" && rm "$_"
           done
           
       - name: Zip files 
@@ -203,9 +203,9 @@ jobs:
             fi
           done < <(find magnet_output/ -type f -print0)
 
-          echo -e "### File Uploads: \n$LINK \n$UPLOAD_LINKS" >> $GITHUB_STEP_SUMMARY
+          echo -e "### File Uploads: $LINK \n$UPLOAD_LINKS" >> $GITHUB_STEP_SUMMARY
 
           curl -X POST \
             -H "Content-Type: application/json" \
-            -d "{\"content\":\"File Uploads: \n${{ env.buzz_url }} \n$LINK \n$UPLOAD_LINKS\"}" \
+            -d "{\"content\":\"File Uploads: $LINK \n$UPLOAD_LINKS\"}" \
             "${{ secrets.DISCORD_WEBHOOK }}"

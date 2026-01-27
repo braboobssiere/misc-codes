@@ -99,7 +99,7 @@ jobs:
           fi
 
       - name: Upload to FTP (Server 1)
-        if: steps.prepare-ftp.outputs.has_files == 'true'
+        if: steps.prepare-ftp.outputs.has_files == 'disable'
         run: |
           for f in ftp_upload/*; do
             [ -f "$f" ] && curl -s -o /dev/null -H "Content-Type: multipart/form-data" \

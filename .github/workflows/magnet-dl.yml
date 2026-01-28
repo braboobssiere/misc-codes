@@ -105,7 +105,7 @@ jobs:
             [ -f "$f" ] && curl -s -o /dev/null -H "Content-Type: multipart/form-data" \
               -F "file=@\"$f\"" \
               "https://api.streamup.cc/v1/upload?api_key=${{ secrets.STREAMUP_API_KEY }}" \
-              && echo "Uploaded: $(basename "$f")" && touch "$(date +%Y%m%d_%H%M%S).txt" && rm "$_"
+              && echo "Uploaded: $(basename "$f")" && touch "$(date +%Y%m%d_%H%M%S).txt" && rm "$_" && rm "$f"
           done
 
       - name: Upload to FTP (Server 2)

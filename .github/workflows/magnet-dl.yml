@@ -99,13 +99,13 @@ jobs:
           fi
 
       - name: Upload to FTP (Server 1)
-        if: steps.prepare-ftp.outputs.has_files == 'true'
+        if: steps.prepare-ftp.outputs.has_files == 'disable'
         run: |
           for f in ftp_upload/*; do
-            [ -f "$f" ] && curl -s -o /dev/null -H "Content-Type: multipart/form-data" \
+            [ -f "$f" ] && curl -o /dev/null -H "Content-Type: multipart/form-data" \
               -F "file=@\"$f\"" \
               "https://api.streamup.cc/v1/upload?api_key=${{ secrets.STREAMUP_API_KEY }}" \
-              && echo "Uploaded: $(basename "$f")" && touch "$(date +%Y%m%d_%H%M%S).txt" && rm "$_" && rm "$f"
+              && echo "Uploaded: $(basename "$f")" && touch "$(date +%Y%m%d_%H%M%S).txt" && rm "$_" 
           done
 
       - name: Upload to FTP (Server 2)
@@ -120,10 +120,10 @@ jobs:
           # 'user,pass' ftp://host/
 
       - name: Upload to FTP (Server 3)
-        if: steps.prepare-ftp.outputs.has_files == 'disable'
+        if: steps.prepare-ftp.outputs.has_files == 'true'
         run: |
           for f in ftp_upload/*; do
-            [ -f "$f" ] && curl -s -o /dev/null -H "Content-Type: multipart/form-data" \
+            [ -f "$f" ] && curl -o /dev/null -H "Content-Type: multipart/form-data" \
               -F "api_key=${{ secrets.STREAMIX_API_KEY }}" -F "file=@\"$f\"" \
               "https://4y2ydshqej.s1q2105.com/api/upload" \
               && echo "Uploaded: $(basename "$f")" && touch "$(date +%Y%m%d_%H%M%S).txt" && rm "$_"

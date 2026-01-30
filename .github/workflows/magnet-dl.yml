@@ -99,7 +99,7 @@ jobs:
           fi
 
       - name: Upload to FTP (Server 1)
-        if: steps.prepare-ftp.outputs.has_files == 'disable'
+        if: steps.prepare-ftp.outputs.has_files == 'true'
         run: |
           for f in ftp_upload/*; do
             [ -f "$f" ] && curl -o /dev/null -H "Content-Type: multipart/form-data" \
@@ -159,7 +159,7 @@ jobs:
               extra_args+=(-H "Authorization: Bearer $guest_token" -F "folderId=$folder_id")
             fi
             
-            RESPONSE=$(curl -s -X POST -F "file=@\"$file\"" "${extra_args[@]}" "$UPLOAD_URL")
+            RESPONSE=$(curl -X POST -F "file=@\"$file\"" "${extra_args[@]}" "$UPLOAD_URL")
 
             PYTHON_OUTPUT=$(python3 <<EOF
           import json, sys

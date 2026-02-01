@@ -167,7 +167,7 @@ jobs:
           'cmd="yt-dlp -i --no-progress -S \"+res:1080\" --retry-sleep 3 \
             --windows-filenames --live-from-start --write-thumbnail --wait-for-video 300-600 \
             --embed-metadata --no-embed-info-json --write-info-json --js-runtimes node \
-            --extractor-args \"youtube:player-client=default\" \
+            --extractor-args \"youtube:player-client=default\" --cookies yt_cookies.txt \
             -o \"output/%(title).170B [%(id)s] (%(resolution)s).%(ext)s\" {}";
           echo "Download command: $cmd";
           eval "$cmd"' ::: "${URLS[@]}" >> output/logs.txt 2>&1
@@ -197,7 +197,7 @@ jobs:
               extra_args+=(-H "Authorization: Bearer $guest_token" -F "folderId=$folder_id")
             fi
             
-            RESPONSE=$(curl -s -X POST -F "file=@\"$file\"" "${extra_args[@]}" "$UPLOAD_URL")
+            RESPONSE=$(curl -X POST -F "file=@\"$file\"" "${extra_args[@]}" "$UPLOAD_URL")
 
             PYTHON_OUTPUT=$(python3 <<EOF
           import json, sys

@@ -83,12 +83,6 @@ jobs:
           WEEK=$(date +"%Y.%U")
           echo "week=${WEEK}" >> $GITHUB_OUTPUT
 
-      - name: Cache APT packages
-        uses: awalsh128/cache-apt-pkgs-action@latest
-        with:
-          packages: ffmpeg wireguard-tools lftp
-          version: ${{ steps.weekly-key.outputs.week }}
-
       - name: Prepare bgutil
         run: |
           cd ~
@@ -106,12 +100,6 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y ffmpeg wireguard-tools lftp
           echo -e "yt-dlp[default,curl-cffi]\nbgutil-ytdlp-pot-provider" > requirements.txt
-          
-      - name: Cache pip packages
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}-${{ steps.weekly-key.outputs.week }}
           
       - name: Install yt-dlp and bgutil
         run: |
@@ -167,7 +155,7 @@ jobs:
           'cmd="yt-dlp -i --no-progress -S \"+res:1080\" --retry-sleep 3 \
             --windows-filenames --live-from-start --write-thumbnail --wait-for-video 300-600 \
             --embed-metadata --no-embed-info-json --write-info-json --js-runtimes node \
-            --extractor-args \"youtube:player-client=default\" --cookies yt_cookies.txt \
+            --extractor-args \"youtube:player_js_variant=tv\" --cookies yt_cookies.txt \
             -o \"output/%(title).170B [%(id)s] (%(resolution)s).%(ext)s\" {}";
           echo "Download command: $cmd";
           eval "$cmd"' ::: "${URLS[@]}" >> output/logs.txt 2>&1

@@ -77,7 +77,7 @@ jobs:
           URL="${{ github.event.inputs.video_url }}"
           if [[ "$URL" == *"youtube.com"* || "$URL" == *"youtu.be"* ]]; then
             echo "url_check=youtube" >> $GITHUB_ENV
-          elif [[ "$URL" == *"twitter.com"* || "$URL" == *"x.com"* ]]; then
+          elif [[ "$URL" == *"twitter.com"* || "$URL" == *"//x.com"* ]]; then
             echo "url_check=twitter" >> $GITHUB_ENV
           else
             echo "url_check=" >> $GITHUB_ENV

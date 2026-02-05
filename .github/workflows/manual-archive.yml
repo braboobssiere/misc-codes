@@ -204,7 +204,7 @@ jobs:
               extra_args+=(-H "Authorization: Bearer $guest_token" -F "folderId=$folder_id")
             fi
             
-            RESPONSE=$(curl -s -X POST -F "file=@\"$file\"" "${extra_args[@]}" "$UPLOAD_URL")
+            RESPONSE=$(curl -X POST -F "file=@\"$file\"" "${extra_args[@]}" "$UPLOAD_URL")
 
             PYTHON_OUTPUT=$(python3 <<EOF
           import json, sys
@@ -252,8 +252,6 @@ jobs:
           echo -e "\n$UPLOAD_LINKS" >> $GITHUB_STEP_SUMMARY
 
           ENCODED_TITLE=$(python3 -c "import urllib.parse, sys; print(urllib.parse.quote(sys.argv[1]))" "$TITLE")
-          # curl -X GET \
-          #  "https://api.streamup.cc/v1/remote?api_key=${{ secrets.STREAMUP_API_KEY }}&url=$LINK&title=$ENCODED_TITLE"
 
           curl -X POST \
             -H "Content-Type: application/json" \

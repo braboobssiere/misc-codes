@@ -106,6 +106,12 @@ jobs:
           WEEK=$(date +"%Y.%U")
           echo "week=${WEEK}" >> $GITHUB_OUTPUT
           
+      - name: Cache APT packages
+        uses: awalsh128/cache-apt-pkgs-action@latest
+        with:
+          packages: ffmpeg wireguard-tools lftp
+          version: ${{ steps.weekly-key.outputs.week }}
+
       - name: Prepare bgutil
         run: |
           # Fetch the latest version tag from the repository
@@ -122,6 +128,12 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y ffmpeg wireguard-tools lftp
           echo -e "yt-dlp[default,curl-cffi]\nbgutil-ytdlp-pot-provider" > requirements.txt
+          
+      - name: Cache pip packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}-${{ steps.weekly-key.outputs.week }}
           
       - name: Install yt-dlp and bgutil
         run: |
@@ -174,7 +186,7 @@ jobs:
           yt-dlp -i --no-progress -S "+res:1080" --retry-sleep 3 \
           --windows-filenames --live-from-start --write-thumbnail --js-runtimes node \
           --embed-metadata --no-embed-info-json --write-info-json --wait-for-video 300-600 \
-          --extractor-args "youtube:player_js_variant=tv" --cookies yt_cookies.txt \
+          --extractor-args "youtube:player-client=default" --cookies yt_cookies.txt \
           -o "output/%(title).170B [%(id)s] (%(resolution)s).%(ext)s" \
           "$URL" 2>&1 | tee >(awk '{ print strftime("[%Y-%m-%d %H:%M:%S UTC]"), $0 }' >> output/logs.txt)
           # removed --cookies yt_cookies.txt 

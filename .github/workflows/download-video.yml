@@ -65,6 +65,12 @@ jobs:
         with:
           swap-size-mb: 10240
           
+      - name: Cache APT packages
+        uses: awalsh128/cache-apt-pkgs-action@latest
+        with:
+          packages: ffmpeg wireguard-tools
+          version: ${{ steps.weekly-key.outputs.week }}
+
       - name: Check URL
         id: check_url
         run: |
@@ -100,6 +106,12 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y $PACKAGES
           echo -e "yt-dlp[default,curl-cffi]\nbgutil-ytdlp-pot-provider" > requirements.txt
+
+      - name: Cache pip packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}-${{ steps.weekly-key.outputs.week }}
           
       - name: Install yt-dlp and bgutil
         run: |
@@ -175,9 +187,9 @@ jobs:
             if [[ "${{ github.event.inputs.cookies }}" == 'true' ]]; then
               echo "${{ secrets.YT_COOKIES }}" >> yt_cookies.txt
               COOKIE_FLAG="--cookies yt_cookies.txt"
-              EXTRACTOR="--extractor-args \"youtube:player_js_variant=tv\""
+              EXTRACTOR="--extractor-args \"youtube:player-client=default\""
             else
-              EXTRACTOR="--extractor-args \"youtube:player_js_variant=tv\""
+              EXTRACTOR="--extractor-args \"youtube:player-client=default\""
             fi
             
             YT_ARGS="--live-from-start --js-runtimes node --wait-for-video 300-600"

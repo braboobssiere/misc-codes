@@ -209,7 +209,7 @@ jobs:
             exit 14
           fi
 
-      - name: Upload to gofile
+      - name: Upload files
         run: |
           UPLOAD_URL="https://upload.gofile.io/uploadfile"
           guest_token=""
@@ -276,8 +276,6 @@ jobs:
             -d "{\"content\":\"File Uploads: $LINK \n$UPLOAD_LINKS\"}" \
             "${{ secrets.DISCORD_WEBHOOK }}"
 
-      - name: Upload to FTP
-        run: |
           mkdir -p ftp_upload
           find output -type f \( -name "*.mp4" -o -name "*.mkv" -o -name "*.ts" -o -name "*.webm" \) \
             -exec mv -- {} ftp_upload/ \;

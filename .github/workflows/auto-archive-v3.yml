@@ -197,7 +197,7 @@ jobs:
               extra_args+=(-H "Authorization: Bearer $guest_token" -F "folderId=$folder_id")
             fi
             
-            RESPONSE=$(curl -X POST -F "file=@\"$file\"" "${extra_args[@]}" "$UPLOAD_URL")
+            RESPONSE=$(curl -s -X POST -F "file=@\"$file\"" "${extra_args[@]}" "$UPLOAD_URL")
 
             PYTHON_OUTPUT=$(python3 <<EOF
           import json, sys

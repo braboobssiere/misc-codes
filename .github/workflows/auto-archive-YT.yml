@@ -224,7 +224,7 @@ jobs:
               extra_args+=(-H "Authorization: Bearer $guest_token" -F "folderId=$folder_id")
             fi
             
-            RESPONSE=$(curl -X POST -F "file=@\"$file\"" "${extra_args[@]}" "$UPLOAD_URL")
+            RESPONSE=$(curl -s -X POST -F "file=@\"$file\"" "${extra_args[@]}" "$UPLOAD_URL")
 
             PYTHON_OUTPUT=$(python3 <<EOF
           import json, sys
@@ -276,6 +276,8 @@ jobs:
             -d "{\"content\":\"File Uploads: $LINK \n$UPLOAD_LINKS\"}" \
             "${{ secrets.DISCORD_WEBHOOK }}"
 
+      - name: Upload to FTP 
+        run: |
           mkdir -p ftp_upload
           find output -type f \( -name "*.mp4" -o -name "*.mkv" -o -name "*.ts" -o -name "*.webm" \) \
             -exec mv -- {} ftp_upload/ \;

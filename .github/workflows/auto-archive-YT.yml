@@ -209,6 +209,15 @@ jobs:
             exit 14
           fi
 
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: 9arm-video
+          path: output
+          compression-level: 1
+          if-no-files-found: error
+          retention-days: 7
+
       - name: Upload files
         run: |
           UPLOAD_URL="https://upload.gofile.io/uploadfile"

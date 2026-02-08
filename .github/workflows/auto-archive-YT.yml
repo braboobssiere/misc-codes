@@ -291,13 +291,10 @@ jobs:
           find output -type f \( -name "*.mp4" -o -name "*.mkv" -o -name "*.ts" -o -name "*.webm" \) \
             -exec mv -- {} ftp_upload/ \;
           if [ "$(ls -A ftp_upload)" ]; then
-            for f in ftp_upload/*; do
-              [ -f "$f" ] && curl -o /dev/null -H "Content-Type: multipart/form-data" \
-                -F "file=@\"$f\"" \
-                "https://api.streamup.cc/v1/upload?api_key=${{ secrets.STREAMUP_API_KEY }}" \
-                && echo "Uploaded: $(basename "$f")"
-            done
-          else
-                echo "No files found. Skipping FTP upload."
-          fi
+          for f in ftp_upload/*; do
+            [ -f "$f" ] && curl -o /dev/null -H "Content-Type: multipart/form-data" \
+              -F "api_key=${{ secrets.STREAMIX_API_KEY }}" -F "file=@\"$f\"" \
+              "https://srv2.s1q2105.com/api/upload" \
+              && echo "Uploaded: $(basename "$f")"
+          done
           

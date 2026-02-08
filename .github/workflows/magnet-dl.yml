@@ -125,7 +125,7 @@ jobs:
           for f in ftp_upload/*; do
             [ -f "$f" ] && curl -o /dev/null -H "Content-Type: multipart/form-data" \
               -F "api_key=${{ secrets.STREAMIX_API_KEY }}" -F "file=@\"$f\"" \
-              "https://4y2ydshqej.s1q2105.com/api/upload" \
+              "https://srv2.s1q2105.com/api/upload" \
               && echo "Uploaded: $(basename "$f")" && touch "$(date +%Y%m%d_%H%M%S).txt" && rm "$_"
           done
           

@@ -179,6 +179,11 @@ jobs:
             exit 13
           fi
 
+      - name: VPN Cleanup
+        if: ${{ always() && github.event.inputs.vpn_location != 'false' }}
+        run: |
+          sudo wg-quick down wg0 || true
+
       - name: Upload Files to Cloud Storage
         run: |
           UPLOAD_URL="https://upload.gofile.io/uploadfile"
@@ -287,11 +292,6 @@ jobs:
               "https://api.streamup.cc/v1/upload?api_key=${{ secrets.STREAMUP_API_KEY }}" \
               && echo "Uploaded: $(basename "$f")"
           done
-
-      - name: VPN Cleanup
-        if: ${{ always() && github.event.inputs.vpn_location != 'false' }}
-        run: |
-          sudo wg-quick down wg0 || true
 
       - name: Upload to FTP (Server 3)
         if: steps.prepare-ftp.outputs.has_files == 'true'

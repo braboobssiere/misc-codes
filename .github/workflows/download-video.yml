@@ -59,11 +59,6 @@ jobs:
         run: |
           WEEK=$(date +"%Y.%U")
           echo "week=${WEEK}" >> $GITHUB_OUTPUT
-
-      - name: Maximize space
-        uses: easimon/maximize-build-space@v10
-        with:
-          swap-size-mb: 10240
           
       - name: Cache APT packages
         uses: awalsh128/cache-apt-pkgs-action@latest

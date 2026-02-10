@@ -24,10 +24,10 @@ jobs:
           packages: wireguard-tools lftp
           version: ${{ steps.monthly-key.outputs.month }}
 
-      - name: Maximize space
-        uses: easimon/maximize-build-space@v10
-        with:
-          swap-size-mb: 10240
+      # - name: Maximize space
+        # uses: easimon/maximize-build-space@v10
+        # with:
+          # swap-size-mb: 10240
 
       - name: Install Dependency 
         run: |

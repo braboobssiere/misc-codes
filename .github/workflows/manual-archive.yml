@@ -142,7 +142,7 @@ jobs:
           fi
 
           if [[ "$URL" == *"youtube.com"* || "$URL" == *"youtu.be"* ]]; then
-            YT_ARGS="--live-from-start --js-runtimes node --extractor-args \"youtube:player-client=default\""
+            YT_ARGS="--live-from-start --cookies yt_cookies.txt --js-runtimes node --extractor-args \"youtube:player-client=default\""
             # removed --cookies yt_cookies.txt 
           fi
 

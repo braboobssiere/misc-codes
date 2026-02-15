@@ -101,11 +101,13 @@ jobs:
       - name: Upload to FTP (Server 1)
         if: steps.prepare-ftp.outputs.has_files == 'true'
         run: |
+          response=$(curl -s "https://api.byse.sx/upload/server?key=${{ secrets.BYSE_API_KEY }}")
+          upload_server=$(echo "$response" | jq -r '.result')
           for f in ftp_upload/*; do
             [ -f "$f" ] && curl -o /dev/null -H "Content-Type: multipart/form-data" \
-              -F "file=@\"$f\"" \
-              "https://api.streamup.cc/v1/upload?api_key=${{ secrets.STREAMUP_API_KEY }}" \
-              && echo "Uploaded: $(basename "$f")" && touch "$(date +%Y%m%d_%H%M%S).txt" && rm "$_" 
+              -F "api_key=${{ secrets.BYSE_API_KEY }}" -F "file=@\"$f\"" \
+              "$upload_server" \
+              && echo "Uploaded: $(basename "$f")"
           done
 
       - name: Upload to FTP (Server 2)
@@ -122,11 +124,13 @@ jobs:
       - name: Upload to FTP (Server 3)
         if: steps.prepare-ftp.outputs.has_files == 'true'
         run: |
+          response=$(curl -s "https://api.vidara.so/v1/upload/server?api_key=${{ secrets.STREAMIX_API_KEY }}")
+          upload_server=$(echo "$response" | jq -r '.result.upload_server')
           for f in ftp_upload/*; do
             [ -f "$f" ] && curl -o /dev/null -H "Content-Type: multipart/form-data" \
               -F "api_key=${{ secrets.STREAMIX_API_KEY }}" -F "file=@\"$f\"" \
-              "https://srv2.s1q2105.com/api/upload" \
-              && echo "Uploaded: $(basename "$f")" && touch "$(date +%Y%m%d_%H%M%S).txt" && rm "$_"
+              "$upload_server" \
+              && echo "Uploaded: $(basename "$f")"
           done
           
       - name: Zip files 

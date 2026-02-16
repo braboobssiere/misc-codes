@@ -56,8 +56,6 @@ jobs:
         echo "Downloaded input file: $(ls downloaded_input/)"
 
     - name: Run WhisperX
-      env:
-        TORCH_FORCE_NO_WEIGHTS_ONLY_LOAD: true
       run: |
         # Priority: Use downloaded file if available, else local file
         if [ -n "$(ls -A downloaded_input/ 2>/dev/null)" ]; then

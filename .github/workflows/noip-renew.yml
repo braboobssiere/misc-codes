@@ -59,17 +59,10 @@ jobs:
          
       - name: Make setup executable and run with credentials
         run: |
+          sudo mkdir -p /usr/local/sbin/noip-renew/
+          echo "${{ secrets.NOIP_CREDENTIALS }}" | sudo tee /usr/local/sbin/noip-renew/credentials.txt > /dev/null
           chmod +x noip-renew/setup.sh
-          IFS=';' read -r NOIP_USERNAME NOIP_PASSWORD NOIP_2FA_SECRET_KEY <<< "${{ secrets.NOIP_CREDENTIALS }}"
-          echo "::add-mask::$NOIP_USERNAME"
-          echo "::add-mask::$NOIP_PASSWORD"
-          echo "::add-mask::$NOIP_2FA_SECRET_KEY"
-          # Provide username, password, and 2FA each on their own line to the script's stdin
-          cat <<EOF | noip-renew/setup.sh
-          $NOIP_USERNAME
-          $NOIP_PASSWORD
-          $NOIP_2FA_SECRET_KEY
-          EOF
+          printf "Y\n" | noip-renew/setup.sh
 
       - name: VPN Cleanup
         if: always()

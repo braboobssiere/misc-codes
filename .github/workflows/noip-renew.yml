@@ -18,6 +18,8 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y wireguard-tools
+          python -m pip install --upgrade pip
+          pip install beautifulsoup4 pyotp
 
       - name: VPN Setup 
         env: 

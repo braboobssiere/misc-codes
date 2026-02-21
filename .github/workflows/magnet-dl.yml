@@ -100,6 +100,7 @@ jobs:
 
       - name: Upload to FTP (Server 1)
         if: steps.prepare-ftp.outputs.has_files == 'true'
+        continue-on-error: true
         run: |
           UPLOAD_SERVER=$(curl -s "https://vidsonic.net/api/v1/getUploadSrv?key=${{ secrets.vidsonic_api_key }}" | jq -r '.server')
           for f in ftp_upload/*; do
@@ -121,6 +122,7 @@ jobs:
 
       - name: Upload to FTP (Server 3)
         if: steps.prepare-ftp.outputs.has_files == 'true'
+        continue-on-error: true
         run: |
           response=$(curl "https://api.vidara.so/v1/upload/server?api_key=${{ secrets.STREAMIX_API_KEY }}")
           upload_server=$(echo "$response" | jq -r '.result.upload_server')

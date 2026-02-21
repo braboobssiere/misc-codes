@@ -101,7 +101,7 @@ jobs:
       - name: Upload to FTP (Server 1)
         if: steps.prepare-ftp.outputs.has_files == 'true'
         run: |
-          response=$(curl -s "https://api.byse.sx/upload/server?key=${{ secrets.BYSE_API_KEY }}")
+          response=$(curl "https://api.byse.sx/upload/server?key=${{ secrets.BYSE_API_KEY }}")
           upload_server=$(echo "$response" | jq -r '.result')
           for f in ftp_upload/*; do
             [ -f "$f" ] && curl -o /dev/null -H "Content-Type: multipart/form-data" \
@@ -124,7 +124,7 @@ jobs:
       - name: Upload to FTP (Server 3)
         if: steps.prepare-ftp.outputs.has_files == 'true'
         run: |
-          response=$(curl -s "https://api.vidara.so/v1/upload/server?api_key=${{ secrets.STREAMIX_API_KEY }}")
+          response=$(curl "https://api.vidara.so/v1/upload/server?api_key=${{ secrets.STREAMIX_API_KEY }}")
           upload_server=$(echo "$response" | jq -r '.result.upload_server')
           for f in ftp_upload/*; do
             [ -f "$f" ] && curl -o /dev/null -H "Content-Type: multipart/form-data" \

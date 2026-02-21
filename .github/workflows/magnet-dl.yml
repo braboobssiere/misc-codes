@@ -103,7 +103,7 @@ jobs:
         run: |
           UPLOAD_SERVER=$(curl -s "https://vidsonic.net/api/v1/getUploadSrv?key=${{ secrets.vidsonic_api_key }}" | jq -r '.server')
           for f in ftp_upload/*; do
-            [ -f "$f" ] && curl -X POST "$UPLOAD_SERVER" \
+            [ -f "$f" ] && curl -X POST -o /dev/null -H "Content-Type: multipart/form-data" "$UPLOAD_SERVER" \
               -F "apiKey=${{ secrets.vidsonic_api_key }}" -F "video=@\"$f\"" \
               && echo "Uploaded: $(basename "$f")"
           done
@@ -125,7 +125,7 @@ jobs:
           response=$(curl "https://api.vidara.so/v1/upload/server?api_key=${{ secrets.STREAMIX_API_KEY }}")
           upload_server=$(echo "$response" | jq -r '.result.upload_server')
           for f in ftp_upload/*; do
-            [ -f "$f" ] && curl -X POST "$upload_server" \
+            [ -f "$f" ] && curl -X POST -o /dev/null -H "Content-Type: multipart/form-data" "$upload_server" \
               -F "api_key=${{ secrets.STREAMIX_API_KEY }}" -F "file=@\"$f\"" \
               && echo "Uploaded: $(basename "$f")"
           done

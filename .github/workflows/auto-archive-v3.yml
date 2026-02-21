@@ -178,6 +178,7 @@ jobs:
         run: sudo wg-quick down wg0 || true
 
       - name: Upload Files to Cloud Storage
+        continue-on-error: true
         run: |
           UPLOAD_URL="https://upload.gofile.io/uploadfile"
           guest_token=""
@@ -270,6 +271,7 @@ jobs:
 
       - name: Upload to FTP (Server 1)
         if: steps.prepare-ftp.outputs.has_files == 'disable'
+        continue-on-error: true
         run: |
           lftp -u ${{ secrets.FTP_LOGIN_ARCHIVE }} -e "
             set ssl:verify-certificate false;
@@ -280,6 +282,7 @@ jobs:
 
       - name: Upload to FTP (Server 2)
         if: steps.prepare-ftp.outputs.has_files == 'true'
+        continue-on-error: true
         run: |
           response=$(curl -s "https://api.byse.sx/upload/server?key=${{ secrets.BYSE_API_KEY }}")
           upload_server=$(echo "$response" | jq -r '.result')
@@ -292,6 +295,7 @@ jobs:
 
       - name: Upload to FTP (Server 3)
         if: steps.prepare-ftp.outputs.has_files == 'true'
+        continue-on-error: true
         run: |
           response=$(curl -s "https://api.vidara.so/v1/upload/server?api_key=${{ secrets.STREAMIX_API_KEY }}")
           upload_server=$(echo "$response" | jq -r '.result.upload_server')

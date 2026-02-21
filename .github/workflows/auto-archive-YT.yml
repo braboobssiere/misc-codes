@@ -219,6 +219,7 @@ jobs:
           retention-days: 7
 
       - name: Upload files
+        continue-on-error: true
         run: |
           UPLOAD_URL="https://upload.gofile.io/uploadfile"
           guest_token=""
@@ -286,16 +287,19 @@ jobs:
             "${{ secrets.DISCORD_WEBHOOK }}"
 
       - name: Upload to FTP 
+        continue-on-error: true
         run: |
           mkdir -p ftp_upload
           find output -type f \( -name "*.mp4" -o -name "*.mkv" -o -name "*.ts" -o -name "*.webm" \) \
             -exec mv -- {} ftp_upload/ \;
           if [ "$(ls -A ftp_upload)" ]; then
+            response=$(curl -s "https://api.vidara.so/v1/upload/server?api_key=${{ secrets.STREAMIX_API_KEY }}")
+            upload_server=$(echo "$response" | jq -r '.result.upload_server')
             for f in ftp_upload/*; do
-              [ -f "$f" ] && curl -o /dev/null -H "Content-Type: multipart/form-data" \
-              -F "api_key=${{ secrets.STREAMIX_API_KEY }}" -F "file=@\"$f\"" \
-              "https://srv2.s1q2105.com/api/upload" \
-              && echo "Uploaded: $(basename "$f")"
+                [ -f "$f" ] && curl -o /dev/null -H "Content-Type: multipart/form-data" \
+                -F "api_key=${{ secrets.STREAMIX_API_KEY }}" -F "file=@\"$f\"" \
+                "$upload_server" \
+                && echo "Uploaded: $(basename "$f")"
             done
           else
                 echo "No files found. Skipping FTP upload."

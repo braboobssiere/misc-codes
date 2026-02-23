@@ -284,24 +284,23 @@ jobs:
         if: steps.prepare-ftp.outputs.has_files == 'true'
         continue-on-error: true
         run: |
-          response=$(curl -s "https://api.byse.sx/upload/server?key=${{ secrets.BYSE_API_KEY }}")
-          upload_server=$(echo "$response" | jq -r '.result')
-          for f in ftp_upload/*; do
-            [ -f "$f" ] && curl -o /dev/null -H "Content-Type: multipart/form-data" \
-              -F "api_key=${{ secrets.BYSE_API_KEY }}" -F "file=@\"$f\"" \
-              "$upload_server" \
-              && echo "Uploaded: $(basename "$f")"
-          done
+          lftp -u ${{ secrets.FTP_LOGIN_ARCHIVE }} -e "
+            set ssl:verify-certificate false;
+            set cache:size 524288000;
+            mput -P 1 ftp_upload/*;
+            bye"
+          echo "ftp upload 2 done"
+          # 'user,pass' ftp://host/
 
       - name: Upload to FTP (Server 3)
         if: steps.prepare-ftp.outputs.has_files == 'true'
         continue-on-error: true
         run: |
-          response=$(curl -s "https://api.vidara.so/v1/upload/server?api_key=${{ secrets.STREAMIX_API_KEY }}")
-          upload_server=$(echo "$response" | jq -r '.result.upload_server')
+          UPLOAD_SERVER=$(curl -s "https://vidsonic.net/api/v1/getUploadSrv?key=${{ secrets.vidsonic_api_key }}" | jq -r '.server')
           for f in ftp_upload/*; do
-            [ -f "$f" ] && curl -o /dev/null -H "Content-Type: multipart/form-data" \
-              -F "api_key=${{ secrets.STREAMIX_API_KEY }}" -F "file=@\"$f\"" \
-              "$upload_server" \
+            [ -f "$f" ] && curl -X POST -o /dev/null $UPLOAD_SERVER \
+              -F "apiKey=${{ secrets.vidsonic_api_key }}" -F "video=@$f" \
               && echo "Uploaded: $(basename "$f")"
           done
+          echo "ftp upload 3 done"
+          

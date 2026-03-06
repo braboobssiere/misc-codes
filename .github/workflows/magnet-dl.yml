@@ -29,6 +29,12 @@ jobs:
         # with:
           # swap-size-mb: 10240
 
+      - name: Maximize runner disk
+        uses: justinthelaw/maximize-github-runner-space@master
+        with:
+           cleanup-profile: max
+           skip-components: swapfile,cached-tools
+
       - name: Install Dependency 
         run: |
           sudo apt-get update

@@ -23,7 +23,7 @@ jobs:
           swap-size-mb: 10240
 
       - name: Checkout stamps file
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
           sparse-checkout: ./input/instaloader/

@@ -30,7 +30,7 @@ jobs:
           # swap-size-mb: 10240
 
       - name: Maximize runner disk
-        uses: justinthelaw/maximize-github-runner-space@0.7.0
+        uses: justinthelaw/maximize-github-runner-space@v0.7.0
         with:
            cleanup-profile: max
            skip-components: swapfile,cached-tools

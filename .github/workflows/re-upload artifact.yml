@@ -1,0 +1,27 @@
+name: Download artifacts from specific run
+
+on:
+  workflow_dispatch:
+    inputs:
+      run_url:
+        required: true
+
+jobs:
+  download:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Extract run ID from URL
+        id: extract
+        run: |
+          # Extract numeric run ID from the end of the URL
+          RUN_ID=$(echo "${{ github.event.inputs.run_url }}" | grep -oE '[0-9]+$')
+          echo "run_id=$RUN_ID" >> $GITHUB_OUTPUT
+
+      - name: Download artifact from run ${{ steps.extract.outputs.run_id }}
+        uses: actions/download-artifact@v8
+        with:
+          run-id: ${{ steps.extract.outputs.run_id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: List downloaded files (verification)
+        run: ls -R

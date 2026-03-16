@@ -1,4 +1,4 @@
-name: Download artifacts from specific run
+name: RE-upload artifact
 
 on:
   workflow_dispatch:
@@ -16,12 +16,80 @@ jobs:
           # Extract numeric run ID from the end of the URL
           RUN_ID=$(echo "${{ github.event.inputs.run_url }}" | grep -oE '[0-9]+$')
           echo "run_id=$RUN_ID" >> $GITHUB_OUTPUT
+          mkdir -p output
 
       - name: Download artifact from run ${{ steps.extract.outputs.run_id }}
         uses: actions/download-artifact@v8
         with:
           run-id: ${{ steps.extract.outputs.run_id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: output
 
-      - name: List downloaded files (verification)
-        run: ls -R
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: downloaded-video
+          path: output
+          compression-level: 1
+          if-no-files-found: error
+
+      - name: Upload Files to Gofile
+        run: |
+          UPLOAD_URL="https://upload.gofile.io/uploadfile"
+          guest_token=""
+          folder_id=""
+          UPLOAD_LINKS=""
+          FIRST_FILE=true
+          while IFS= read -r -d '' file; do
+            echo "▫️ Starting upload: $(basename "$file")"
+            extra_args=()
+            if [ "$FIRST_FILE" = false ]; then
+              extra_args+=(-H "Authorization: Bearer $guest_token" -F "folderId=$folder_id")
+            fi
+            
+            RESPONSE=$(curl -s -X POST -F "file=@\"$file\"" "${extra_args[@]}" "$UPLOAD_URL")
+            PYTHON_OUTPUT=$(python3 <<EOF
+          import json, sys
+          try:
+              data = json.loads('''$RESPONSE''')
+              if "$FIRST_FILE" == "true":
+                  guest_token = data['data']['guestToken']
+                  folder_id = data['data']['parentFolder']
+                  print(f"{guest_token}\t{folder_id}")
+              else:
+                  print("-\t-")          
+              status = 'ok' if data['status'] == 'ok' else 'error'
+              result_data = data.get('data', {}).get('downloadPage', '') if status == 'ok' else data.get('data', '')
+              print(f"{status}\t{result_data}")
+          except Exception as e:
+              print(f"error\tJSON parsing failed: {str(e)}")
+              sys.exit(1)
+          EOF
+            )
+            {
+              read -r token_part folder_part
+              read -r status_type result_data
+            } <<< "$PYTHON_OUTPUT"
+            if [ "$FIRST_FILE" = true ]; then
+              guest_token="$token_part"
+              folder_id="$folder_part"
+              FIRST_FILE=false
+              echo "GUEST_TOKEN=$guest_token" >> $GITHUB_ENV
+              echo "FOLDER_ID=$folder_id" >> $GITHUB_ENV
+              echo "Created folder ID"
+            fi
+            if [ "$status_type" != "ok" ]; then
+              echo "::error file=$file::Upload failed: $result_data"
+            else
+              LINK="$result_data"
+              UPLOAD_LINKS+="- $(basename "$file")\n"
+              echo "Success: $LINK"
+            fi
+          done < <(find output/ -type f -print0)
+          echo "### File Uploads: $LINK" >> $GITHUB_STEP_SUMMARY
+          echo -e "\n$UPLOAD_LINKS" >> $GITHUB_STEP_SUMMARY
+          curl -X POST \
+            -H "Content-Type: application/json" \
+            -d "{\"content\":\"File Uploads: $LINK \n$UPLOAD_LINKS\"}" \
+            "${{ secrets.DISCORD_WEBHOOK }}"
+            

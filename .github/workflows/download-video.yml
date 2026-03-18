@@ -292,10 +292,11 @@ jobs:
             fi
           done < <(find output/ -type f -print0)
 
+          set -euo pipefail
           name=$(basename "$(find output -type f ! -name '*.txt' -print -quit)" | sed 's/\.[^.]*$//')
           zip -r "${name}.zip" output && rm -rf output
-          gfile upload "${name}.zip"
-          gigaURL=$(printf '%s\n' "$out" | grep -oE 'https?://([^.[:space:]]+\.)?gigafile\.nu/[^[:space:]]+' | tail -n1)
+          gout=$(gfile upload "${name}.zip")
+          gigaURL=$(printf '%s\n' "$gout" | grep -oE 'https?://([^.[:space:]]+\.)?gigafile\.nu/[^[:space:]]+' | tail -n1)
 
           echo "### File Uploads: $LINK I $gigaURL" >> $GITHUB_STEP_SUMMARY
           echo -e "\n$UPLOAD_LINKS" >> $GITHUB_STEP_SUMMARY

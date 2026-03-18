@@ -127,7 +127,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y ffmpeg wireguard-tools lftp
-          echo -e "yt-dlp[default,curl-cffi]\nbgutil-ytdlp-pot-provider" > requirements.txt
+          echo -e "yt-dlp[default,curl-cffi]\nbgutil-ytdlp-pot-provider\ngigafile" > requirements.txt
           
       - name: Cache pip packages
         uses: actions/cache@v5
@@ -138,7 +138,7 @@ jobs:
       - name: Install yt-dlp and bgutil
         run: |
           python3 -m pip install --pre yt-dlp[default,curl-cffi]
-          python3 -m pip install -U bgutil-ytdlp-pot-provider
+          python3 -m pip install -U gigafile bgutil-ytdlp-pot-provider
 
       - name: VPN Setup 
         env: 
@@ -209,15 +209,6 @@ jobs:
             exit 14
           fi
 
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v7
-        with:
-          name: 9arm-video
-          path: output
-          compression-level: 1
-          if-no-files-found: error
-          retention-days: 7
-
       - name: Upload files
         continue-on-error: true
         run: |
@@ -278,12 +269,18 @@ jobs:
             fi
           done < <(find output/ -type f -print0)
 
-          echo "### File Uploads: $LINK" >> $GITHUB_STEP_SUMMARY
+          set -euo pipefail
+          name=$(basename "$(find output -type f ! -name '*.txt' -print -quit)" | sed 's/\.[^.]*$//')
+          zip -r "${name}.zip" output && rm -rf output
+          gout=$(gfile upload "${name}.zip")
+          gigaURL=$(printf '%s\n' "$gout" | grep -oE 'https?://([^.[:space:]]+\.)?gigafile\.nu/[^[:space:]]+' | tail -n1)
+
+          echo "### File Uploads: $LINK I $gigaURL" >> $GITHUB_STEP_SUMMARY
           echo -e "\n$UPLOAD_LINKS" >> $GITHUB_STEP_SUMMARY
 
           curl -X POST \
             -H "Content-Type: application/json" \
-            -d "{\"content\":\"File Uploads: $LINK \n$UPLOAD_LINKS\"}" \
+            -d "{\"content\":\"File Uploads: $LINK I $gigaURL \n$UPLOAD_LINKS\"}" \
             "${{ secrets.DISCORD_WEBHOOK }}"
 
       - name: Upload to FTP 

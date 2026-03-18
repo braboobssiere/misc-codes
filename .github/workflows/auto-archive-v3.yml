@@ -116,7 +116,7 @@ jobs:
       - name: Install yt-dlp and bgutil
         run: |
           python3 -m pip install --pre yt-dlp[default,curl-cffi]
-          python3 -m pip install -U bgutil-ytdlp-pot-provider
+          python3 -m pip install -U gigafile bgutil-ytdlp-pot-provider
         
       - name: VPN Setup 
         env: 
@@ -242,12 +242,14 @@ jobs:
             fi
           done < <(find output/ -type f -print0)
 
-          echo "### File Uploads: $LINK" >> $GITHUB_STEP_SUMMARY
-          echo -e "\n$UPLOAD_LINKS" >> $GITHUB_STEP_SUMMARY
+          set -euo pipefail
+          name=$(basename "$(find output -type f ! -name '*.txt' -print -quit)" | sed 's/\.[^.]*$//')
+          zip -r "${name}.zip" output
+          gout=$(gfile upload "${name}.zip")
+          gigaURL=$(printf '%s\n' "$gout" | grep -oE 'https?://([^.[:space:]]+\.)?gigafile\.nu/[^[:space:]]+' | tail -n1)
 
-          ENCODED_TITLE=$(python3 -c "import urllib.parse, sys; print(urllib.parse.quote(sys.argv[1]))" "$TITLE")
-          # curl -X GET \
-          #  "https://api.streamup.cc/v1/remote?api_key=${{ secrets.STREAMUP_API_KEY }}&url=$LINK&title=$ENCODED_TITLE"
+          echo "### File Uploads: $LINK I $gigaURL" >> $GITHUB_STEP_SUMMARY
+          echo -e "\n$UPLOAD_LINKS" >> $GITHUB_STEP_SUMMARY
 
           curl -X POST \
             -H "Content-Type: application/json" \

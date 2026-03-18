@@ -110,7 +110,8 @@ jobs:
           
       - name: Install yt-dlp and bgutil
         run: |
-          python3 -m pip install -U gigafile bgutil-ytdlp-pot-provider --pre yt-dlp[default,curl-cffi]
+          python3 -m pip install --pre yt-dlp[default,curl-cffi]
+          python3 -m pip install -U gigafile bgutil-ytdlp-pot-provider
 
       - name: VPN Setup
         if: ${{ github.event.inputs.vpn_location != 'false' }}

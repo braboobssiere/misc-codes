@@ -100,7 +100,7 @@ jobs:
 
           sudo apt-get update
           sudo apt-get install -y $PACKAGES
-          echo -e "yt-dlp[default,curl-cffi]\nbgutil-ytdlp-pot-provider" > requirements.txt
+          echo -e "yt-dlp[default,curl-cffi]\nbgutil-ytdlp-pot-provider\ngigafile" > requirements.txt
 
       - name: Cache pip packages
         uses: actions/cache@v5
@@ -110,10 +110,7 @@ jobs:
           
       - name: Install yt-dlp and bgutil
         run: |
-          python3 -m pip install gigafile --pre yt-dlp[default,curl-cffi]
-          if [[ "$url_check" == 'youtube' ]]; then
-            python3 -m pip install -U bgutil-ytdlp-pot-provider
-          fi
+          python3 -m pip install -U gigafile bgutil-ytdlp-pot-provider --pre yt-dlp[default,curl-cffi]
 
       - name: VPN Setup
         if: ${{ github.event.inputs.vpn_location != 'false' }}
@@ -232,8 +229,9 @@ jobs:
           compression-level: 1
           if-no-files-found: error
 
-      - name: Upload Files to Gofile
+      - name: Upload Files to cloud storage
         if: ${{ github.event.inputs.upload_to_cloud == 'true' }}
+        continue-on-error: true
         run: |
           UPLOAD_URL="https://upload.gofile.io/uploadfile"
           guest_token=""

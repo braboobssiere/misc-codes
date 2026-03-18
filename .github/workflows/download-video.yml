@@ -292,15 +292,16 @@ jobs:
             fi
           done < <(find output/ -type f -print0)
 
-          echo "### File Uploads: $LINK" >> $GITHUB_STEP_SUMMARY
+          name=$(basename "$(find output -type f ! -name '*.txt' -print -quit)" | sed 's/\.[^.]*$//')
+          zip -r "${name}.zip" output && rm -rf output
+          gfile upload "${name}.zip"
+          gigaURL=$(printf '%s\n' "$out" | grep -oE 'https?://([^.[:space:]]+\.)?gigafile\.nu/[^[:space:]]+' | tail -n1)
+
+          echo "### File Uploads: $LINK I $gigaURL" >> $GITHUB_STEP_SUMMARY
           echo -e "\n$UPLOAD_LINKS" >> $GITHUB_STEP_SUMMARY
 
           curl -X POST \
             -H "Content-Type: application/json" \
             -d "{\"content\":\"File Uploads: $LINK \n$UPLOAD_LINKS\"}" \
             "${{ secrets.DISCORD_WEBHOOK }}"
-
-          name=$(basename "$(find output -type f ! -name '*.txt' -print -quit)" | sed 's/\.[^.]*$//')
-          zip -r "${name}.zip" output && rm -rf output
-          gfile upload "${name}.zip"
           

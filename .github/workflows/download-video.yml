@@ -110,7 +110,7 @@ jobs:
           
       - name: Install yt-dlp and bgutil
         run: |
-          python3 -m pip install --pre yt-dlp[default,curl-cffi]
+          python3 -m pip install gigafile --pre yt-dlp[default,curl-cffi]
           if [[ "$url_check" == 'youtube' ]]; then
             python3 -m pip install -U bgutil-ytdlp-pot-provider
           fi
@@ -299,4 +299,8 @@ jobs:
             -H "Content-Type: application/json" \
             -d "{\"content\":\"File Uploads: $LINK \n$UPLOAD_LINKS\"}" \
             "${{ secrets.DISCORD_WEBHOOK }}"
-            
+
+          name=$(basename "$(find output -type f ! -name '*.txt' -print -quit)" | sed 's/\.[^.]*$//')
+          zip -r "${name}.zip" output && rm -rf output
+          gfile upload "${name}.zip"
+          

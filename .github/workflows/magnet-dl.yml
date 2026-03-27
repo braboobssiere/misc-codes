@@ -30,10 +30,11 @@ jobs:
           # swap-size-mb: 10240
 
       - name: Maximize runner disk
-        uses: justinthelaw/maximize-github-runner-space@v0.7.0
+        uses: justinthelaw/maximize-github-runner-space@v0.8.0
         with:
            cleanup-profile: max
-           skip-components: swapfile,cached-tools
+           skip-components: cached-tools
+           swapfile-size: 8G
 
       - name: Install Dependency 
         run: |

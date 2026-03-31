@@ -17,11 +17,6 @@ jobs:
       contents: write 
     steps:
 
-      - name: Maximize space
-        uses: easimon/maximize-build-space@v10
-        with:
-          swap-size-mb: 10240
-
       - name: Checkout stamps file
         uses: actions/checkout@v6
         with:

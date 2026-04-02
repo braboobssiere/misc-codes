@@ -88,17 +88,6 @@ jobs:
           files_name=$(echo "$download_output" | grep -oP '(?<=Downloading: ).*' | head -n 1)
           # sanitized_file_name=$(echo "$files_name" | tr -cd '[:alnum:]_.-[:space:]' | sed 's/^[_.-]*//;s/[_.-]*$//')
           echo "files_name=${files_name}" >> $GITHUB_ENV
-
-      - name: Upload Files to G Storage
-        if: ${{ github.event.inputs.upload_to_gphoto == 'true' }}
-        continue-on-error: true
-        env: 
-          GP_AUTH_DATA: ${{ secrets.GPMC_AUTH_DATA }}
-        run: gpmc "magnet_output/" --progress
-
-      - name: VPN Cleanup
-        if: ${{ always() }}
-        run: sudo wg-quick down wg0 || true
         
       - name: Prepare files for FTP upload
         id: prepare-ftp
@@ -114,6 +103,17 @@ jobs:
             echo "has_files=false" >> $GITHUB_OUTPUT
             echo "No files found. Skipping FTP upload."
           fi
+
+      - name: Upload Files to G Storage
+        if: ${{ github.event.inputs.upload_to_gphoto == 'true' }}
+        continue-on-error: true
+        env: 
+          GP_AUTH_DATA: ${{ secrets.GPMC_AUTH_DATA }}
+        run: gpmc "ftp_upload/" --progress
+
+      - name: VPN Cleanup
+        if: ${{ always() }}
+        run: sudo wg-quick down wg0 || true
 
       - name: Upload to FTP (Server 1)
         if: steps.prepare-ftp.outputs.has_files == 'true'

@@ -6,6 +6,13 @@ on:
         description: "Input link"
         required: true
         type: string
+      upload_to_gphoto:
+        required: true
+        type: choice
+        default: 'false'
+        options:
+          - 'false'
+          - 'true'
 
 jobs:
   process-downloader:
@@ -21,26 +28,22 @@ jobs:
       - name: Cache APT packages
         uses: awalsh128/cache-apt-pkgs-action@latest
         with:
-          packages: wireguard-tools lftp
+          packages: wireguard-tools
           version: ${{ steps.monthly-key.outputs.month }}
-
-      # - name: Maximize space
-        # uses: easimon/maximize-build-space@v10
-        # with:
-          # swap-size-mb: 10240
 
       - name: Maximize runner disk
         uses: justinthelaw/maximize-github-runner-space@v0.8.0
         with:
            cleanup-profile: max
            skip-components: cached-tools
-           swapfile-size: 8G
+           swapfile-size: 10G
 
       - name: Install Dependency 
         run: |
           sudo apt-get update
-          sudo apt-get install -y wireguard-tools lftp
+          sudo apt-get install -y wireguard-tools
           sudo npm install webtorrent-cli -g
+          python3 -m pip install -U 'https://github.com/xob0t/google_photos_mobile_client/archive/refs/heads/main.zip'
 
       - name: VPN Setup 
         env: 
@@ -85,6 +88,13 @@ jobs:
           files_name=$(echo "$download_output" | grep -oP '(?<=Downloading: ).*' | head -n 1)
           # sanitized_file_name=$(echo "$files_name" | tr -cd '[:alnum:]_.-[:space:]' | sed 's/^[_.-]*//;s/[_.-]*$//')
           echo "files_name=${files_name}" >> $GITHUB_ENV
+
+      - name: Upload Files to G Storage
+        if: ${{ github.event.inputs.upload_to_gphoto == 'true' }}
+        continue-on-error: true
+        env: 
+          GP_AUTH_DATA: ${{ secrets.GPMC_AUTH_DATA }}
+        run: gpmc "magnet_output/" --progress
 
       - name: VPN Cleanup
         if: ${{ always() }}

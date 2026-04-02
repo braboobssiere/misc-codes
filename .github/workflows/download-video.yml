@@ -111,7 +111,7 @@ jobs:
       - name: Install yt-dlp and bgutil
         run: |
           python3 -m pip install --pre yt-dlp[default,curl-cffi]
-          python3 -m pip install -U gigafile bgutil-ytdlp-pot-provider 'https://github.com/xob0t/google_photos_mobile_client/archive/refs/heads/main.zip'
+          python3 -m pip install -U gigafile bgutil-ytdlp-pot-provider
 
       - name: VPN Setup
         if: ${{ github.event.inputs.vpn_location != 'false' }}
@@ -216,13 +216,7 @@ jobs:
           if ls output/*.part 1> /dev/null 2>&1; then
             rm output/*.part
           fi
-          
-      - name: Upload Files to G Storage
-        continue-on-error: true
-        env: 
-          GP_AUTH_DATA: ${{ secrets.GPMC_AUTH_DATA }}
-        run: gpmc "output/" --progress
-          
+                    
       - name: VPN Cleanup
         if: ${{ always() && github.event.inputs.vpn_location != 'false' }}
         run: |

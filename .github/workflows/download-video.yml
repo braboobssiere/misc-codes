@@ -209,19 +209,19 @@ jobs:
           echo "Download command: ${COMMAND}"
           eval "${COMMAND}"
           } 2>&1 | tee >(awk '{ print strftime("[%Y-%m-%d %H:%M:%S UTC]"), $0 }' >> output/logs.txt)
-
-      - name: VPN Cleanup
-        if: ${{ always() && github.event.inputs.vpn_location != 'false' }}
-        run: |
-          sudo wg-quick down wg0 || true
-          
+         
       - name: Verify output file 
         run: |
           # Remove fragments if exist
           if ls output/*.part 1> /dev/null 2>&1; then
             rm output/*.part
           fi
-
+                    
+      - name: VPN Cleanup
+        if: ${{ always() && github.event.inputs.vpn_location != 'false' }}
+        run: |
+          sudo wg-quick down wg0 || true
+          
       - name: Upload Artifact
         uses: actions/upload-artifact@v7
         with:

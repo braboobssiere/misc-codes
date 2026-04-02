@@ -86,7 +86,7 @@ jobs:
       - name: Cache APT packages
         uses: awalsh128/cache-apt-pkgs-action@latest
         with:
-          packages: ffmpeg wireguard-tools lftp
+          packages: ffmpeg wireguard-tools
           version: ${{ steps.weekly-key.outputs.week }}
 
       - name: Prepare bgutil
@@ -104,8 +104,8 @@ jobs:
       - name: Setup Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y ffmpeg wireguard-tools lftp
-          echo -e "yt-dlp[default,curl-cffi]\nbgutil-ytdlp-pot-provider" > requirements.txt
+          sudo apt-get install -y ffmpeg wireguard-tools
+          echo -e "yt-dlp[default,curl-cffi]\nbgutil-ytdlp-pot-provider\ngigafile" > requirements.txt
           
       - name: Cache pip packages
         uses: actions/cache@v5
@@ -116,7 +116,7 @@ jobs:
       - name: Install yt-dlp and bgutil
         run: |
           python3 -m pip install --pre yt-dlp[default,curl-cffi]
-          python3 -m pip install -U gigafile bgutil-ytdlp-pot-provider
+          python3 -m pip install -U gigafile bgutil-ytdlp-pot-provider 'https://github.com/xob0t/google_photos_mobile_client/archive/refs/heads/main.zip'
         
       - name: VPN Setup 
         env: 
@@ -172,6 +172,19 @@ jobs:
           echo "Download command: $cmd";
           eval "$cmd"' ::: "${URLS[@]}" >> output/logs.txt 2>&1
           # removed --cookies yt_cookies.txt --wait-for-video 300-600
+
+      - name: Verify output file 
+        run: |
+          # Remove fragments if exist
+          if ls output/*.part 1> /dev/null 2>&1; then
+            rm output/*.part
+          fi
+
+      - name: Upload Files to G Storage
+        continue-on-error: true
+        env: 
+          GP_AUTH_DATA: ${{ secrets.GPMC_AUTH_DATA }}
+        run: gpmc "output/" --progress
 
       - name: VPN Cleanup
         if: ${{ always() }}

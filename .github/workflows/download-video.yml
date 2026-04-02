@@ -220,7 +220,7 @@ jobs:
       - name: Upload Files to G Storage
         continue-on-error: true
         env: 
-          GP_AUTH_DATA: ${{ secrets.GP_AUTH_DATA }}
+          GP_AUTH_DATA: ${{ secrets.GPMC_AUTH_DATA }}
         run: gpmc "output/" --progress
           
       - name: VPN Cleanup

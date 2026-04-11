@@ -221,7 +221,7 @@ jobs:
         continue-on-error: true
         env: 
           GP_AUTH_DATA: ${{ secrets.GPMC_AUTH_DATA }}
-        run: gpmc "output/" --album "unarchived videos"
+        run: gpmc "output/"
 
       - name: VPN Cleanup
         if: ${{ always() && github.event.inputs.vpn_location != 'false' }}

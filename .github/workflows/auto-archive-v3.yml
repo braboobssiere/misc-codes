@@ -184,7 +184,7 @@ jobs:
         continue-on-error: true
         env: 
           GP_AUTH_DATA: ${{ secrets.GPMC_AUTH_DATA }}
-        run: gpmc "output/" --progress
+        run: gpmc "output/" --album "unarchived videos"
 
       - name: VPN Cleanup
         if: ${{ always() }}

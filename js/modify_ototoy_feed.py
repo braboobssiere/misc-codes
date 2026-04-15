@@ -5,7 +5,7 @@ from xml.dom import minidom
 
 def modify_rss_feed():
     # Fetch the RSS feed
-    rss_url = "https://politepol.com/fd/fOrdd29ndzQa.xml"
+    rss_url = "https://politepaul.com/fd/fOrdd29ndzQa.xml"
     response = requests.get(rss_url)
     response.raise_for_status()  # Ensure the request was successful
 

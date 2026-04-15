@@ -40,6 +40,13 @@ on:
         description: "Optional yt-dlp arguments"
         required: false
         default: ''
+      upload_to_gphoto:
+        required: true
+        type: choice
+        default: 'false'
+        options:
+          - 'false'
+          - 'true'    
       upload_to_cloud:
         description: "Upload downloaded video to cloud storage?"
         required: true
@@ -69,7 +76,7 @@ jobs:
       - name: Check URL
         id: check_url
         run: |
-          URL="${{ github.event.inputs.video_url }}"
+          URL="${{ github.event.inputs.video_url }}"   
           if [[ "$URL" == *"youtube.com"* || "$URL" == *"youtu.be"* ]]; then
             echo "url_check=youtube" >> $GITHUB_ENV
           elif [[ "$URL" == *"twitter.com"* || "$URL" == *"//x.com"* ]]; then
@@ -218,6 +225,7 @@ jobs:
           fi
 
       - name: Upload Files to G Storage
+        if: ${{ github.event.inputs.upload_to_gphoto == 'true' }}
         continue-on-error: true
         env: 
           GP_AUTH_DATA: ${{ secrets.GPMC_AUTH_DATA }}

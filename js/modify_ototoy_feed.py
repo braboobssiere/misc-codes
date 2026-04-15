@@ -16,7 +16,7 @@ def modify_rss_feed():
     for item in root.findall(".//item"):
         # Extract items for editing 
         title = item.find("title").text
-        description = item.find("description").text.replace(" Delivered by PolitePaul service","")
+        description = item.find("description").text.replace("%0ADelivered%20by%20PolitePaul%20service","")
         guid = item.find("guid")
         
         # Combine title and description for the new title

@@ -86,7 +86,7 @@ jobs:
         run: |
           mkdir -p output
           echo "${{ secrets.YT_COOKIES }}" >> yt_cookies.txt
-          yt-dlp -i --no-progress -S "+res:1080" --retry-sleep 3 \
+          yt-dlp -v -i --no-progress -S "+res:1080" --retry-sleep 3 \
           --windows-filenames --live-from-start --write-thumbnail --js-runtimes node \
           --embed-metadata --no-embed-info-json --write-info-json \
           --cookies yt_cookies.txt \

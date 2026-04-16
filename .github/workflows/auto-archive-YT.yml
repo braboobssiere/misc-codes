@@ -92,7 +92,7 @@ jobs:
           --cookies yt_cookies.txt \
           -o "output/%(title).170B [%(id)s] (%(resolution)s).%(ext)s" \
           --match-filter is_live --match-filter post_live \
-          https://youtube.com/@RindoChihaya/live 2>&1 | tee >(awk '{ print strftime("[%Y-%m-%d %H:%M:%S UTC]"), $0 }' >> output/logs.txt)
+          https://youtube.com/@AKUMAMERYL/live 2>&1 | tee >(awk '{ print strftime("[%Y-%m-%d %H:%M:%S UTC]"), $0 }' >> output/logs.txt)
 
       - name: VPN Cleanup
         if: ${{ always() }}

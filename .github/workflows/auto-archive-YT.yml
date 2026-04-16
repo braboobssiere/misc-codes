@@ -25,24 +25,13 @@ jobs:
       - name: Cache APT packages
         uses: awalsh128/cache-apt-pkgs-action@latest
         with:
-          packages: ffmpeg wireguard-tools lftp
+          packages: ffmpeg wireguard-tools
           version: ${{ steps.weekly-key.outputs.week }}
-
-      - name: Prepare bgutil
-        run: |
-          # Fetch the latest version tag from the repository
-          latest_version=$(git ls-remote --tags https://github.com/Brainicism/bgutil-ytdlp-pot-provider.git | awk -F/ '{print $3}' | sort -V | tail -n 1)
-          echo "Latest version: $latest_version"
-          cd ~
-          git clone --single-branch --branch $latest_version https://github.com/Brainicism/bgutil-ytdlp-pot-provider.git
-          cd bgutil-ytdlp-pot-provider/server/
-          npm install
-          npx tsc
 
       - name: Setup Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y ffmpeg wireguard-tools lftp
+          sudo apt-get install -y ffmpeg wireguard-tools
           echo -e "yt-dlp[default,curl-cffi]\nbgutil-ytdlp-pot-provider\ngigafile" > requirements.txt
           
       - name: Cache pip packages
@@ -104,7 +93,6 @@ jobs:
           -o "output/%(title).170B [%(id)s] (%(resolution)s).%(ext)s" \
           --match-filter is_live --match-filter post_live \
           https://youtube.com/@9arm./live 2>&1 | tee >(awk '{ print strftime("[%Y-%m-%d %H:%M:%S UTC]"), $0 }' >> output/logs.txt)
-          # removed --cookies yt_cookies.txt 
 
       - name: VPN Cleanup
         if: ${{ always() }}
@@ -118,13 +106,15 @@ jobs:
           fi
           # Count files in output directory (including hidden files)
           FILE_COUNT=$(find output/ -type f | wc -l)
-          
+
+          echo "skip_uploads=false" >> $GITHUB_OUTPUT
           if [ $FILE_COUNT -lt 2 ]; then
             echo "Error: yt-dlp have a problem downloading video (found $FILE_COUNT)"
-            exit 14
+            echo "skip_uploads=true" >> $GITHUB_OUTPUT
           fi
 
       - name: Upload files
+        if: steps.verify-output.outputs.skip_uploads == 'false'
         continue-on-error: true
         run: |
           UPLOAD_URL="https://upload.gofile.io/uploadfile"
@@ -134,53 +124,31 @@ jobs:
           FIRST_FILE=true
 
           while IFS= read -r -d '' file; do
-            echo "▫️ Starting upload: $(basename "$file")"
+            echo "▫️ Starting Gofile upload: $(basename "$file")"
             extra_args=()
             if [ "$FIRST_FILE" = false ]; then
               extra_args+=(-H "Authorization: Bearer $guest_token" -F "folderId=$folder_id")
             fi
             
             RESPONSE=$(curl -s -X POST -F "file=@\"$file\"" "${extra_args[@]}" "$UPLOAD_URL")
-
-            PYTHON_OUTPUT=$(python3 <<EOF
-          import json, sys
-          try:
-              data = json.loads('''$RESPONSE''')
-              if "$FIRST_FILE" == "true":
-                  guest_token = data['data']['guestToken']
-                  folder_id = data['data']['parentFolder']
-                  print(f"{guest_token}\t{folder_id}")
-              else:
-                  print("-\t-")          
-              status = 'ok' if data['status'] == 'ok' else 'error'
-              result_data = data.get('data', {}).get('downloadPage', '') if status == 'ok' else data.get('data', '')
-              print(f"{status}\t{result_data}")
-          except Exception as e:
-              print(f"error\tJSON parsing failed: {str(e)}")
-              sys.exit(1)
-          EOF
-            )
-
-            {
-              read -r token_part folder_part
-              read -r status_type result_data
-            } <<< "$PYTHON_OUTPUT"
+            STATUS=$(echo "$RESPONSE" | jq -r '.status // "error"')
+            DOWNLOAD_PAGE=$(echo "$RESPONSE" | jq -r '.data.downloadPage // .data // empty')
 
             if [ "$FIRST_FILE" = true ]; then
-              guest_token="$token_part"
-              folder_id="$folder_part"
+              guest_token=$(echo "$RESPONSE" | jq -r '.data.guestToken // empty')
+              folder_id=$(echo "$RESPONSE" | jq -r '.data.parentFolder // empty')
               FIRST_FILE=false
               echo "GUEST_TOKEN=$guest_token" >> $GITHUB_ENV
               echo "FOLDER_ID=$folder_id" >> $GITHUB_ENV
-              echo "Created folder ID"
+              echo "Created Gofile folder"
             fi
 
-            if [ "$status_type" != "ok" ]; then
-              echo "::error file=$file::Upload failed: $result_data"
+            if [ "$STATUS" != "ok" ]; then
+              echo "::warning::Gofile upload failed for $(basename "$file"): $DOWNLOAD_PAGE"
             else
-              LINK="$result_data"
-              UPLOAD_LINKS+="- $(basename "$file")\n"
-              echo "Success: $LINK"
+              LINK="$DOWNLOAD_PAGE"
+              UPLOAD_LINKS+="- $(basename "$file") | $LINK\n"
+              echo "✓ Gofile success: $LINK"
             fi
           done < <(find output/ -type f -print0)
 
@@ -199,6 +167,7 @@ jobs:
             "${{ secrets.DISCORD_WEBHOOK }}"
 
       - name: Upload to FTP 
+        if: steps.verify-output.outputs.skip_uploads == 'false'
         continue-on-error: true
         run: |
           mkdir -p ftp_upload
@@ -216,6 +185,7 @@ jobs:
           fi
 
       - name: Upload to FTP (Server 2)
+        if: steps.verify-output.outputs.skip_uploads == 'false'
         continue-on-error: true
         run: |
           UPLOAD_SERVER=$(curl -s "https://vidsonic.net/api/v1/getUploadSrv?key=${{ secrets.vidsonic_api_key }}" | jq -r '.server')

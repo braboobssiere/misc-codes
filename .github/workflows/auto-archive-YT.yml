@@ -99,6 +99,7 @@ jobs:
         run: sudo wg-quick down wg0 || true
 
       - name: Verify output file 
+        id: verify-output
         run: |
           # Remove fragments if exist
           if ls output/*.part 1> /dev/null 2>&1; then

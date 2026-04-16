@@ -179,7 +179,8 @@ jobs:
 
       - name: Upload Files to Cloud Storage
         continue-on-error: true
-        run: |          UPLOAD_URL="https://upload.gofile.io/uploadfile"
+        run: |          
+          UPLOAD_URL="https://upload.gofile.io/uploadfile"
           guest_token=""
           folder_id=""
           UPLOAD_LINKS=""

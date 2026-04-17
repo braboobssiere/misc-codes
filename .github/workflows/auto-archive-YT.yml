@@ -17,16 +17,15 @@ jobs:
     steps:
 
       - name: Set weekly cache key
-        id: weekly-key
         run: |
           WEEK=$(date +"%Y.%U")
-          echo "week=${WEEK}" >> $GITHUB_OUTPUT
+          echo "week=${WEEK}" >> $GITHUB_ENV
           
       - name: Cache APT packages
         uses: awalsh128/cache-apt-pkgs-action@latest
         with:
           packages: ffmpeg wireguard-tools
-          version: ${{ steps.weekly-key.outputs.week }}
+          version: ${{ env.week }}
 
       - name: Setup Dependencies
         run: |
@@ -44,7 +43,7 @@ jobs:
         uses: actions/cache@v5
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}-${{ steps.weekly-key.outputs.week }}
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}-${{ env.week }}
           
       - name: Install yt-dlp and bgutil
         run: |

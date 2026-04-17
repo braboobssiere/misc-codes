@@ -48,8 +48,8 @@ jobs:
       - name: Install yt-dlp and bgutil
         run: |
           python3 -m pip install --pre yt-dlp[default,curl-cffi]
-          python3 -m pip install -U gigafile bgutil-ytdlp-pot-provider
-
+          python3 -m pip install -U gigafile bgutil-ytdlp-pot-provider 'https://github.com/xob0t/google_photos_mobile_client/archive/refs/heads/main.zip'
+          
       - name: VPN Setup 
         env: 
           PRIMARY_CONFIG: ${{ secrets.WIREGUARD_GRANDCENTRAL }}
@@ -99,10 +99,6 @@ jobs:
           --match-filter is_live --match-filter post_live \
           https://youtube.com/@9arm./live 2>&1 | tee >(awk '{ print strftime("[%Y-%m-%d %H:%M:%S UTC]"), $0 }' >> output/logs.txt)
 
-      - name: VPN Cleanup
-        if: ${{ always() }}
-        run: sudo wg-quick down wg0 || true
-
       - name: Verify output file
         run: |
           # Remove fragments if exist
@@ -118,6 +114,17 @@ jobs:
             echo "skip_uploads=true" >> $GITHUB_ENV
           fi
 
+      - name: Upload Files to G Storage
+        if: env.skip_uploads == 'false'
+        continue-on-error: true
+        env: 
+          GP_AUTH_DATA: ${{ secrets.GPMC_AUTH_DATA }}
+        run: gpmc "output/"
+
+      - name: VPN Cleanup
+        if: ${{ always() }}
+        run: sudo wg-quick down wg0 || true     
+        
       - name: Upload files
         if: env.skip_uploads == 'false'
         continue-on-error: true

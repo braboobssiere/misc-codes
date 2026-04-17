@@ -103,8 +103,7 @@ jobs:
         if: ${{ always() }}
         run: sudo wg-quick down wg0 || true
 
-      - name: Verify output file 
-        id: verify-output
+      - name: Verify output file
         run: |
           # Remove fragments if exist
           if ls output/*.part 1> /dev/null 2>&1; then
@@ -113,14 +112,14 @@ jobs:
           # Count files in output directory (including hidden files)
           FILE_COUNT=$(find output/ -type f | wc -l)
 
-          echo "skip_uploads=false" >> $GITHUB_OUTPUT
+          echo "skip_uploads=false" >> $GITHUB_ENV
           if [ $FILE_COUNT -lt 2 ]; then
             echo "Error: yt-dlp have a problem downloading video (found $FILE_COUNT)"
-            echo "skip_uploads=true" >> $GITHUB_OUTPUT
+            echo "skip_uploads=true" >> $GITHUB_ENV
           fi
 
       - name: Upload files
-        if: steps.verify-output.outputs.skip_uploads == 'false'
+        if: env.skip_uploads == 'false'
         continue-on-error: true
         run: |
           UPLOAD_URL="https://upload.gofile.io/uploadfile"
@@ -173,7 +172,7 @@ jobs:
             "${{ secrets.DISCORD_WEBHOOK }}"
 
       - name: Upload to FTP 
-        if: steps.verify-output.outputs.skip_uploads == 'false'
+        if: env.skip_uploads == 'false'
         continue-on-error: true
         run: |
           mkdir -p ftp_upload
@@ -191,7 +190,7 @@ jobs:
           fi
 
       - name: Upload to FTP (Server 2)
-        if: steps.verify-output.outputs.skip_uploads == 'false'
+        if: env.skip_uploads == 'false'
         continue-on-error: true
         run: |
           UPLOAD_SERVER=$(curl -s "https://vidsonic.net/api/v1/getUploadSrv?key=${{ secrets.vidsonic_api_key }}" | jq -r '.server')

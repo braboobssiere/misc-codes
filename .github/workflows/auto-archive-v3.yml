@@ -236,22 +236,19 @@ jobs:
             "${{ secrets.DISCORD_WEBHOOK }}"
             
       - name: Prepare files for FTP upload
-        id: prepare-ftp
         run: |
           mkdir -p ftp_upload
           find output -type f \( -name "*.mp4" -o -name "*.mkv" -o -name "*.ts" -o -name "*.webm" \) \
             -exec mv -- {} ftp_upload/ \;
-          
+            
+          echo "has_file=false" >> $GITHUB_ENV
           if [ "$(ls -A ftp_upload)" ]; then
-            echo "has_files=true" >> $GITHUB_OUTPUT
+            echo "has_file=true" >> $GITHUB_ENV
             echo "Files found in ftp_upload directory"
-          else
-            echo "has_files=false" >> $GITHUB_OUTPUT
-            echo "No files found. Skipping FTP upload."
           fi
 
       - name: Upload to FTP (Server 1)
-        if: steps.prepare-ftp.outputs.has_files == 'disable'
+        if: env.has_file == 'disable'
         continue-on-error: true
         run: |
           lftp -u ${{ secrets.FTP_LOGIN_ARCHIVE }} -e "
@@ -262,7 +259,7 @@ jobs:
           echo "ftp upload 1 done"
 
       - name: Upload to FTP (Server 2)
-        if: steps.prepare-ftp.outputs.has_files == 'true'
+        if: env.has_file == 'true'
         continue-on-error: true
         run: |
           upload_server=$(curl -s "https://api.vidara.so/v1/upload/server?api_key=${{ secrets.STREAMIX_API_KEY }}" | jq -r '.result.upload_server')
@@ -273,7 +270,7 @@ jobs:
           done
 
       - name: Upload to FTP (Server 3)
-        if: steps.prepare-ftp.outputs.has_files == 'true'
+        if: env.has_file == 'true'
         continue-on-error: true
         run: |
           UPLOAD_SERVER=$(curl -s "https://vidsonic.net/api/v1/getUploadSrv?key=${{ secrets.vidsonic_api_key }}" | jq -r '.server')

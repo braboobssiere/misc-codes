@@ -196,7 +196,8 @@ jobs:
               echo "✓ Gofile success: $LINK"
             fi
           done < <(find magnet_output/ -type f -print0)
-
+          
+          mkdir -p giga
           set -euo pipefail
           name=$(basename "$(find magnet_output -type f ! -name '*.txt' -print -quit)" | sed 's/\.[^.]*$//')
           zip -r "giga/${name}.zip" magnet_output

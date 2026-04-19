@@ -48,11 +48,26 @@ on:
         options:
           - 'true'
           - 'false'
+      expand_storage:
+        required: true
+        type: choice
+        default: 'false'
+        options:
+          - 'false'
+          - 'true'
 
 jobs:
   download_and_upload:
     runs-on: ubuntu-latest
     steps:
+
+      - name: Maximize runner disk
+        if: ${{ github.event.inputs.expand_storage == 'true' }}
+        uses: justinthelaw/maximize-github-runner-space@v0.8.0
+        with:
+           cleanup-profile: max
+           skip-components: cached-tools
+           swapfile-size: 10G
 
       - name: Set weekly cache key
         run: |

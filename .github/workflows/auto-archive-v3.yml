@@ -206,20 +206,18 @@ jobs:
               guest_token=$(echo "$RESPONSE" | jq -r '.data.guestToken // empty')
               folder_id=$(echo "$RESPONSE" | jq -r '.data.parentFolder // empty')
               FIRST_FILE=false
-              echo "GUEST_TOKEN=$guest_token" >> $GITHUB_ENV
-              echo "FOLDER_ID=$folder_id" >> $GITHUB_ENV
               echo "Created Gofile folder"
             fi
 
             if [ "$STATUS" != "ok" ]; then
               echo "::warning::Gofile upload failed for $(basename "$file"): $DOWNLOAD_PAGE"
             else
-              LINK="$DOWNLOAD_PAGE"
-              UPLOAD_LINKS+="- $(basename "$file") \n"
               echo "✓ Gofile success: $LINK"
             fi
+            LINK="$DOWNLOAD_PAGE"
+            UPLOAD_LINKS+="- $(basename "$file") \n"
           done < <(find output/ -type f -print0)
-
+          
           set -euo pipefail
           name=$(basename "$(find output -type f ! -name '*.txt' -print -quit)" | sed 's/\.[^.]*$//')
           zip -r "${name}.zip" output

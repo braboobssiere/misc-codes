@@ -114,6 +114,15 @@ jobs:
             echo "skip_uploads=true" >> $GITHUB_ENV
           fi
 
+      - name: Upload Artifact
+        if: env.skip_uploads == 'false'
+        uses: actions/upload-artifact@v7
+        with:
+          name: downloaded-video
+          path: output
+          compression-level: 1
+          if-no-files-found: error
+
       - name: Upload Files to G Storage
         if: env.skip_uploads == 'false'
         continue-on-error: true

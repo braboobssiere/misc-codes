@@ -4,11 +4,9 @@ on:
   workflow_dispatch:
     inputs:
       video_url:
-        description: "Video URL to download"
         required: true
         type: string
       vpn_location:
-        description: 'Select VPN location or false'
         required: true
         default: 'TRADEWAR'
         type: choice
@@ -19,7 +17,6 @@ on:
           - 'SANOOK'
           - 'false'
       resolution:
-        description: "Video resolution (default: 1080p)"
         required: true
         type: choice
         default: '1080p'
@@ -29,7 +26,6 @@ on:
           - '720p'
           - '480p'
       cookies:
-        description: "Pass cookies to yt-dlp?"
         required: true
         type: choice
         default: 'false'
@@ -41,7 +37,6 @@ on:
         required: false
         default: ''
       upload_to_cloud:
-        description: "Upload downloaded video to cloud storage?"
         required: true
         type: choice
         default: 'true'

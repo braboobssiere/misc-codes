@@ -17,6 +17,7 @@ jobs:
           RUN_ID=$(echo "${{ github.event.inputs.run_url }}" | grep -oE '[0-9]+$')
           echo "run_id=$RUN_ID" >> $GITHUB_OUTPUT
           mkdir -p output
+          python3 -m pip install -U gigafile
 
       - name: Download artifact
         uses: actions/download-artifact@v8
@@ -41,53 +42,37 @@ jobs:
           UPLOAD_LINKS=""
           FIRST_FILE=true
           while IFS= read -r -d '' file; do
-            echo "▫️ Starting upload: $(basename "$file")"
+            echo "▫️ Starting Gofile upload: $(basename "$file")"
             extra_args=()
             if [ "$FIRST_FILE" = false ]; then
               extra_args+=(-H "Authorization: Bearer $guest_token" -F "folderId=$folder_id")
             fi
             
             RESPONSE=$(curl -s -X POST -F "file=@\"$file\"" "${extra_args[@]}" "$UPLOAD_URL")
-            PYTHON_OUTPUT=$(python3 <<EOF
-          import json, sys
-          try:
-              data = json.loads('''$RESPONSE''')
-              if "$FIRST_FILE" == "true":
-                  guest_token = data['data']['guestToken']
-                  folder_id = data['data']['parentFolder']
-                  print(f"{guest_token}\t{folder_id}")
-              else:
-                  print("-\t-")          
-              status = 'ok' if data['status'] == 'ok' else 'error'
-              result_data = data.get('data', {}).get('downloadPage', '') if status == 'ok' else data.get('data', '')
-              print(f"{status}\t{result_data}")
-          except Exception as e:
-              print(f"error\tJSON parsing failed: {str(e)}")
-              sys.exit(1)
-          EOF
-            )
-            {
-              read -r token_part folder_part
-              read -r status_type result_data
-            } <<< "$PYTHON_OUTPUT"
+            STATUS=$(echo "$RESPONSE" | jq -r '.status // "error"')
+            DOWNLOAD_PAGE=$(echo "$RESPONSE" | jq -r '.data.downloadPage // .data // empty')
             if [ "$FIRST_FILE" = true ]; then
-              guest_token="$token_part"
-              folder_id="$folder_part"
+              guest_token=$(echo "$RESPONSE" | jq -r '.data.guestToken // empty')
+              folder_id=$(echo "$RESPONSE" | jq -r '.data.parentFolder // empty')
               FIRST_FILE=false
-              echo "GUEST_TOKEN=$guest_token" >> $GITHUB_ENV
-              echo "FOLDER_ID=$folder_id" >> $GITHUB_ENV
-              echo "Created folder ID"
+              echo "Created Gofile folder"
             fi
-            if [ "$status_type" != "ok" ]; then
-              echo "::error file=$file::Upload failed: $result_data"
+            if [ "$STATUS" != "ok" ]; then
+              echo "::warning::Gofile upload failed for $(basename "$file"): $DOWNLOAD_PAGE"
             else
-              LINK="$result_data"
-              UPLOAD_LINKS+="- $(basename "$file")\n"
-              echo "Success: $LINK"
+              echo "✓ Gofile success: $LINK"
             fi
+            LINK="$DOWNLOAD_PAGE"
+            UPLOAD_LINKS+="- $(basename "$file") \n"
           done < <(find output/ -type f -print0)
-          echo "### File Uploads: $LINK" >> $GITHUB_STEP_SUMMARY
+          set -euo pipefail
+          name=$(basename "$(find output -type f ! -name '*.txt' -print -quit)" | sed 's/\.[^.]*$//')
+          zip -r "${name}.zip" output
+          gout=$(gfile --hide-progress upload "${name}.zip")
+          gigaURL=$(printf '%s\n' "$gout" | grep -oE 'https?://([^.[:space:]]+\.)?gigafile\.nu/[^[:space:]]+' | tail -n1)
+          echo "### File Uploads: $LINK I $gigaURL" >> $GITHUB_STEP_SUMMARY
           echo -e "\n$UPLOAD_LINKS" >> $GITHUB_STEP_SUMMARY
+          
           curl -X POST \
             -H "Content-Type: application/json" \
             -d "{\"content\":\"File Uploads: $LINK \n$UPLOAD_LINKS\"}" \

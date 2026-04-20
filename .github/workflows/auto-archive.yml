@@ -18,12 +18,7 @@ jobs:
       urls: ${{ steps.feed-parser.outputs.urls }}
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
+        uses: actions/checkout@v6
 
       - name: Install parsing dependencies
         run: pip install requests
@@ -83,7 +78,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup Dependencies
         run: |
@@ -159,7 +154,7 @@ jobs:
           fi
 
       - name: Upload Artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: downloaded-videos
           path: output/

@@ -29,7 +29,7 @@ jobs:
         jq -r '
           .workflow_runs[] | 
           select(
-            ( (.updated_at | fromdateiso8601) - (.created_at | fromdateiso8601) ) < 300  # Duration check
+            ( (.updated_at | fromdateiso8601) - (.created_at | fromdateiso8601) ) < 16*60  # Duration check
             or 
             (now - (.updated_at | fromdateiso8601) ) > (90|.*24*60*60)  # 90-day expiration
           ) | .id

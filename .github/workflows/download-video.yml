@@ -4,11 +4,9 @@ on:
   workflow_dispatch:
     inputs:
       video_url:
-        description: "Video URL to download"
         required: true
         type: string
       vpn_location:
-        description: 'Select VPN location or false'
         required: true
         default: 'TRADEWAR'
         type: choice
@@ -19,7 +17,6 @@ on:
           - 'SANOOK'
           - 'false'
       resolution:
-        description: "Video resolution (default: 1080p)"
         required: true
         type: choice
         default: '1080p'
@@ -29,7 +26,6 @@ on:
           - '720p'
           - '480p'
       cookies:
-        description: "Pass cookies to yt-dlp?"
         required: true
         type: choice
         default: 'false'
@@ -41,56 +37,61 @@ on:
         required: false
         default: ''
       upload_to_cloud:
-        description: "Upload downloaded video to cloud storage?"
         required: true
         type: choice
         default: 'true'
         options:
           - 'true'
           - 'false'
+      expand_storage:
+        required: true
+        type: choice
+        default: 'false'
+        options:
+          - 'false'
+          - 'true'
 
 jobs:
   download_and_upload:
     runs-on: ubuntu-latest
     steps:
 
+      - name: Maximize runner disk
+        if: ${{ github.event.inputs.expand_storage == 'true' }}
+        uses: justinthelaw/maximize-github-runner-space@v0.8.0
+        with:
+           cleanup-profile: max
+           skip-components: cached-tools
+           swapfile-size: 10G
+
       - name: Set weekly cache key
-        id: weekly-key
         run: |
           WEEK=$(date +"%Y.%U")
-          echo "week=${WEEK}" >> $GITHUB_OUTPUT
-
-      - name: Maximize space
-        uses: easimon/maximize-build-space@v10
-        with:
-          swap-size-mb: 10240
+          echo "week=${WEEK}" >> $GITHUB_ENV
           
       - name: Cache APT packages
         uses: awalsh128/cache-apt-pkgs-action@latest
         with:
           packages: ffmpeg wireguard-tools
-          version: ${{ steps.weekly-key.outputs.week }}
+          version: ${{ env.week }}
 
       - name: Check URL
-        id: check_url
         run: |
           URL="${{ github.event.inputs.video_url }}"
+          echo "url_check=" >> $GITHUB_ENV
           if [[ "$URL" == *"youtube.com"* || "$URL" == *"youtu.be"* ]]; then
             echo "url_check=youtube" >> $GITHUB_ENV
-          elif [[ "$URL" == *"twitter.com"* || "$URL" == *"x.com"* ]]; then
+          elif [[ "$URL" == *"twitter.com"* || "$URL" == *"//x.com"* ]]; then
             echo "url_check=twitter" >> $GITHUB_ENV
-          else
-            echo "url_check=" >> $GITHUB_ENV
           fi
 
       - name: Prepare bgutil
         if: env.url_check == 'youtube'
         run: |
           # Fetch the latest version tag from the repository
-          latest_version=$(git ls-remote --tags https://github.com/Brainicism/bgutil-ytdlp-pot-provider.git | awk -F/ '{print $3}' | sort -V | tail -n 1)
-          echo "Latest version: $latest_version"
+          LATEST=$(curl -s https://api.github.com/repos/Brainicism/bgutil-ytdlp-pot-provider/releases/latest | jq -r '.tag_name // "1.3.1"')
           cd ~
-          git clone --single-branch --branch $latest_version https://github.com/Brainicism/bgutil-ytdlp-pot-provider.git
+          git clone --single-branch --branch $LATEST https://github.com/Brainicism/bgutil-ytdlp-pot-provider.git
           cd bgutil-ytdlp-pot-provider/server/
           npm install
           npx tsc
@@ -105,20 +106,18 @@ jobs:
 
           sudo apt-get update
           sudo apt-get install -y $PACKAGES
-          echo -e "yt-dlp[default,curl-cffi]\nbgutil-ytdlp-pot-provider" > requirements.txt
+          echo -e "yt-dlp[default,curl-cffi]\nbgutil-ytdlp-pot-provider\ngigafile" > requirements.txt
 
       - name: Cache pip packages
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}-${{ steps.weekly-key.outputs.week }}
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}-${{ env.week }}
           
       - name: Install yt-dlp and bgutil
         run: |
           python3 -m pip install --pre yt-dlp[default,curl-cffi]
-          if [[ "$url_check" == 'youtube' ]]; then
-            python3 -m pip install -U bgutil-ytdlp-pot-provider
-          fi
+          python3 -m pip install -U gigafile bgutil-ytdlp-pot-provider
 
       - name: VPN Setup
         if: ${{ github.event.inputs.vpn_location != 'false' }}
@@ -216,30 +215,31 @@ jobs:
           echo "Download command: ${COMMAND}"
           eval "${COMMAND}"
           } 2>&1 | tee >(awk '{ print strftime("[%Y-%m-%d %H:%M:%S UTC]"), $0 }' >> output/logs.txt)
-
-      - name: VPN Cleanup
-        if: ${{ always() && github.event.inputs.vpn_location != 'false' }}
-        run: |
-          sudo wg-quick down wg0 || true
-          
+         
       - name: Verify output file 
         run: |
           # Remove fragments if exist
           if ls output/*.part 1> /dev/null 2>&1; then
             rm output/*.part
           fi
-
+                    
+      - name: VPN Cleanup
+        if: ${{ always() && github.event.inputs.vpn_location != 'false' }}
+        run: |
+          sudo wg-quick down wg0 || true
+          
       - name: Upload Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: downloaded-video
           path: output
           compression-level: 1
           if-no-files-found: error
 
-      - name: Upload Files to Gofile
+      - name: Upload Files to cloud storage
         if: ${{ github.event.inputs.upload_to_cloud == 'true' }}
-        run: |
+        continue-on-error: true
+        run: |          
           UPLOAD_URL="https://upload.gofile.io/uploadfile"
           guest_token=""
           folder_id=""
@@ -247,61 +247,43 @@ jobs:
           FIRST_FILE=true
 
           while IFS= read -r -d '' file; do
-            echo "▫️ Starting upload: $(basename "$file")"
+            echo "▫️ Starting Gofile upload: $(basename "$file")"
             extra_args=()
             if [ "$FIRST_FILE" = false ]; then
               extra_args+=(-H "Authorization: Bearer $guest_token" -F "folderId=$folder_id")
             fi
             
             RESPONSE=$(curl -s -X POST -F "file=@\"$file\"" "${extra_args[@]}" "$UPLOAD_URL")
-
-            PYTHON_OUTPUT=$(python3 <<EOF
-          import json, sys
-          try:
-              data = json.loads('''$RESPONSE''')
-              if "$FIRST_FILE" == "true":
-                  guest_token = data['data']['guestToken']
-                  folder_id = data['data']['parentFolder']
-                  print(f"{guest_token}\t{folder_id}")
-              else:
-                  print("-\t-")          
-              status = 'ok' if data['status'] == 'ok' else 'error'
-              result_data = data.get('data', {}).get('downloadPage', '') if status == 'ok' else data.get('data', '')
-              print(f"{status}\t{result_data}")
-          except Exception as e:
-              print(f"error\tJSON parsing failed: {str(e)}")
-              sys.exit(1)
-          EOF
-            )
-
-            {
-              read -r token_part folder_part
-              read -r status_type result_data
-            } <<< "$PYTHON_OUTPUT"
+            STATUS=$(echo "$RESPONSE" | jq -r '.status // "error"')
+            DOWNLOAD_PAGE=$(echo "$RESPONSE" | jq -r '.data.downloadPage // .data // empty')
 
             if [ "$FIRST_FILE" = true ]; then
-              guest_token="$token_part"
-              folder_id="$folder_part"
+              guest_token=$(echo "$RESPONSE" | jq -r '.data.guestToken // empty')
+              folder_id=$(echo "$RESPONSE" | jq -r '.data.parentFolder // empty')
               FIRST_FILE=false
-              echo "GUEST_TOKEN=$guest_token" >> $GITHUB_ENV
-              echo "FOLDER_ID=$folder_id" >> $GITHUB_ENV
-              echo "Created folder ID"
+              echo "Created Gofile folder"
             fi
 
-            if [ "$status_type" != "ok" ]; then
-              echo "::error file=$file::Upload failed: $result_data"
+            if [ "$STATUS" != "ok" ]; then
+              echo "::warning::Gofile upload failed for $(basename "$file"): $DOWNLOAD_PAGE"
             else
-              LINK="$result_data"
-              UPLOAD_LINKS+="- $(basename "$file")\n"
-              echo "Success: $LINK"
+              echo "✓ Gofile success: $LINK"
             fi
+            LINK="$DOWNLOAD_PAGE"
+            UPLOAD_LINKS+="- $(basename "$file") \n"
           done < <(find output/ -type f -print0)
 
-          echo "### File Uploads: $LINK" >> $GITHUB_STEP_SUMMARY
+          set -euo pipefail
+          name=$(basename "$(find output -type f ! -name '*.txt' -print -quit)" | sed 's/\.[^.]*$//')
+          zip -r "${name}.zip" output
+          gout=$(gfile --hide-progress upload "${name}.zip")
+          gigaURL=$(printf '%s\n' "$gout" | grep -oE 'https?://([^.[:space:]]+\.)?gigafile\.nu/[^[:space:]]+' | tail -n1)
+
+          echo "### File Uploads: $LINK I $gigaURL" >> $GITHUB_STEP_SUMMARY
           echo -e "\n$UPLOAD_LINKS" >> $GITHUB_STEP_SUMMARY
 
           curl -X POST \
             -H "Content-Type: application/json" \
-            -d "{\"content\":\"File Uploads: $LINK \n$UPLOAD_LINKS\"}" \
+            -d "{\"content\":\"File Uploads: $LINK I $gigaURL \n$UPLOAD_LINKS\"}" \
             "${{ secrets.DISCORD_WEBHOOK }}"
-            
+          

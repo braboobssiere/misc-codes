@@ -12,7 +12,7 @@ user_pref("privacy.clearSiteData.browsingHistoryAndDownloads", true);
 user_pref("privacy.clearHistory.browsingHistoryAndDownloads", true);
 
 // 4002: set global FPP overrides [FF114+]
-user_pref("privacy.fingerprintingProtection.overrides", "+AllTargets,-JSDateTimeUTC");
+user_pref("privacy.fingerprintingProtection.overrides", "+AllTargets,-JSDateTimeUTC,-WebGLRenderCapability");
 
 // 5003: disable saving passwords
 user_pref("signon.rememberSignons", false); 

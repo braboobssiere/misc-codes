@@ -11,6 +11,13 @@ on:
         required: false
         type: string
         default: ""
+      upload_to_gphoto:
+        required: true
+        type: choice
+        default: 'false'
+        options:
+          - 'false'
+          - 'true'
 
 jobs:
   process-downloader:
@@ -18,28 +25,29 @@ jobs:
     steps:
 
       - name: Set monthly cache key
-        id: monthly-key
         run: |
           MONTH=$(date +"%Y.%m")
-          echo "month=${MONTH}" >> $GITHUB_OUTPUT
+          echo "month=${MONTH}" >> $GITHUB_ENV
 
       - name: Cache APT packages
         uses: awalsh128/cache-apt-pkgs-action@latest
         with:
-          packages: wireguard-tools lftp
-          version: ${{ steps.monthly-key.outputs.month }}
+          packages: wireguard-tools
+          version: ${{ env.month }}
 
       - name: Maximize runner disk
-        uses: justinthelaw/maximize-github-runner-space@master
+        uses: justinthelaw/maximize-github-runner-space@v0.8.0
         with:
            cleanup-profile: max
-           skip-components: swapfile,cached-tools
+           skip-components: cached-tools
+           swapfile-size: 10G
 
       - name: Install Dependency 
         run: |
           sudo apt-get update
-          sudo apt-get install -y wireguard-tools lftp
+          sudo apt-get install -y wireguard-tools
           sudo npm install webtorrent-cli -g
+          python3 -m pip install -U gigafile 'https://github.com/xob0t/google_photos_mobile_client/archive/refs/heads/main.zip'
 
       - name: VPN Setup 
         env: 
@@ -161,32 +169,43 @@ jobs:
         run: sudo wg-quick down wg0 || true
         
       - name: Prepare files for FTP upload
-        id: prepare-ftp
         run: |
           mkdir -p ftp_upload
           find magnet_output -type f \( -name "*.mp4" -o -name "*.mkv" -o -name "*.ts" -o -name "*.webm" \) \
             -exec mv -- {} ftp_upload/ \;
           
           if [ "$(ls -A ftp_upload)" ]; then
-            echo "has_files=true" >> $GITHUB_OUTPUT
+            echo "has_files=true" >> $GITHUB_ENV
             echo "Files found in ftp_upload directory"
           else
-            echo "has_files=false" >> $GITHUB_OUTPUT
+            echo "has_files=false" >> $GITHUB_ENV
             echo "No files found. Skipping FTP upload."
           fi
 
+      - name: Upload Files to G Storage
+        if: ${{ github.event.inputs.upload_to_gphoto == 'true' }}
+        continue-on-error: true
+        env: 
+          GP_AUTH_DATA: ${{ secrets.GPMC_AUTH_DATA }}
+        run: gpmc "ftp_upload/"
+
+      - name: VPN Cleanup
+        if: ${{ always() }}
+        run: sudo wg-quick down wg0 || true
+
       - name: Upload to FTP (Server 1)
-        if: steps.prepare-ftp.outputs.has_files == 'true'
+        if: env.has_files == 'true'
+        continue-on-error: true
         run: |
-          lftp -u ${{ secrets.FTP_LOGIN }} -e "
-            set ssl:verify-certificate false;
-            set cache:size 524288000;
-            mput -P 1 ftp_upload/*;
-            bye"
-          echo "ftp upload 1 done"
+          UPLOAD_SERVER=$(curl -s "https://vidsonic.net/api/v1/getUploadSrv?key=${{ secrets.vidsonic_api_key }}" | jq -r '.server')
+          for f in ftp_upload/*; do
+            [ -f "$f" ] && curl -X POST $UPLOAD_SERVER \
+              -F "apiKey=${{ secrets.vidsonic_api_key }}" -F "video=@$f" \
+              && echo "Uploaded: $(basename "$f")"
+          done
 
       - name: Upload to FTP (Server 2)
-        if: steps.prepare-ftp.outputs.has_files == 'true'
+        if: env.has_files == 'disable'
         run: |
           lftp -u ${{ secrets.FTP_LOGIN_ARCHIVE }} -e "
             set ssl:verify-certificate false;
@@ -194,16 +213,27 @@ jobs:
             mput -P 1 ftp_upload/*;
             bye"
           echo "ftp upload 2 done"
+          # 'user,pass' ftp://host/
+
+      - name: Upload to FTP (Server 3)
+        if: env.has_files == 'true'
+        continue-on-error: true
+        run: |
+          upload_server=$(curl -s "https://api.vidara.so/v1/upload/server?api_key=${{ secrets.STREAMIX_API_KEY }}" | jq -r '.result.upload_server')
+          for f in ftp_upload/*; do
+            [ -f "$f" ] && curl -X POST "$upload_server" \
+              -F "api_key=${{ secrets.STREAMIX_API_KEY }}" -F "file=@$f" \
+              && echo "Uploaded: $(basename "$f")"
+          done
           
       - name: Zip files 
         run: |
           cd magnet_output
           if [ -n "$(find . -type f)" ]; then
-            zip -0 -r -m -s 2g "${{ env.files_name }}.zip" .
+            zip -0 -r -m -s 2g "files_$(date +%Y%m%d_%H%M%S).zip" .
           else
             echo "Skipping zip: No non-video files found"
           fi
-        shell: bash
 
       - name: Upload Files to Gofile
         run: |
@@ -211,7 +241,7 @@ jobs:
             echo "Skipping GoFile upload: No files to upload"
             exit 0
           fi
-          
+                    
           UPLOAD_URL="https://upload.gofile.io/uploadfile"
           guest_token=""
           folder_id=""
@@ -219,59 +249,43 @@ jobs:
           FIRST_FILE=true
 
           while IFS= read -r -d '' file; do
-            echo "Starting upload: $(basename "$file")"
+            echo "▫️ Starting Gofile upload: $(basename "$file")"
             extra_args=()
             if [ "$FIRST_FILE" = false ]; then
               extra_args+=(-H "Authorization: Bearer $guest_token" -F "folderId=$folder_id")
             fi
             
             RESPONSE=$(curl -s -X POST -F "file=@\"$file\"" "${extra_args[@]}" "$UPLOAD_URL")
-
-            PYTHON_OUTPUT=$(python3 <<EOF
-          import json, sys
-          try:
-              data = json.loads('''$RESPONSE''')
-              if "$FIRST_FILE" == "true":
-                  guest_token = data['data']['guestToken']
-                  folder_id = data['data']['parentFolder']
-                  print(f"{guest_token}\t{folder_id}")
-              else:
-                  print("-\t-")          
-              status = 'ok' if data['status'] == 'ok' else 'error'
-              result_data = data.get('data', {}).get('downloadPage', '') if status == 'ok' else data.get('data', '')
-              print(f"{status}\t{result_data}")
-          except Exception as e:
-              print(f"error\tJSON parsing failed: {str(e)}")
-              sys.exit(1)
-          EOF
-            )
-
-            {
-              read -r token_part folder_part
-              read -r status_type result_data
-            } <<< "$PYTHON_OUTPUT"
+            STATUS=$(echo "$RESPONSE" | jq -r '.status // "error"')
+            DOWNLOAD_PAGE=$(echo "$RESPONSE" | jq -r '.data.downloadPage // .data // empty')
 
             if [ "$FIRST_FILE" = true ]; then
-              guest_token="$token_part"
-              folder_id="$folder_part"
+              guest_token=$(echo "$RESPONSE" | jq -r '.data.guestToken // empty')
+              folder_id=$(echo "$RESPONSE" | jq -r '.data.parentFolder // empty')
               FIRST_FILE=false
-              echo "GUEST_TOKEN=$guest_token" >> $GITHUB_ENV
-              echo "FOLDER_ID=$folder_id" >> $GITHUB_ENV
-              echo "Created folder ID"
+              echo "Created Gofile folder"
             fi
 
-            if [ "$status_type" != "ok" ]; then
-              echo "::error file=$file::Upload failed: $result_data"
+            if [ "$STATUS" != "ok" ]; then
+              echo "::warning::Gofile upload failed for $(basename "$file"): $DOWNLOAD_PAGE"
             else
-              LINK="$result_data"
-              UPLOAD_LINKS+="- $(basename "$file")\n"
-              echo "Success: $LINK"
+              echo "✓ Gofile success: $LINK"
             fi
+            LINK="$DOWNLOAD_PAGE"
+            UPLOAD_LINKS+="- $(basename "$file") \n"
           done < <(find magnet_output/ -type f -print0)
+          
+          mkdir -p giga
+          set -euo pipefail
+          name=$(basename "$(find magnet_output -type f ! -name '*.txt' -print -quit)" | sed 's/\.[^.]*$//')
+          zip -r "giga/${name}.zip" magnet_output
+          gout=$(gfile --hide-progress upload "giga/${name}.zip")
+          gigaURL=$(printf '%s\n' "$gout" | grep -oE 'https?://([^.[:space:]]+\.)?gigafile\.nu/[^[:space:]]+' | tail -n1)
 
-          echo -e "### File Uploads: \n$LINK \n$UPLOAD_LINKS" >> $GITHUB_STEP_SUMMARY
+          echo "### File Uploads: $LINK I $gigaURL" >> $GITHUB_STEP_SUMMARY
+          echo -e "\n$UPLOAD_LINKS" >> $GITHUB_STEP_SUMMARY
 
           curl -X POST \
             -H "Content-Type: application/json" \
-            -d "{\"content\":\"File Uploads: \n${{ env.buzz_url }} \n$LINK \n$UPLOAD_LINKS\"}" \
+            -d "{\"content\":\"File Uploads: $LINK I $gigaURL \n$UPLOAD_LINKS\"}" \
             "${{ secrets.DISCORD_WEBHOOK }}"

@@ -5,7 +5,7 @@ from xml.dom import minidom
 
 def modify_rss_feed():
     # Fetch the RSS feed
-    rss_url = "https://politepol.com/fd/fOrdd29ndzQa.xml"
+    rss_url = "https://politepaul.com/fd/fOrdd29ndzQa.xml"
     response = requests.get(rss_url)
     response.raise_for_status()  # Ensure the request was successful
 
@@ -16,7 +16,7 @@ def modify_rss_feed():
     for item in root.findall(".//item"):
         # Extract items for editing 
         title = item.find("title").text
-        description = item.find("description").text
+        description = item.find("description").text.replace("\nDelivered by PolitePaul service","")
         guid = item.find("guid")
         
         # Combine title and description for the new title

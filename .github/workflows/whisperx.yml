@@ -24,7 +24,7 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
     - run: |
         echo "whisperx" >> requirements.txt
 
@@ -35,7 +35,7 @@ jobs:
         version: 1.0
 
     - name: Cache pip packages
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
@@ -44,8 +44,7 @@ jobs:
 
     - name: Install dependencies
       run: |
-        sudo apt-get update
-        sudo apt-get install -y ffmpeg
+        sudo apt update && sudo apt install ffmpeg
         pip install -r requirements.txt
         mkdir -p output/ downloaded_input/
 
@@ -56,8 +55,6 @@ jobs:
         echo "Downloaded input file: $(ls downloaded_input/)"
 
     - name: Run WhisperX
-      env:
-        TORCH_FORCE_NO_WEIGHTS_ONLY_LOAD: true
       run: |
         # Priority: Use downloaded file if available, else local file
         if [ -n "$(ls -A downloaded_input/ 2>/dev/null)" ]; then
@@ -83,7 +80,7 @@ jobs:
         eval $COMMAND
 
     - name: Upload results
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: transcription-results
         path: output/

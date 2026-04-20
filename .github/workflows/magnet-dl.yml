@@ -86,7 +86,6 @@ jobs:
           fi
         
       - name: Download files
-        id: download-files
         run: |
           mkdir -p magnet_output
           
@@ -163,11 +162,7 @@ jobs:
             echo "No file name specified. Downloading all files."
             webtorrent download "${{ github.event.inputs.source }}" --out magnet_output
           fi
-
-      - name: VPN Cleanup
-        if: ${{ always() }}
-        run: sudo wg-quick down wg0 || true
-        
+       
       - name: Prepare files for FTP upload
         run: |
           mkdir -p ftp_upload

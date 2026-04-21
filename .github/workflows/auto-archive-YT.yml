@@ -88,6 +88,8 @@ jobs:
 
       - name: Downloads
         continue-on-error: true
+        env:
+          YT_CHANNEL: ${{ vars.YT_CHANNEL }}
         run: |
           mkdir -p output
           echo "${{ secrets.YT_COOKIES }}" >> yt_cookies.txt
@@ -97,7 +99,7 @@ jobs:
           --cookies yt_cookies.txt \
           -o "output/%(title).170B [%(id)s] (%(resolution)s).%(ext)s" \
           --match-filter is_live --match-filter post_live \
-          https://youtube.com/@9arm./live https://youtube.com/@REMUKIRADOG/live 2>&1 | tee >(awk '{ print strftime("[%Y-%m-%d %H:%M:%S UTC]"), $0 }' >> output/logs.txt)
+          "$YT_CHANNEL" 2>&1 | tee >(awk '{ print strftime("[%Y-%m-%d %H:%M:%S UTC]"), $0 }' >> output/logs.txt)
 
       - name: Verify output file
         run: |

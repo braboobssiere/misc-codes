@@ -133,76 +133,10 @@ jobs:
           path: output/
 
       - name: Upload Files to Cloud Storage
-        run: |
-          UPLOAD_URL="https://upload.gofile.io/uploadfile"
-          guest_token=""
-          folder_id=""
-          UPLOAD_LINKS=""
-          TITLE=""
-          FIRST_FILE=true
-          PROFILE="${{ inputs.profile }}"
-
-          while IFS= read -r -d '' file; do
-            filename=$(basename "$file")
-            if [[ "$filename" != *.txt ]] && [[ -z "$TITLE" ]]; then
-              TITLE="${filename%.*}" 
-            fi
-            echo "Starting upload: $(basename "$file")"
-            extra_args=()
-            if [ "$FIRST_FILE" = false ]; then
-              extra_args+=(-H "Authorization: Bearer $guest_token" -F "folderId=$folder_id")
-            fi
-            
-            RESPONSE=$(curl -s -X POST -F "file=@\"$file\"" "${extra_args[@]}" "$UPLOAD_URL")
-
-            PYTHON_OUTPUT=$(python3 <<EOF
-          import json, sys
-          try:
-              data = json.loads('''$RESPONSE''')
-              if "$FIRST_FILE" == "true":
-                  guest_token = data['data']['guestToken']
-                  folder_id = data['data']['parentFolder']
-                  print(f"{guest_token}\t{folder_id}")
-              else:
-                  print("-\t-")          
-              status = 'ok' if data['status'] == 'ok' else 'error'
-              result_data = data.get('data', {}).get('downloadPage', '') if status == 'ok' else data.get('data', '')
-              print(f"{status}\t{result_data}")
-          except Exception as e:
-              print(f"error\tJSON parsing failed: {str(e)}")
-              sys.exit(14)
-          EOF
-            )
-
-            {
-              read -r token_part folder_part
-              read -r status_type result_data
-            } <<< "$PYTHON_OUTPUT"
-
-            if [ "$FIRST_FILE" = true ]; then
-              guest_token="$token_part"
-              folder_id="$folder_part"
-              FIRST_FILE=false
-              echo "GUEST_TOKEN=$guest_token" >> $GITHUB_ENV
-              echo "FOLDER_ID=$folder_id" >> $GITHUB_ENV
-              echo "Created folder ID"
-            fi
-
-            if [ "$status_type" != "ok" ]; then
-              echo "::error file=$file::Upload failed: $result_data"
-            else
-              LINK="$result_data"
-              UPLOAD_LINKS+="- $(basename "$file")\n"
-              echo "Success: $LINK"
-            fi
-          done < <(find output -type f -print0)
-
-          echo "### Profile $PROFILE File Uploads: $LINK" >> $GITHUB_STEP_SUMMARY
-
-          curl -X POST \
-            -H "Content-Type: application/json" \
-            -d "{\"content\":\"Profile $PROFILE File Uploads: $LINK \"}" \
-            "${{ secrets.DISCORD_WEBHOOK }}"
+        uses: braboobssiere/misc-codes/.github/actions/upload-cloud@main
+        with:
+          source_dir: "output"
+          discord_webhook: ${{ secrets.DISCORD_WEBHOOK }}
          
       - name: Commit stamps file
         run: |

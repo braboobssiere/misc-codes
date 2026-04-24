@@ -1,0 +1,86 @@
+# =============================================================================
+# Reusable GitHub Action: Upload to Gofile & GigaFile
+# =============================================================================
+# 
+# USAGE:
+# 
+#   - uses: owner/repo/.github/actions/upload-gofile+giga.yml
+#     with:
+#       source_dir: "output"  # optional, defaults "output"
+#       discord_webhook: ${{ secrets.DISCORD_WEBHOOK }}  # optional
+# 
+# =============================================================================
+
+name: "Upload to Gofile & GigaFile"
+
+inputs:
+  source_dir:
+    required: false
+    default: "output"
+  discord_webhook:
+    required: false
+
+runs:
+  using: "composite"
+  steps:
+    - name: Install gigafile client
+      shell: bash
+      run: python3 -m pip install -U gigafile
+
+    - name: Upload files
+      shell: bash
+      env:
+        SOURCE_DIR: ${{ inputs.source_dir }}
+        DISCORD_WEBHOOK: ${{ inputs.discord_webhook }}
+
+      run: |
+        UPLOAD_URL="https://upload.gofile.io/uploadfile"
+        guest_token=""
+        folder_id=""
+        UPLOAD_LINKS=""
+        FIRST_FILE=true
+        LINK=""
+        mkdir -p "$SOURCE_DIR"
+
+        while IFS= read -r -d '' file; do
+          echo "▫️ Starting Gofile upload: $(basename "$file")"
+          extra_args=()
+          if [ "$FIRST_FILE" = false ]; then
+            extra_args+=(-H "Authorization: Bearer $guest_token" -F "folderId=$folder_id")
+          fi
+
+          RESPONSE=$(curl -s -X POST -F "file=@\"$file\"" "${extra_args[@]}" "$UPLOAD_URL")
+          STATUS=$(echo "$RESPONSE" | jq -r '.status // "error"')
+          DOWNLOAD_PAGE=$(echo "$RESPONSE" | jq -r '.data.downloadPage // .data // empty')
+
+          if [ "$FIRST_FILE" = true ]; then
+            guest_token=$(echo "$RESPONSE" | jq -r '.data.guestToken // empty')
+            folder_id=$(echo "$RESPONSE" | jq -r '.data.parentFolder // empty')
+            FIRST_FILE=false
+            echo "Created Gofile folder"
+          fi
+
+          if [ "$STATUS" != "ok" ]; then
+            echo "::warning::Gofile upload failed for $(basename "$file"): $DOWNLOAD_PAGE"
+          else
+            echo "✓ Gofile success: $LINK"
+          fi
+          LINK="$DOWNLOAD_PAGE"
+          UPLOAD_LINKS+="- $(basename "$file") \n"
+        done < <(find "$SOURCE_DIR" -type f -print0)
+
+        set -euo pipefail
+        name=$(date +%Y%m%d_%H%M%S)
+        zip -r "${name}.zip" "$SOURCE_DIR"
+        gout=$(gfile --hide-progress upload "${name}.zip")
+        gigaURL=$(printf '%s\n' "$gout" | grep -oE 'https?://([^.[:space:]]+\.)?gigafile\.nu/[^[:space:]]+' | tail -n1)
+
+        echo "### File Uploads: $LINK I $gigaURL" >> $GITHUB_STEP_SUMMARY
+        echo -e "\n$UPLOAD_LINKS" >> $GITHUB_STEP_SUMMARY
+
+        if [ -n "$DISCORD_WEBHOOK" ]; then
+          # Escape double quotes and newlines for valid JSON
+          CONTENT="File Uploads: $LINK I $gigaURL \n$UPLOAD_LINKS"
+          JSON_PAYLOAD=$(jq -n --arg content "$CONTENT" '{content: $content}')
+          curl -X POST -H "Content-Type: application/json" -d "$JSON_PAYLOAD" "$DISCORD_WEBHOOK"
+        fi

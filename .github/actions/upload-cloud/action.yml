@@ -4,7 +4,7 @@
 # 
 # USAGE:
 # 
-#   - uses: owner/repo/.github/actions/upload-gofile+giga.yml
+#   - uses: owner/repo/.github/actions/upload-cloud
 #     with:
 #       source_dir: "output"  # optional, defaults "output"
 #       discord_webhook: ${{ secrets.DISCORD_WEBHOOK }}  # optional
@@ -12,12 +12,15 @@
 # =============================================================================
 
 name: "Upload to Gofile & GigaFile"
+description: "Upload all files from a directory to Gofile and GigaFile.nu, then optionally notify Discord."
 
 inputs:
   source_dir:
+    description: "Directory containing the files to upload"
     required: false
     default: "output"
   discord_webhook:
+    description: "Discord webhook URL for notifications (optional)"
     required: false
 
 runs:

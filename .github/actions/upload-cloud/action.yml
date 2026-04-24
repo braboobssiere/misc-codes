@@ -44,6 +44,10 @@ runs:
         FIRST_FILE=true
         LINK=""
         mkdir -p "$SOURCE_DIR"
+        if [ -z "$(find "$SOURCE_DIR" -type f -print -quit)" ]; then
+          echo "📂 $SOURCE_DIR is empty – nothing to upload"
+          exit 0
+        fi
 
         while IFS= read -r -d '' file; do
           echo "▫️ Starting Gofile upload: $(basename "$file")"

@@ -239,7 +239,7 @@ jobs:
       - name: Upload Files to cloud storage
         if: ${{ github.event.inputs.upload_to_cloud == 'true' }}
         continue-on-error: true
-        uses: braboobssiere/misc-codes/.github/actions/upload-gofile+giga.yml@main
+        uses: braboobssiere/misc-codes/.github/actions/upload-cloud@main
         with:
           source_dir: "output"
           discord_webhook: ${{ secrets.DISCORD_WEBHOOK }}

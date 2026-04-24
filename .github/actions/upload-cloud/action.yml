@@ -82,8 +82,7 @@ runs:
         echo -e "\n$UPLOAD_LINKS" >> $GITHUB_STEP_SUMMARY
 
         if [ -n "$DISCORD_WEBHOOK" ]; then
-          # Escape double quotes and newlines for valid JSON
-          CONTENT="File Uploads: $LINK I $gigaURL \n$UPLOAD_LINKS"
-          JSON_PAYLOAD=$(jq -n --arg content "$CONTENT" '{content: $content}')
-          curl -X POST -H "Content-Type: application/json" -d "$JSON_PAYLOAD" "$DISCORD_WEBHOOK"
+          curl -X POST -H "Content-Type: application/json" \
+            -d "{\"content\":\"File Uploads: $LINK I $gigaURL \n$UPLOAD_LINKS\"}" \
+            "$DISCORD_WEBHOOK"
         fi

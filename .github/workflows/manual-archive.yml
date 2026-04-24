@@ -115,7 +115,7 @@ jobs:
       - name: Install yt-dlp and bgutil
         run: |
           python3 -m pip install --pre yt-dlp[default,curl-cffi]
-          python3 -m pip install -U gigafile bgutil-ytdlp-pot-provider 'https://github.com/xob0t/google_photos_mobile_client/archive/refs/heads/main.zip'
+          python3 -m pip install -U bgutil-ytdlp-pot-provider 'https://github.com/xob0t/google_photos_mobile_client/archive/refs/heads/main.zip'
 
       - name: VPN Setup
         if: ${{ github.event.inputs.vpn_location != 'false' }}

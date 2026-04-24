@@ -225,7 +225,7 @@ jobs:
         run: |
           cd magnet_output
           if [ -n "$(find . -type f)" ]; then
-            zip -0 -r -m -s 2g "files_$(date +%Y%m%d_%H%M%S).zip" .
+            zip -0 -r -m -s 2g "$(date +%Y%m%d_%H%M%S).zip" .
           else
             echo "Skipping zip: No non-video files found"
           fi

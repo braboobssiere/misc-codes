@@ -274,7 +274,7 @@ jobs:
           done < <(find output/ -type f -print0)
 
           set -euo pipefail
-          name=$(basename "$(find output -type f ! -name '*.txt' -print -quit)" | sed 's/\.[^.]*$//')
+          name=$(date +%Y%m%d_%H%M%S)
           zip -r "${name}.zip" output
           gout=$(gfile --hide-progress upload "${name}.zip")
           gigaURL=$(printf '%s\n' "$gout" | grep -oE 'https?://([^.[:space:]]+\.)?gigafile\.nu/[^[:space:]]+' | tail -n1)

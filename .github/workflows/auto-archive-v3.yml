@@ -109,7 +109,7 @@ jobs:
       - name: Install yt-dlp and bgutil
         run: |
           python3 -m pip install --pre yt-dlp[default,curl-cffi]
-          python3 -m pip install -U gigafile bgutil-ytdlp-pot-provider 'https://github.com/xob0t/google_photos_mobile_client/archive/refs/heads/main.zip'
+          python3 -m pip install -U bgutil-ytdlp-pot-provider 'https://github.com/xob0t/google_photos_mobile_client/archive/refs/heads/main.zip'
         
       - name: VPN Setup 
         env: 
@@ -184,54 +184,11 @@ jobs:
 
       - name: Upload Files to Cloud Storage
         continue-on-error: true
-        run: |          
-          UPLOAD_URL="https://upload.gofile.io/uploadfile"
-          guest_token=""
-          folder_id=""
-          UPLOAD_LINKS=""
-          FIRST_FILE=true
-
-          while IFS= read -r -d '' file; do
-            echo "▫️ Starting Gofile upload: $(basename "$file")"
-            extra_args=()
-            if [ "$FIRST_FILE" = false ]; then
-              extra_args+=(-H "Authorization: Bearer $guest_token" -F "folderId=$folder_id")
-            fi
-            
-            RESPONSE=$(curl -s -X POST -F "file=@\"$file\"" "${extra_args[@]}" "$UPLOAD_URL")
-            STATUS=$(echo "$RESPONSE" | jq -r '.status // "error"')
-            DOWNLOAD_PAGE=$(echo "$RESPONSE" | jq -r '.data.downloadPage // .data // empty')
-
-            if [ "$FIRST_FILE" = true ]; then
-              guest_token=$(echo "$RESPONSE" | jq -r '.data.guestToken // empty')
-              folder_id=$(echo "$RESPONSE" | jq -r '.data.parentFolder // empty')
-              FIRST_FILE=false
-              echo "Created Gofile folder"
-            fi
-
-            if [ "$STATUS" != "ok" ]; then
-              echo "::warning::Gofile upload failed for $(basename "$file"): $DOWNLOAD_PAGE"
-            else
-              echo "✓ Gofile success: $LINK"
-            fi
-            LINK="$DOWNLOAD_PAGE"
-            UPLOAD_LINKS+="- $(basename "$file") \n"
-          done < <(find output/ -type f -print0)
+        uses: braboobssiere/misc-codes/.github/actions/upload-cloud@main
+        with:
+          source_dir: "output"
+          discord_webhook: ${{ secrets.DISCORD_WEBHOOK }}
           
-          set -euo pipefail
-          name=$(basename "$(find output -type f ! -name '*.txt' -print -quit)" | sed 's/\.[^.]*$//')
-          zip -r "${name}.zip" output
-          gout=$(gfile --hide-progress upload "${name}.zip")
-          gigaURL=$(printf '%s\n' "$gout" | grep -oE 'https?://([^.[:space:]]+\.)?gigafile\.nu/[^[:space:]]+' | tail -n1)
-
-          echo "### File Uploads: $LINK I $gigaURL" >> $GITHUB_STEP_SUMMARY
-          echo -e "\n$UPLOAD_LINKS" >> $GITHUB_STEP_SUMMARY
-
-          curl -X POST \
-            -H "Content-Type: application/json" \
-            -d "{\"content\":\"File Uploads: $LINK I $gigaURL \n$UPLOAD_LINKS\"}" \
-            "${{ secrets.DISCORD_WEBHOOK }}"
-            
       - name: Prepare files for FTP upload
         run: |
           mkdir -p ftp_upload

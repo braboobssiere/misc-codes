@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <title>FairShare – Split bills fairly</title>
+    <!-- Material Symbols & Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0,1" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <!-- Flatpickr CSS (calendar) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="app-container" id="app">
+    <!-- Top app bar -->
+    <div class="top-app-bar">
+        <div class="logo">🍽️ FairShare</div>
+        <div class="header-actions">
+            <button class="icon-btn" id="editInvoiceNameBtn">
+                <span class="material-symbols-outlined">edit</span>
+            </button>
+            <button class="icon-btn" id="historyBtn">
+                <span class="material-symbols-outlined">history</span>
+            </button>
+            <button class="icon-btn" id="newBillBtn">
+                <span class="material-symbols-outlined">add</span>
+                <span>New</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Invoice header -->
+    <div class="invoice-header">
+        <div class="invoice-title" id="invoiceTitleDisplay">#1 2026-04-27 17.05</div>
+        <div class="currency-selector">
+            <label>Currency</label>
+            <select id="globalCurrencySelect" class="material-select"></select>
+        </div>
+    </div>
+
+    <!-- Tabs (material style) -->
+    <div class="tabs">
+        <button class="tab-btn active" data-tab="invoice">Invoice</button>
+        <button class="tab-btn" data-tab="summary">Summary</button>
+    </div>
+
+    <!-- INVOICE TAB -->
+    <div id="invoiceTab">
+        <div class="card people-card">
+            <div class="people-count">
+                <span class="material-symbols-outlined">group</span>
+                <input type="number" id="peopleCount" min="1" value="2" step="1">
+                <span>people</span>
+            </div>
+            <div class="people-actions">
+                <button class="text-btn" id="editNamesBtn">
+                    <span class="material-symbols-outlined">edit_note</span>
+                    Edit names
+                </button>
+                <button class="text-btn reset-btn" id="resetInvoiceBtn">
+                    <span class="material-symbols-outlined">refresh</span>
+                    Reset bill
+                </button>
+            </div>
+        </div>
+
+        <div id="itemsContainer" class="items-list"></div>
+
+        <div class="card total-card" id="invoiceTotalDisplay">
+            BILL TOTAL: 0.00 USD
+        </div>
+
+        <!-- Settings panel - pinned bottom on mobile -->
+        <div class="settings-panel card">
+            <div class="settings-row">
+                <label class="setting-item">
+                    <input type="checkbox" id="enableSC"> Service charge
+                    <input type="number" id="scPercent" value="10" step="0.5">%
+                </label>
+                <label class="setting-item">
+                    <input type="checkbox" id="enableVAT"> VAT
+                    <input type="number" id="vatPercent" value="7" step="0.5">%
+                </label>
+            </div>
+            <div class="settings-row">
+                <div class="setting-item discount-item">
+                    <span>Discount</span>
+                    <select id="discountType">
+                        <option value="amount">Amount</option>
+                        <option value="percent">%</option>
+                    </select>
+                    <input type="number" id="discountValue" value="0" step="any" min="0">
+                </div>
+                <div class="discount-timing">
+                    <span>Apply:</span>
+                    <div class="button-group">
+                        <button class="timing-btn" data-timing="beforeSC">Before SC</button>
+                        <button class="timing-btn" data-timing="beforeVAT">Before VAT</button>
+                        <button class="timing-btn active" data-timing="afterAll">After all</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SUMMARY TAB -->
+    <div id="summaryTab" style="display: none;">
+        <div class="card receipt-card" id="receiptView">Loading...</div>
+        <div class="card shares-card" id="sharesView"></div>
+        <div class="summary-actions">
+            <button class="filled-btn" id="printSummaryBtn">
+                <span class="material-symbols-outlined">print</span> Print
+            </button>
+            <button class="filled-btn" id="exportCsvBtn">
+                <span class="material-symbols-outlined">table_view</span> Export CSV
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- History Modal with Flatpickr calendar -->
+<div id="historyModal" class="modal hidden">
+    <div class="modal-content card">
+        <div class="modal-header">
+            <h3>📆 Invoice history</h3>
+            <button id="closeHistoryBtn" class="icon-btn">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+        <div id="flatpickr-calendar"></div>
+        <div id="selectedDayInvoices" class="invoice-list-container"></div>
+        <div class="modal-actions">
+            <button id="deleteSelectedInvoiceBtn" class="text-btn danger">
+                <span class="material-symbols-outlined">delete</span> Delete selected invoice
+            </button>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="script.js"></script>
+</body>
+</html>

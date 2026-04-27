@@ -156,14 +156,26 @@ jobs:
           echo "${{ secrets.YT_COOKIES }}" >> yt_cookies.txt
           URLS=$(echo '${{ needs.check-feed.outputs.urls }}' | jq -r '.[].url')
           
-          parallel -j4 \
-          'cmd="yt-dlp -i --no-progress -S \"+res:1080\" --retry-sleep 3 \
+          run_download() {
+            local url="$1"
+            local cookies="$2"
+            
+            local before=$(find output -type f \( -name "*.mp4" -o -name "*.webm" -o -name "*.mkv" -o -name "*.ts" \) | wc -l)
+            
+            yt-dlp -i --no-progress -S "+res:1080" --retry-sleep 3 \
             --windows-filenames --live-from-start --write-thumbnail --wait-for-video 300-600 \
             --embed-metadata --no-embed-info-json --write-info-json --js-runtimes node \
-            --cookies yt_cookies.txt \
-            -o \"output/%(title).170B [%(id)s] (%(resolution)s).%(ext)s\" {}";
-          echo "Download command: $cmd";
-          eval "$cmd"' ::: "${URLS[@]}" >> output/logs.txt 2>&1
+            $( [ -n "$cookies" ] && echo "--cookies $cookies" ) \
+            -o "output/%(title).170B [%(id)s] (%(resolution)s).%(ext)s" \
+            "$url" 2>&1 | tee >(awk '{ print strftime("[%Y-%m-%d %H:%M:%S UTC]"), $0 }' >> output/logs.txt)
+            
+            local after=$(find output -type f \( -name "*.mp4" -o -name "*.webm" -o -name "*.mkv" -o -name "*.ts" \) | wc -l)
+            [ "$after" -gt "$before" ]
+          }
+          
+          export -f run_download
+          
+          parallel -j4 'run_download "{}" "" || { echo "Download failed for {}. Retrying with cookies..." | tee -a output/logs.txt; run_download "{yt_cookies.txt}" ""; }' ::: $URLS
           
       - name: Verify output file 
         run: |

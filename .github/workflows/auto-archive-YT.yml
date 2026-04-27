@@ -96,24 +96,21 @@ jobs:
           
           run_download() {
             local cookies="$1"
-            local cookies_arg=""
-            [ -n "$cookies" ] && cookies_arg="--cookies $cookies"
             
             yt-dlp -i --no-progress -S "+res:1080" --retry-sleep 3 \
             --windows-filenames --live-from-start --js-runtimes node \
             --embed-metadata --no-embed-info-json --write-info-json \
             -o "output/%(title).170B [%(id)s] (%(resolution)s).%(ext)s" \
             --match-filter is_live --match-filter post_live \
-            $cookies_arg \
+            $( [ -n "$cookies" ] && echo "--cookies $cookies" ) \
             $YT_CHANNEL 2>&1 | tee >(awk '{ print strftime("[%Y-%m-%d %H:%M:%S UTC]"), $0 }' >> output/logs.txt)
             
-            # Check if any video files were actually downloaded
             [ "$(find output -type f \( -name "*.mp4" -o -name "*.webm" -o -name "*.mkv" -o -name "*.ts" \) | wc -l)" -gt 0 ]
           }
           
-          run_download "yt_cookies.txt" || {
-            echo "Download with cookies failed. Retrying without cookies..." | tee -a output/logs.txt
-            run_download ""
+          run_download "" || {
+            echo "Download failed. Retrying with cookies..." | tee -a output/logs.txt
+            run_download "yt_cookies.txt"
           }
 
       - name: Verify output file

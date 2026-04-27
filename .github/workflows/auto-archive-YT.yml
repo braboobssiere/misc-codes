@@ -93,13 +93,25 @@ jobs:
         run: |
           mkdir -p output
           echo "${{ secrets.YT_COOKIES }}" >> yt_cookies.txt
-          yt-dlp -i --no-progress -S "+res:1080" --retry-sleep 3 \
-          --windows-filenames --live-from-start --js-runtimes node \
-          --embed-metadata --no-embed-info-json --write-info-json \
-          -o "output/%(title).170B [%(id)s] (%(resolution)s).%(ext)s" \
-          --match-filter is_live --match-filter post_live \
-          $YT_CHANNEL 2>&1 | tee >(awk '{ print strftime("[%Y-%m-%d %H:%M:%S UTC]"), $0 }' >> output/logs.txt)
-          #  --cookies yt_cookies.txt
+          
+          run_download() {
+            local cookies="$1"
+            
+            yt-dlp -i --no-progress -S "+res:1080" --retry-sleep 3 \
+            --windows-filenames --live-from-start --js-runtimes node \
+            --embed-metadata --no-embed-info-json --write-info-json \
+            -o "output/%(title).170B [%(id)s] (%(resolution)s).%(ext)s" \
+            --match-filter is_live --match-filter post_live \
+            $( [ -n "$cookies" ] && echo "--cookies $cookies" ) \
+            $YT_CHANNEL 2>&1 | tee >(awk '{ print strftime("[%Y-%m-%d %H:%M:%S UTC]"), $0 }' >> output/logs.txt)
+            
+            [ "$(find output -type f \( -name "*.mp4" -o -name "*.webm" -o -name "*.mkv" -o -name "*.ts" \) | wc -l)" -gt 0 ]
+          }
+          
+          run_download "" || {
+            echo "Download failed. Retrying with cookies..." | tee -a output/logs.txt
+            run_download "yt_cookies.txt"
+          }
 
       - name: Verify output file
         run: |

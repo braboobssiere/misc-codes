@@ -106,6 +106,9 @@ jobs:
             --match-filter is_live --match-filter post_live \
             $cookies_arg \
             $YT_CHANNEL 2>&1 | tee >(awk '{ print strftime("[%Y-%m-%d %H:%M:%S UTC]"), $0 }' >> output/logs.txt)
+            
+            # Check if any video files were actually downloaded
+            [ "$(find output -type f \( -name "*.mp4" -o -name "*.webm" -o -name "*.mkv" -o -name "*.ts" \) | wc -l)" -gt 0 ]
           }
           
           run_download "yt_cookies.txt" || {

@@ -93,14 +93,25 @@ jobs:
         run: |
           mkdir -p output
           echo "${{ secrets.YT_COOKIES }}" >> yt_cookies.txt
-          yt-dlp -i --no-progress -S "+res:1080" --retry-sleep 3 \
-          --windows-filenames --live-from-start --js-runtimes node \
-          --embed-metadata --no-embed-info-json --write-info-json \
-          -o "output/%(title).170B [%(id)s] (%(resolution)s).%(ext)s" \
-          --cookies yt_cookies.txt \
-          --match-filter is_live --match-filter post_live \
-          $YT_CHANNEL 2>&1 | tee >(awk '{ print strftime("[%Y-%m-%d %H:%M:%S UTC]"), $0 }' >> output/logs.txt)
-          #  --cookies yt_cookies.txt \
+          
+          run_download() {
+            local cookies="$1"
+            local cookies_arg=""
+            [ -n "$cookies" ] && cookies_arg="--cookies $cookies"
+            
+            yt-dlp -i --no-progress -S "+res:1080" --retry-sleep 3 \
+            --windows-filenames --live-from-start --js-runtimes node \
+            --embed-metadata --no-embed-info-json --write-info-json \
+            -o "output/%(title).170B [%(id)s] (%(resolution)s).%(ext)s" \
+            --match-filter is_live --match-filter post_live \
+            $cookies_arg \
+            $YT_CHANNEL 2>&1 | tee >(awk '{ print strftime("[%Y-%m-%d %H:%M:%S UTC]"), $0 }' >> output/logs.txt)
+          }
+          
+          run_download "yt_cookies.txt" || {
+            echo "Download with cookies failed. Retrying without cookies..." | tee -a output/logs.txt
+            run_download ""
+          }
 
       - name: Verify output file
         run: |

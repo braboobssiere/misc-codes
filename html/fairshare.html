@@ -102,16 +102,7 @@
         <button id="deleteSelectedInvoiceBtn" class="icon-btn danger">Delete Selected Invoice</button>
     </div>
 </div>
-<script>
-  // Register service worker for PWA
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-        navigator.serviceWorker.register('../fairshare-sw.js')
-            .then(reg => console.log('Service Worker registered:', reg))
-            .catch(err => console.error('Service Worker registration failed:', err));
-    });
-  }
-</script>
+
 <script src="../js/fairshare-script.js"></script>
 </body>
 </html>

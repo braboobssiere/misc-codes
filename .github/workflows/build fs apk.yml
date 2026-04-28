@@ -18,8 +18,8 @@ jobs:
       - name: Initialize Bubblewrap
         run: |
           bubblewrap init \
-            --answers=n \
-            --manifest=https://braboobssiere.github.io/misc-codes/js/fairshare-manifest.json
+            --manifest=https://braboobssiere.github.io/misc-codes/js/fairshare-manifest.json \
+            --answers=n
 
       - name: Build APK
         run: bubblewrap build

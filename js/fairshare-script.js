@@ -205,6 +205,11 @@ function renderInvoiceTabs() {
         return new Date(inv.createdAt).toDateString() === currentDate;
     });
     sameDayInvoices.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+    
+    const container = document.querySelector('.invoice-tabs-container');
+    // Always show the container, even with only one invoice
+    container.style.display = 'block';
+    
     elements.invoiceTabs.innerHTML = sameDayInvoices.map(inv => {
         const timeStr = formatTimestamp(new Date(inv.createdAt)).split(' ')[1];
         const label = `${inv.name} ${timeStr}`;
@@ -216,6 +221,7 @@ function renderInvoiceTabs() {
             </button>
         `;
     }).join('');
+    
     document.querySelectorAll('.invoice-tab').forEach(btn => {
         btn.addEventListener('click', (e) => {
             if (e.target.classList.contains('close-tab')) return;
@@ -269,7 +275,6 @@ function renderEmptyMessage() {
     } else if (existingMsg) existingMsg.remove();
 }
 
-// Modified: amountRaw default is empty string, amount 0
 function renderItems() {
     const inv = getCurrentInvoice();
     const itemsHtml = inv.items.map((item, idx) => `
@@ -357,7 +362,7 @@ function renderItems() {
                 id: Date.now(),
                 description: `Item #${inv.items.length + 1}`,
                 amount: 0,
-                amountRaw: '',   // blank default
+                amountRaw: '',
                 paidBy: inv.people.map(p => p.id)
             });
             return inv;
@@ -396,7 +401,7 @@ function renderPayerChips(container, paidBy, itemIdx) {
 }
 
 // ========================
-//  CALCULATION ENGINE (unchanged)
+//  CALCULATION ENGINE (clamped discount)
 // ========================
 function computeDetailed(invoice) {
     const people = invoice.people;
@@ -450,13 +455,12 @@ function computeDetailed(invoice) {
     } else {
         if (timing === 'beforeSC') {
             let discTotal = discountType === 'percent' ? (discountValue / 100) * totalSub : discountValue;
-            // Clamp discount so it doesn't exceed totalSub
             discTotal = Math.min(discTotal, totalSub);
             personDiscount = distribute(personSubtotal, discTotal);
             totalDiscountApplied = discTotal;
             for (let i=0; i<people.length; i++) {
                 let afterDisc = personSubtotal[i] - personDiscount[i];
-                if (afterDisc < 0) afterDisc = 0; // safety
+                if (afterDisc < 0) afterDisc = 0;
                 const withSC = afterDisc * (1 + scRate);
                 const vat = withSC * vatRate;
                 personSC[i] = afterDisc * scRate;
@@ -467,7 +471,6 @@ function computeDetailed(invoice) {
             const afterSC = personSubtotal.map(st => st * (1 + scRate));
             const totalAfterSC = afterSC.reduce((a,b)=>a+b,0);
             let discTotal = discountType === 'percent' ? (discountValue / 100) * totalAfterSC : discountValue;
-            // Clamp discount so it doesn't exceed totalAfterSC
             discTotal = Math.min(discTotal, totalAfterSC);
             personDiscount = distribute(afterSC, discTotal);
             totalDiscountApplied = discTotal;
@@ -484,7 +487,6 @@ function computeDetailed(invoice) {
             const afterSCVAT = afterSC.map(x => x * (1 + vatRate));
             const totalFinal = afterSCVAT.reduce((a,b)=>a+b,0);
             let discTotal = discountType === 'percent' ? (discountValue / 100) * totalFinal : discountValue;
-            // Clamp discount so it doesn't exceed totalFinal
             discTotal = Math.min(discTotal, totalFinal);
             personDiscount = distribute(afterSCVAT, discTotal);
             totalDiscountApplied = discTotal;
@@ -498,7 +500,6 @@ function computeDetailed(invoice) {
         }
     }
 
-    // Ensure final total is never negative (safety)
     const finalTotal = Math.max(0, personFinal.reduce((a,b)=>a+b,0));
     const totalSC = personSC.reduce((a,b)=>a+b,0);
     const totalVAT = personVAT.reduce((a,b)=>a+b,0);
@@ -575,10 +576,20 @@ function refreshUI() {
     renderSettings();
     renderItems();
     updateTotalsAndSummary();
+    // Ensure correct panel is visible based on active tab
+    const activeTab = document.querySelector('.tab-btn.active').dataset.tab;
+    if (activeTab === 'summary') {
+        document.getElementById('invoiceTab').classList.remove('active-panel');
+        document.getElementById('summaryTab').classList.add('active-panel');
+        renderSummary();
+    } else {
+        document.getElementById('invoiceTab').classList.add('active-panel');
+        document.getElementById('summaryTab').classList.remove('active-panel');
+    }
 }
 
 // ========================
-//  EVENT HANDLERS (unchanged from working version)
+//  EVENT HANDLERS
 // ========================
 function attachEventListeners() {
     elements.peopleCount.addEventListener('change', () => {
@@ -769,10 +780,17 @@ function attachEventListeners() {
             btn.classList.add('active');
             btn.setAttribute('aria-selected', 'true');
             const tab = btn.dataset.tab;
-            document.getElementById('invoiceTab').style.display = tab === 'invoice' ? 'flex' : 'none';
-            document.getElementById('summaryTab').style.display = tab === 'summary' ? 'block' : 'none';
-            if (tab === 'summary') renderSummary();
-            else updateTotalsAndSummary();
+            const invoicePanel = document.getElementById('invoiceTab');
+            const summaryPanel = document.getElementById('summaryTab');
+            if (tab === 'invoice') {
+                invoicePanel.classList.add('active-panel');
+                summaryPanel.classList.remove('active-panel');
+                updateTotalsAndSummary();
+            } else {
+                invoicePanel.classList.remove('active-panel');
+                summaryPanel.classList.add('active-panel');
+                renderSummary();
+            }
         });
     });
 
@@ -887,14 +905,14 @@ function init() {
     loadState();
     attachEventListeners();
     refreshUI();
-// Register service worker for PWA
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./fairshare-sw.js')
-      .then(reg => console.log('Service Worker registered:', reg))
-      .catch(err => console.error('Service Worker registration failed:', err));
-  });
-}
+    // Register service worker for PWA
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('./fairshare-sw.js')
+                .then(reg => console.log('Service Worker registered:', reg))
+                .catch(err => console.error('Service Worker registration failed:', err));
+        });
+    }
 }
 
 init();

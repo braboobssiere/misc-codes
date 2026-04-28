@@ -1,5 +1,5 @@
 /* ========================
-   FINAL – NO WASTE, EQUAL TABS
+   ULTRA COMPACT – NO GAPS, ONE LINE
    ======================== */
 * {
     box-sizing: border-box;
@@ -26,7 +26,7 @@ body {
     gap: 0.2rem;
 }
 
-/* Header – single row, no extra space */
+/* Header – single row */
 .header {
     flex: 0 0 auto;
     display: flex;
@@ -78,9 +78,9 @@ body {
     color: #b3261e;
 }
 
-/* Top controls – now only as tall as its content */
+/* Top controls – always visible, tight */
 .top-controls {
-    flex: 0 0 auto;          /* do NOT grow – only take needed space */
+    flex: 0 0 auto;
     display: flex;
     flex-direction: column;
     background: #fffbfe;
@@ -162,9 +162,9 @@ body {
     text-align: center;
 }
 
-/* Main tabs – equal size guaranteed */
+/* Main tabs – equal size for both buttons */
 .main-tabs {
-    flex: 0 0 auto;          /* do not grow */
+    flex: 0 0 auto;
     display: flex;
     gap: 0.3rem;
     background: #fffbfe;
@@ -192,7 +192,7 @@ body {
 
 /* Dynamic area – takes remaining space */
 .dynamic-area {
-    flex: 1 1 auto;          /* grow to fill remaining height */
+    flex: 1 1 auto;
     display: flex;
     flex-direction: column;
     min-height: 0;
@@ -213,7 +213,7 @@ body {
     display: none;
 }
 
-/* Items list (unchanged) */
+/* Items list */
 .items-list {
     flex: 1 1 auto;
     background: #fffbfe;
@@ -317,58 +317,66 @@ body {
     border-radius: 20px;
     margin: 0.1rem 0;
 }
+
+/* ========================
+   SETTINGS ROW – ZERO GAPS, ONE LINE
+   ======================== */
+/* Settings row – wraps to next line on mobile, left-aligned */
 .settings-row-compact {
-    flex: 0.8 1 auto;
+    flex: 0 0 auto;
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    justify-content: space-between;
-    gap: 0.2rem;
+    justify-content: flex-start;
+    gap: 0.2rem;               /* small space between wrapped items */
     background: #fffbfe;
     border-radius: 20px;
-    padding: 0.2rem;
-    font-size: 0.75rem;
+    padding: 0.1rem;
+    font-size: 0.7rem;
 }
 .setting-compact {
     display: inline-flex;
     align-items: center;
-    gap: 0.15rem;
+    gap: 0.1rem;
     background: #f7f2fa;
     border-radius: 30px;
-    padding: 0.2rem 0.5rem;
-    min-height: 32px;
-    font-size: 0.75rem;
+    padding: 0.1rem 0.3rem;
+    min-height: 28px;
+    font-size: 0.7rem;
+    white-space: nowrap;
 }
 .setting-compact input {
-    width: 48px;
+    width: 38px;
     background: none;
     border: none;
     text-align: center;
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     padding: 0;
 }
 .setting-compact select {
     background: none;
     border: none;
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     padding: 0;
 }
 .discount-timing-buttons {
     display: inline-flex;
-    gap: 0.2rem;
+    gap: 0.1rem;
     align-items: center;
+    flex-wrap: wrap;
 }
 .timing-btn {
     background: #e8def8;
     border: none;
     border-radius: 30px;
-    padding: 0.2rem 0.5rem;
-    font-size: 0.75rem;
+    padding: 0.1rem 0.3rem;
+    font-size: 0.65rem;
     cursor: pointer;
-    min-height: 32px;
+    min-height: 28px;
     display: inline-flex;
     align-items: center;
     line-height: 1.2;
+    white-space: nowrap;
 }
 .timing-btn.active {
     background: #6750A4;
@@ -396,7 +404,7 @@ body {
     justify-content: flex-end;
 }
 
-/* Modal (history) – unchanged */
+/* Modal (history) */
 .modal {
     position: fixed;
     top: 0; left: 0;

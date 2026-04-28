@@ -127,11 +127,12 @@ body {
     border-radius: 50%;
     background: rgba(0,0,0,0.15);
 }
+
 .controls-row {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    justify-content: space-between;
+    justify-content: flex-start;
     gap: 0.2rem;
     margin: 0;
     padding: 0;
@@ -142,6 +143,7 @@ body {
     align-items: center;
     gap: 0.2rem;
 }
+
 .currency-selector, .people-selector {
     display: flex;
     align-items: center;

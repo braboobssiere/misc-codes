@@ -449,11 +449,14 @@ function computeDetailed(invoice) {
         }
     } else {
         if (timing === 'beforeSC') {
-            const discTotal = discountType === 'percent' ? (discountValue / 100) * totalSub : discountValue;
+            let discTotal = discountType === 'percent' ? (discountValue / 100) * totalSub : discountValue;
+            // Clamp discount so it doesn't exceed totalSub
+            discTotal = Math.min(discTotal, totalSub);
             personDiscount = distribute(personSubtotal, discTotal);
             totalDiscountApplied = discTotal;
             for (let i=0; i<people.length; i++) {
-                const afterDisc = personSubtotal[i] - personDiscount[i];
+                let afterDisc = personSubtotal[i] - personDiscount[i];
+                if (afterDisc < 0) afterDisc = 0; // safety
                 const withSC = afterDisc * (1 + scRate);
                 const vat = withSC * vatRate;
                 personSC[i] = afterDisc * scRate;
@@ -463,11 +466,14 @@ function computeDetailed(invoice) {
         } else if (timing === 'beforeVAT') {
             const afterSC = personSubtotal.map(st => st * (1 + scRate));
             const totalAfterSC = afterSC.reduce((a,b)=>a+b,0);
-            const discTotal = discountType === 'percent' ? (discountValue / 100) * totalAfterSC : discountValue;
+            let discTotal = discountType === 'percent' ? (discountValue / 100) * totalAfterSC : discountValue;
+            // Clamp discount so it doesn't exceed totalAfterSC
+            discTotal = Math.min(discTotal, totalAfterSC);
             personDiscount = distribute(afterSC, discTotal);
             totalDiscountApplied = discTotal;
             for (let i=0; i<people.length; i++) {
-                const afterDisc = afterSC[i] - personDiscount[i];
+                let afterDisc = afterSC[i] - personDiscount[i];
+                if (afterDisc < 0) afterDisc = 0;
                 const vat = afterDisc * vatRate;
                 personSC[i] = personSubtotal[i] * scRate;
                 personVAT[i] = vat;
@@ -477,28 +483,37 @@ function computeDetailed(invoice) {
             const afterSC = personSubtotal.map(st => st * (1 + scRate));
             const afterSCVAT = afterSC.map(x => x * (1 + vatRate));
             const totalFinal = afterSCVAT.reduce((a,b)=>a+b,0);
-            const discTotal = discountType === 'percent' ? (discountValue / 100) * totalFinal : discountValue;
+            let discTotal = discountType === 'percent' ? (discountValue / 100) * totalFinal : discountValue;
+            // Clamp discount so it doesn't exceed totalFinal
+            discTotal = Math.min(discTotal, totalFinal);
             personDiscount = distribute(afterSCVAT, discTotal);
             totalDiscountApplied = discTotal;
             for (let i=0; i<people.length; i++) {
-                personFinal[i] = afterSCVAT[i] - personDiscount[i];
+                let afterDisc = afterSCVAT[i] - personDiscount[i];
+                if (afterDisc < 0) afterDisc = 0;
+                personFinal[i] = afterDisc;
                 personSC[i] = personSubtotal[i] * scRate;
                 personVAT[i] = afterSC[i] * vatRate;
             }
         }
     }
 
+    // Ensure final total is never negative (safety)
+    const finalTotal = Math.max(0, personFinal.reduce((a,b)=>a+b,0));
+    const totalSC = personSC.reduce((a,b)=>a+b,0);
+    const totalVAT = personVAT.reduce((a,b)=>a+b,0);
+
     return {
         personSubtotal,
         personSC,
-        personFinal,
+        personFinal: personFinal.map(v => Math.max(0, v)),
         personDiscount,
         personVAT,
-        finalTotal: personFinal.reduce((a,b)=>a+b,0),
+        finalTotal,
         subtotalRaw: totalSub,
-        totalSC: personSC.reduce((a,b)=>a+b,0),
+        totalSC,
         totalDiscountApplied,
-        totalVAT: personVAT.reduce((a,b)=>a+b,0)
+        totalVAT
     };
 }
 

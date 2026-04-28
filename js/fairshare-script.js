@@ -263,7 +263,7 @@ function renderEmptyMessage() {
         if (!existingMsg) {
             const msg = document.createElement('div');
             msg.className = 'empty-message';
-            msg.innerText = '✨ Add your first item using the button below';
+            msg.innerText = '✨ Click to add your first item';
             elements.itemsContainer.appendChild(msg);
         }
     } else if (existingMsg) existingMsg.remove();

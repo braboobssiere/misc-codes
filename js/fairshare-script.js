@@ -250,7 +250,7 @@ function renderSettings() {
     elements.enableVAT.checked = s.vat.enabled;
     elements.vatPercent.value = s.vat.percent;
     elements.discountType.value = s.discount.type;
-    elements.discountValue.value = s.discount.value;
+    elements.discountValue.value = s.discount.value === 0 ? '' : s.discount.value;
     document.querySelectorAll('.timing-btn').forEach(btn => {
         btn.classList.toggle('active', btn.dataset.timing === s.discount.timing);
     });
@@ -734,15 +734,16 @@ function attachEventListeners() {
                     inv.settings.vat.percent = isNaN(vatVal) ? 0 : clamp(vatVal, 0, 100);
                     inv.settings.discount.type = elements.discountType.value;
                     let discVal = parseFloat(elements.discountValue.value);
+                    if (isNaN(discVal)) discVal = 0;
                     if (inv.settings.discount.type === 'percent') {
                         discVal = clamp(discVal, 0, 100);
                     } else {
                         discVal = discVal < 0 ? 0 : discVal;
                     }
-                    inv.settings.discount.value = isNaN(discVal) ? 0 : discVal;
+                    inv.settings.discount.value = discVal;
+                    elements.discountValue.value = discVal === 0 ? '' : discVal;
                     elements.scPercent.value = inv.settings.serviceCharge.percent;
                     elements.vatPercent.value = inv.settings.vat.percent;
-                    elements.discountValue.value = inv.settings.discount.value;
                     return inv;
                 });
                 updateTotalsAndSummary();

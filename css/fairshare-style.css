@@ -317,7 +317,9 @@ body {
     gap: 0.2rem;
     background: #f7f2fa;
     border-radius: 30px;
-    padding: 0.15rem 0.4rem;
+    padding: 0.3rem 0.6rem;
+    min-height: 32px;
+    font-size: 0.75rem;
 }
 .setting-compact input {
     width: 48px;
@@ -325,18 +327,30 @@ body {
     border: none;
     text-align: center;
     font-size: 0.75rem;
+    padding: 0;
+}
+.setting-compact select {
+    background: none;
+    border: none;
+    font-size: 0.75rem;
+    padding: 0;
 }
 .discount-timing-buttons {
     display: inline-flex;
-    gap: 0.2rem;
+    gap: 0.3rem;
+    align-items: center;
 }
 .timing-btn {
     background: #e8def8;
     border: none;
     border-radius: 30px;
-    padding: 0.15rem 0.4rem;
-    font-size: 0.65rem;
+    padding: 0.3rem 0.6rem;
+    font-size: 0.75rem;
     cursor: pointer;
+    min-height: 32px;
+    display: inline-flex;
+    align-items: center;
+    line-height: 1.2;
 }
 .timing-btn.active {
     background: #6750A4;

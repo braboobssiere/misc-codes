@@ -55,11 +55,11 @@
             </div>
             <div class="bill-total" id="invoiceTotalDisplay">TOTAL: 0.00 USD</div>
             <div class="settings-row-compact">
-                <label class="setting-compact"><input type="checkbox" id="enableSC">+SC <input type="number" id="scPercent" value="10" step="0.5" min="0" max="100">%</label>
-                <label class="setting-compact"><input type="checkbox" id="enableVAT">+VAT <input type="number" id="vatPercent" value="7" step="0.5" min="0" max="100">%</label>
+                <label class="setting-compact"><input type="checkbox" id="enableSC">+SC <input type="text" id="scPercent" value="10">%</label>
+                <label class="setting-compact"><input type="checkbox" id="enableVAT">+VAT <input type="text" id="vatPercent" value="7">%</label>
                 <div class="setting-compact">
-                    <select id="discountType"><option value="amount">-$</option><option value="percent">-%</option></select>
-                    <input type="number" id="discountValue" value="" step="any" min="0" placeholder="0">
+                    <select id="discountType"><option value="amount">-$ </option><option value="percent">-% </option></select>
+                    <input type="text" id="discountValue" value="" placeholder="0">
                 </div>
                 <div class="discount-timing-buttons">
                     <button class="timing-btn" data-timing="beforeSC">Before SC</button>

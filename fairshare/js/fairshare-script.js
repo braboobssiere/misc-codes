@@ -78,14 +78,11 @@ function toggleTheme() {
 //  UTILITIES
 // ========================
 const escapeHtml = str => String(str).replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m]));
-const formatTimestamp = date => {
-    const yyyy = date.getFullYear();
-    const mm = String(date.getMonth() + 1).padStart(2, '0');
-    const dd = String(date.getDate()).padStart(2, '0');
-    const hh = String(date.getHours()).padStart(2, '0');
-    const min = String(date.getMinutes()).padStart(2, '0');
-    return `${yyyy}-${mm}-${dd} ${hh}.${min}`;
-};
+const formatTimestamp = date =>
+    new Intl.DateTimeFormat('en-GB', { 
+        day: '2-digit', month: '2-digit', year: 'numeric',
+        hour: '2-digit', minute: '2-digit', hour12: false
+    }).format(date).replace(',', '');
 
 const safeMathParse = expr => {
     if (!expr || expr.trim() === '') return 0;
@@ -112,7 +109,7 @@ let appState = {
     lastCurrency: 'USD'
 };
 
-const clone = obj => JSON.parse(JSON.stringify(obj));
+const clone = obj => structuredClone(obj);
 
 function loadState() {
     loadCurrencies();
@@ -131,10 +128,14 @@ function loadState() {
     }
 }
 
+let _saveTimer;
 function saveState() {
-    localStorage.setItem('fairshare_invoices', JSON.stringify(appState.invoices));
-    localStorage.setItem('fairshare_current', appState.currentInvoiceId);
-    localStorage.setItem('fairshare_last_currency', appState.lastCurrency);
+    clearTimeout(_saveTimer);
+    _saveTimer = setTimeout(() => {
+        localStorage.setItem('fairshare_invoices', JSON.stringify(appState.invoices));
+        localStorage.setItem('fairshare_current', appState.currentInvoiceId);
+        localStorage.setItem('fairshare_last_currency', appState.lastCurrency);
+    }, 1000);
 }
 
 function getDefaultInvoice(id, currency) {
@@ -171,6 +172,7 @@ function updateCurrentInvoice(updater) {
 function deleteInvoiceById(id) {
     if (!appState.invoices[id]) return;
     if (!confirm(`Delete invoice "${appState.invoices[id].name}"? This cannot be undone.`)) return;
+    const deletedDate = new Date(appState.invoices[id]?.createdAt).toDateString();
     delete appState.invoices[id];
     if (Object.keys(appState.invoices).length === 0) {
         const newId = 'inv_' + Date.now();
@@ -181,7 +183,6 @@ function deleteInvoiceById(id) {
         return;
     }
     if (appState.currentInvoiceId === id) {
-        const deletedDate = new Date(appState.invoices[id]?.createdAt).toDateString();
         let nextInvoice = null;
         for (let inv of Object.values(appState.invoices)) {
             if (new Date(inv.createdAt).toDateString() === deletedDate) {
@@ -550,12 +551,12 @@ function updateTotalsAndSummary() {
     const d = computeDetailed(inv);
     elements.invoiceTotal.innerHTML = `BILL TOTAL: ${d.finalTotal.toFixed(2)} ${inv.currency}`;
     const activeTab = document.querySelector('.tab-btn.active').dataset.tab;
-    if (activeTab === 'summary') renderSummary();
+    if (activeTab === 'summary') renderSummary(d);
 }
 
-function renderSummary() {
+function renderSummary(d = null) {
     const inv = getCurrentInvoice();
-    const d = computeDetailed(inv);
+    d = d ?? computeDetailed(inv);
     const people = inv.people;
     const items = inv.items;
     const sett = inv.settings;
@@ -774,7 +775,7 @@ function attachEventListeners() {
     settingFields.forEach(id => {
         const el = document.getElementById(id);
         if (el) {
-            el.addEventListener('input', () => {
+            el.addEventListener('change', () => {
                 updateCurrentInvoice(inv => {
                     inv.settings.serviceCharge.enabled = elements.enableSC.checked;
                     let scVal = parseFloat(elements.scPercent.value);

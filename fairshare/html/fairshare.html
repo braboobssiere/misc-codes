@@ -105,6 +105,7 @@
 
 <script src="../js/fairshare-script.js"></script>
 
+<script>
 // Register service worker for PWA
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
@@ -113,6 +114,7 @@ if ('serviceWorker' in navigator) {
             .catch(err => console.error('Service Worker registration failed:', err));
     });
 }
+</script>
 
 </body>
 </html>

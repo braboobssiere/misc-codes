@@ -47,6 +47,34 @@ function resetCurrenciesToDefault(currentCurrency) {
 }
 
 // ========================
+//  THEME HANDLING
+// ========================
+function loadTheme() {
+    const savedTheme = localStorage.getItem('fairshare_theme');
+    const themeBtn = document.getElementById('themeToggleBtn');
+    if (savedTheme === 'dark') {
+        document.body.classList.add('dark-mode');
+        if (themeBtn) themeBtn.textContent = '☀️';
+    } else {
+        document.body.classList.remove('dark-mode');
+        if (themeBtn) themeBtn.textContent = '🌙';
+    }
+}
+
+function toggleTheme() {
+    const themeBtn = document.getElementById('themeToggleBtn');
+    if (document.body.classList.contains('dark-mode')) {
+        document.body.classList.remove('dark-mode');
+        localStorage.setItem('fairshare_theme', 'light');
+        if (themeBtn) themeBtn.textContent = '🌙';
+    } else {
+        document.body.classList.add('dark-mode');
+        localStorage.setItem('fairshare_theme', 'dark');
+        if (themeBtn) themeBtn.textContent = '☀️';
+    }
+}
+
+// ========================
 //  UTILITIES
 // ========================
 const escapeHtml = str => String(str).replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m]));
@@ -207,7 +235,6 @@ function renderInvoiceTabs() {
     sameDayInvoices.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
     
     const container = document.querySelector('.invoice-tabs-container');
-    // Always show the container, even with only one invoice
     container.style.display = 'block';
     
     elements.invoiceTabs.innerHTML = sameDayInvoices.map(inv => {
@@ -401,7 +428,7 @@ function renderPayerChips(container, paidBy, itemIdx) {
 }
 
 // ========================
-//  CALCULATION ENGINE (clamped discount)
+//  CALCULATION ENGINE
 // ========================
 function computeDetailed(invoice) {
     const people = invoice.people;
@@ -576,7 +603,7 @@ function refreshUI() {
     renderSettings();
     renderItems();
     updateTotalsAndSummary();
-    // Ensure correct panel is visible based on active tab
+    // Ensure correct panel is visible
     const activeTab = document.querySelector('.tab-btn.active').dataset.tab;
     if (activeTab === 'summary') {
         document.getElementById('invoiceTab').classList.remove('active-panel');
@@ -656,10 +683,23 @@ function attachEventListeners() {
         }
     };
 
+    // New Bill: copy people only, reset settings to defaults
     document.getElementById('newBillBtn').onclick = () => {
+        const current = getCurrentInvoice();
         const newId = 'inv_' + Date.now();
-        const newInv = getDefaultInvoice(newId, appState.lastCurrency);
-        newInv.name = '#' + (Object.keys(appState.invoices).length + 1);
+        const newInv = {
+            id: newId,
+            name: '#' + (Object.keys(appState.invoices).length + 1),
+            createdAt: new Date().toISOString(),
+            currency: appState.lastCurrency,
+            people: JSON.parse(JSON.stringify(current.people)),
+            items: [],
+            settings: {
+                serviceCharge: { enabled: false, percent: 10 },
+                vat: { enabled: false, percent: 7 },
+                discount: { type: 'amount', value: 0, timing: 'afterAll' }
+            }
+        };
         appState.invoices[newId] = newInv;
         appState.currentInvoiceId = newId;
         saveState();
@@ -807,6 +847,10 @@ function attachEventListeners() {
         a.click();
     };
 
+    // Theme toggle
+    const themeBtn = document.getElementById('themeToggleBtn');
+    if (themeBtn) themeBtn.onclick = toggleTheme;
+
     // History modal (unchanged)
     let calendarDate = new Date();
     let selectedDate = null;
@@ -904,6 +948,7 @@ function attachEventListeners() {
 function init() {
     loadState();
     attachEventListeners();
+    loadTheme();
     refreshUI();
 }
 

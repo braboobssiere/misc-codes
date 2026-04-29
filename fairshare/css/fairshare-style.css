@@ -206,6 +206,7 @@ body {
     flex-direction: column;
     min-height: 0;
     padding: 0;
+    position: relative;
 }
 .tab-panel.active-panel {
     display: flex;
@@ -217,12 +218,14 @@ body {
 /* Items list */
 .items-list {
     flex: 1 1 auto;
+    overflow-y: auto; 
     background: #fffbfe;
     border-radius: 20px;
     padding: 0.3rem;
     display: flex;
     flex-direction: column;
     gap: 0.2rem;
+    margin-bottom: 0.5rem; 
 }
 .empty-message {
     text-align: center;
@@ -323,6 +326,9 @@ body {
    ======================== */
 /* Settings row – wraps to next line on mobile, left-aligned */
 .settings-row-compact {
+    position: sticky;
+    bottom: 0;
+    z-index: 5;
     flex: 0 0 auto;
     display: flex;
     flex-wrap: wrap;

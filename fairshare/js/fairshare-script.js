@@ -620,8 +620,7 @@ function refreshUI() {
 // ========================
 function attachEventListeners() {
     elements.peopleCount.addEventListener('change', () => {
-        let newCount = parseInt(elements.peopleCount.value);
-        if (isNaN(newCount) || newCount < 1) newCount = 1;
+        let newCount = clamp(parseInt(elements.peopleCount.value) || 2, 1, 99);
         updateCurrentInvoice(inv => {
             const current = inv.people;
             const newPeople = [];

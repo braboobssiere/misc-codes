@@ -75,6 +75,37 @@ const safeMathParse = expr => {
 
 const clamp = (val, min, max) => Math.min(max, Math.max(min, val));
 
+// Settings pin/unpin
+function loadSettingsPin() {
+    const settingsRow = document.getElementById('settingsRow');
+    const pinBtn = document.getElementById('pinSettingsBtn');
+    if (!settingsRow || !pinBtn) return;
+    const isPinned = localStorage.getItem('fairshare_settings_pinned') !== 'false';
+    if (isPinned) {
+        settingsRow.classList.remove('unpinned');
+        pinBtn.textContent = '📌';
+    } else {
+        settingsRow.classList.add('unpinned');
+        pinBtn.textContent = '📍';
+    }
+}
+
+function toggleSettingsPin() {
+    const settingsRow = document.getElementById('settingsRow');
+    const pinBtn = document.getElementById('pinSettingsBtn');
+    if (!settingsRow || !pinBtn) return;
+    const isCurrentlyPinned = !settingsRow.classList.contains('unpinned');
+    if (isCurrentlyPinned) {
+        settingsRow.classList.add('unpinned');
+        localStorage.setItem('fairshare_settings_pinned', 'false');
+        pinBtn.textContent = '📍';
+    } else {
+        settingsRow.classList.remove('unpinned');
+        localStorage.setItem('fairshare_settings_pinned', 'true');
+        pinBtn.textContent = '📌';
+    }
+}
+
 // ========================
 //  STATE MANAGEMENT
 // ========================
@@ -619,6 +650,8 @@ function attachEventListeners() {
         refreshUI();
     });
 
+    const pinBtn = document.getElementById('pinSettingsBtn');
+    if (pinBtn) pinBtn.onclick = toggleSettingsPin;
     document.getElementById('addCurrencyBtn').onclick = () => {
         const code = prompt('Enter new currency code (3 letters, e.g., GBP, CAD):');
         if (code && addCurrency(code)) {
@@ -903,6 +936,7 @@ function attachEventListeners() {
 // ========================
 function init() {
     loadState();
+    loadSettingsPin();
     attachEventListeners();
     refreshUI();
 }

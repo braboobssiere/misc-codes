@@ -206,7 +206,6 @@ body {
     flex-direction: column;
     min-height: 0;
     padding: 0;
-    position: relative;
 }
 .tab-panel.active-panel {
     display: flex;
@@ -225,7 +224,6 @@ body {
     display: flex;
     flex-direction: column;
     gap: 0.2rem;
-    margin-bottom: 0.5rem; 
 }
 .empty-message {
     text-align: center;
@@ -326,16 +324,15 @@ body {
    ======================== */
 /* Settings row – wraps to next line on mobile, left-aligned */
 .settings-row-compact {
+    background: #fffbfe;
     position: sticky;
     bottom: 0;
-    z-index: 5;
-    flex: 0 0 auto;
+    z-index: 10;
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     justify-content: flex-start;
     gap: 0.2rem;
-    background: #fffbfe;
     border-radius: 20px;
     padding: 0.1rem;
     font-size: 0.7rem;
@@ -350,6 +347,7 @@ body {
     box-shadow: none;
     font-size: 0.9rem;
     padding: 0.1rem 0.3rem;
+    margin-right: 0.2rem;
 }
 .setting-compact {
     display: inline-flex;

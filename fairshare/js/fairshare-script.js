@@ -638,53 +638,34 @@ function renderSummary(d = null) {
     const sett = inv.settings;
     const curr = inv.currency;
 
-    const container = elements.receiptView;
-    container.innerHTML = '';
-
-    // Title
-    const title = document.createElement('div');
-    title.innerHTML = '<strong>📋 RECEIPT</strong><br>';
-    container.appendChild(title);
-
-    // Items
+    // Build receipt lines as array for flexible ordering
+    const lines = [];
+    lines.push(`<strong>📋 RECEIPT</strong><br>`);
+    
     if (items.length === 0) {
-        const emptyMsg = document.createElement('div');
-        emptyMsg.innerHTML = '<em>No items added yet</em><br>';
-        container.appendChild(emptyMsg);
+        lines.push(`<em>No items added yet</em><br>`);
     } else {
         items.forEach(it => {
-            const line = document.createElement('div');
-            line.className = 'receipt-line';
-            const descSpan = document.createElement('span');
-            descSpan.className = 'desc';
-            descSpan.textContent = it.description;
-            const amountSpan = document.createElement('span');
-            amountSpan.className = 'amount';
-            amountSpan.textContent = `${it.amount.toFixed(2)} ${curr}`;
-            line.appendChild(descSpan);
-            line.appendChild(amountSpan);
-            container.appendChild(line);
+            const amt = it.amount.toFixed(2);
+            lines.push(`${escapeHtml(it.description)} ................ ${amt} ${curr}<br>`);
         });
     }
+    lines.push(`────────────────────────<br>`);
+    lines.push(`Subtotal ................ ${d.subtotalRaw.toFixed(2)} ${curr}<br>`);
 
-    // Separator
-    const sep = document.createElement('div');
-    sep.className = 'receipt-separator';
-    sep.textContent = '────────────────────────';
-    container.appendChild(sep);
+    // Determine discount line text
+    let discountLine = '';
+    if (d.totalDiscountApplied > 0) {
+        const discValue = sett.discount.value;
+        const discType = sett.discount.type;
+        const discLabel = discType === 'percent' ? `${discValue}%` : `${discValue}${curr}`;
+        discountLine = `Discount (${discLabel}) ... -${d.totalDiscountApplied.toFixed(2)} ${curr}<br>`;
+    }
 
-    // Subtotal
-    const subtotalLine = document.createElement('div');
-    subtotalLine.className = 'receipt-line';
-    subtotalLine.innerHTML = `<span class="desc">Subtotal</span><span class="amount">${d.subtotalRaw.toFixed(2)} ${curr}</span>`;
-    container.appendChild(subtotalLine);
+    const scLine = sett.serviceCharge.enabled ? `Service Charge (${sett.serviceCharge.percent}%) .. ${d.totalSC.toFixed(2)} ${curr}<br>` : '';
+    const vatLine = sett.vat.enabled ? `VAT (${sett.vat.percent}%) ........... ${d.totalVAT.toFixed(2)} ${curr}<br>` : '';
 
-    // Build lines in order according to discount timing
-    const scLine = sett.serviceCharge.enabled ? { desc: `Service Charge (${sett.serviceCharge.percent}%)`, amount: d.totalSC } : null;
-    const vatLine = sett.vat.enabled ? { desc: `VAT (${sett.vat.percent}%)`, amount: d.totalVAT } : null;
-    const discountLine = d.totalDiscountApplied > 0 ? { desc: 'Discount', amount: -d.totalDiscountApplied } : null;
-
-    const lines = [];
+    // Insert discount line according to timing
     switch (sett.discount.timing) {
         case 'beforeSC':
             if (discountLine) lines.push(discountLine);
@@ -703,32 +684,12 @@ function renderSummary(d = null) {
             break;
     }
 
-    lines.forEach(line => {
-        const lineDiv = document.createElement('div');
-        lineDiv.className = 'receipt-line';
-        const descSpan = document.createElement('span');
-        descSpan.className = 'desc';
-        descSpan.textContent = line.desc;
-        const amountSpan = document.createElement('span');
-        amountSpan.className = 'amount';
-        const sign = line.amount < 0 ? '-' : '';
-        const absAmount = Math.abs(line.amount).toFixed(2);
-        amountSpan.textContent = `${sign}${absAmount} ${curr}`;
-        lineDiv.appendChild(descSpan);
-        lineDiv.appendChild(amountSpan);
-        container.appendChild(lineDiv);
-    });
+    lines.push(`────────────────────────<br>`);
+    lines.push(`<strong>FINAL TOTAL: ${d.finalTotal.toFixed(2)} ${curr}</strong><br>`);
+    
+    elements.receiptView.innerHTML = lines.join('');
 
-    const finalSep = document.createElement('div');
-    finalSep.className = 'receipt-separator';
-    finalSep.textContent = '────────────────────────';
-    container.appendChild(finalSep);
-
-    const totalLine = document.createElement('div');
-    totalLine.className = 'receipt-line';
-    totalLine.innerHTML = `<strong class="desc">FINAL TOTAL</strong><strong class="amount">${d.finalTotal.toFixed(2)} ${curr}</strong>`;
-    container.appendChild(totalLine);
-
+    // Shares view remains unchanged
     let sharesHtml = `<strong>🧾 PER PERSON SHARES</strong><br><br>`;
     if (people.length === 0) {
         sharesHtml += `<em>No people added</em>`;

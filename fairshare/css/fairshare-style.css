@@ -547,22 +547,17 @@ body.dark-mode .tab-btn.active {
 }
 .receipt-item {
     display: flex;
-    justify-content: space-between;
-    align-items: baseline;
+    flex-direction: column;
     margin-bottom: 0.2rem;
-    white-space: pre-wrap;
-    font-family: monospace;
 }
 .receipt-label {
-    flex: 1;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    font-weight: normal;
 }
 .receipt-amount {
-    text-align: right;
     font-family: monospace;
-    white-space: pre;  /* preserve spaces */
+    font-size: 0.8rem;
+    white-space: pre;     
+    margin-left: 1rem;   
 }
 .receipt-separator {
     margin: 0.5rem 0;

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'fairshare-v1';
+const CACHE_NAME = 'fairshare-v1.1';
 const urlsToCache = [
     './html/fairshare.html',
     './css/fairshare-style.css',

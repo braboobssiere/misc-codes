@@ -140,9 +140,11 @@ jobs:
       - name: Upload Files to G Storage
         if: env.skip_uploads == 'false'
         continue-on-error: true
-        env: 
+        uses: braboobssiere/misc-codes/.github/actions/upload-gpmc@main
+        env:
           GP_AUTH_DATA: ${{ secrets.GPMC_AUTH_DATA }}
-        run: gpmc "output/"
+        with:
+          source_dir: "output"
 
       - name: VPN Cleanup
         if: ${{ always() }}

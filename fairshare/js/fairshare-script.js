@@ -638,24 +638,58 @@ function renderSummary(d = null) {
     const sett = inv.settings;
     const curr = inv.currency;
 
-    let receiptHtml = `<strong>📋 RECEIPT</strong><br>`;
+    // Build receipt lines as array for flexible ordering
+    const lines = [];
+    lines.push(`<strong>📋 RECEIPT</strong><br>`);
+    
     if (items.length === 0) {
-        receiptHtml += `<em>No items added yet</em><br>`;
+        lines.push(`<em>No items added yet</em><br>`);
     } else {
         items.forEach(it => {
             const amt = it.amount.toFixed(2);
-            receiptHtml += `${escapeHtml(it.description)} ................ ${amt} ${curr}<br>`;
+            lines.push(`${escapeHtml(it.description)} ................ ${amt} ${curr}<br>`);
         });
     }
-    receiptHtml += `────────────────────────<br>`;
-    receiptHtml += `Subtotal ................ ${d.subtotalRaw.toFixed(2)} ${curr}<br>`;
-    if (sett.serviceCharge.enabled) receiptHtml += `Service Charge (${sett.serviceCharge.percent}%) .. ${d.totalSC.toFixed(2)} ${curr}<br>`;
-    if (sett.vat.enabled) receiptHtml += `VAT (${sett.vat.percent}%) ........... ${d.totalVAT.toFixed(2)} ${curr}<br>`;
-    if (d.totalDiscountApplied > 0) receiptHtml += `Discount (${sett.discount.value}${sett.discount.type === 'percent' ? '%' : curr}) ... -${d.totalDiscountApplied.toFixed(2)} ${curr}<br>`;
-    receiptHtml += `────────────────────────<br>`;
-    receiptHtml += `<strong>FINAL TOTAL: ${d.finalTotal.toFixed(2)} ${curr}</strong><br>`;
-    elements.receiptView.innerHTML = receiptHtml;
+    lines.push(`────────────────────────<br>`);
+    lines.push(`Subtotal ................ ${d.subtotalRaw.toFixed(2)} ${curr}<br>`);
 
+    // Determine discount line text
+    let discountLine = '';
+    if (d.totalDiscountApplied > 0) {
+        const discValue = sett.discount.value;
+        const discType = sett.discount.type;
+        const discLabel = discType === 'percent' ? `${discValue}%` : `${discValue}${curr}`;
+        discountLine = `Discount (${discLabel}) ... -${d.totalDiscountApplied.toFixed(2)} ${curr}<br>`;
+    }
+
+    const scLine = sett.serviceCharge.enabled ? `Service Charge (${sett.serviceCharge.percent}%) .. ${d.totalSC.toFixed(2)} ${curr}<br>` : '';
+    const vatLine = sett.vat.enabled ? `VAT (${sett.vat.percent}%) ........... ${d.totalVAT.toFixed(2)} ${curr}<br>` : '';
+
+    // Insert discount line according to timing
+    switch (sett.discount.timing) {
+        case 'beforeSC':
+            if (discountLine) lines.push(discountLine);
+            if (scLine) lines.push(scLine);
+            if (vatLine) lines.push(vatLine);
+            break;
+        case 'beforeVAT':
+            if (scLine) lines.push(scLine);
+            if (discountLine) lines.push(discountLine);
+            if (vatLine) lines.push(vatLine);
+            break;
+        default: // afterAll
+            if (scLine) lines.push(scLine);
+            if (vatLine) lines.push(vatLine);
+            if (discountLine) lines.push(discountLine);
+            break;
+    }
+
+    lines.push(`────────────────────────<br>`);
+    lines.push(`<strong>FINAL TOTAL: ${d.finalTotal.toFixed(2)} ${curr}</strong><br>`);
+    
+    elements.receiptView.innerHTML = lines.join('');
+
+    // Shares view remains unchanged
     let sharesHtml = `<strong>🧾 PER PERSON SHARES</strong><br><br>`;
     if (people.length === 0) {
         sharesHtml += `<em>No people added</em>`;

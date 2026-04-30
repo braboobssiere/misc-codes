@@ -976,23 +976,23 @@ function attachEventListeners() {
 
     // ----- Receipt section -----
     rows.push('"RECEIPT"');
-    rows.push('"Description","Amount"');
+    rows.push('"Description","Amount","Currency"');
     inv.items.forEach(item => {
-        rows.push(`"${item.description}",${item.amount.toFixed(2)} ${curr}`);
+        rows.push(`"${item.description}",${item.amount.toFixed(2)},"${curr}"`);
     });
     rows.push('""'); // empty row
-    rows.push(`"Subtotal",${d.subtotalRaw.toFixed(2)} ${curr}`);
+    rows.push(`"Subtotal",${d.subtotalRaw.toFixed(2)},"${curr}"`);
     if (inv.settings.serviceCharge.enabled) {
-        rows.push(`"Service Charge (${inv.settings.serviceCharge.percent}%)",${d.totalSC.toFixed(2)} ${curr}`);
+        rows.push(`"Service Charge (${inv.settings.serviceCharge.percent}%)",${d.totalSC.toFixed(2)},"${curr}"`);
     }
     if (inv.settings.vat.enabled) {
-        rows.push(`"VAT (${inv.settings.vat.percent}%)",${d.totalVAT.toFixed(2)} ${curr}`);
+        rows.push(`"VAT (${inv.settings.vat.percent}%)",${d.totalVAT.toFixed(2)},"${curr}"`);
     }
     if (d.totalDiscountApplied > 0) {
-        rows.push(`"Discount",-${d.totalDiscountApplied.toFixed(2)} ${curr}`);
+        rows.push(`"Discount",-${d.totalDiscountApplied.toFixed(2)},"${curr}"`);
     }
     rows.push('""');
-    rows.push(`"FINAL TOTAL",${d.finalTotal.toFixed(2)} ${curr}`);
+    rows.push(`"FINAL TOTAL",${d.finalTotal.toFixed(2)},"${curr}"`);
     rows.push(''); // blank line between sections
     rows.push(''); 
 
@@ -1016,7 +1016,7 @@ function attachEventListeners() {
     a.href = URL.createObjectURL(blob);
     a.download = `fairshare_${inv.name}.csv`;
     a.click();
-    URL.revokeObjectURL(url);
+    URL.revokeObjectURL(blob);
 };
 
     const themeBtn = document.getElementById('themeToggleBtn');

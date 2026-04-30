@@ -41,7 +41,7 @@ body {
     font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
     background: var(--bg);
     margin: 0;
-    padding: 0 0 12% 0;  /* 12% bottom padding */
+    padding: 0 0 12% 0;
     height: 100vh;
     overflow: hidden;
     color: var(--on-surface);
@@ -138,6 +138,7 @@ body {
     gap: 0.2rem;
     flex: 1;
 }
+/* Invoice tab as a div (non-button) for better click handling */
 .invoice-tab {
     background: var(--primary-container);
     border: none;
@@ -151,6 +152,7 @@ body {
     gap: 0.2rem;
     white-space: nowrap;
     color: var(--on-surface);
+    transition: background 0.1s;
 }
 .invoice-tab.active {
     background: var(--primary);
@@ -165,6 +167,7 @@ body {
     margin: 0;
     color: inherit;
     opacity: 0.7;
+    font-family: inherit;
 }
 .invoice-tab.active .edit-invoice-name {
     color: white;
@@ -179,6 +182,7 @@ body {
     border-radius: 50%;
     background: rgba(0,0,0,0.15);
     cursor: pointer;
+    line-height: 1;
 }
 .new-bill-tab {
     background: var(--primary-light);
@@ -230,6 +234,73 @@ body {
 .people-selector input {
     width: 45px;
     text-align: center;
+}
+
+/* Settings row - collapsible, now directly under controls-row */
+.settings-row-compact {
+    flex: 0 0 auto;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 0.2rem;
+    background: var(--surface-variant);
+    border-radius: 20px;
+    padding: 0.2rem;
+    margin-top: 0.2rem;
+    font-size: 0.7rem;
+    transition: all 0.2s;
+}
+.settings-row-compact.collapsed {
+    display: none;
+}
+.setting-compact {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.1rem;
+    background: var(--primary-container);
+    border-radius: 30px;
+    padding: 0.1rem 0.3rem;
+    min-height: 28px;
+    font-size: 0.7rem;
+    white-space: nowrap;
+    color: var(--on-surface);
+}
+.setting-compact input,
+.setting-compact select {
+    background: none;
+    border: none;
+    font-size: 0.7rem;
+    padding: 0;
+    color: var(--on-surface);
+}
+.setting-compact input {
+    width: 38px;
+    text-align: center;
+}
+.discount-timing-buttons {
+    display: inline-flex;
+    gap: 0.1rem;
+    align-items: center;
+    flex-wrap: wrap;
+}
+.timing-btn {
+    background: var(--primary-container);
+    border: none;
+    border-radius: 30px;
+    padding: 0.1rem 0.3rem;
+    font-size: 0.65rem;
+    cursor: pointer;
+    min-height: 28px;
+    display: inline-flex;
+    align-items: center;
+    line-height: 1.2;
+    white-space: nowrap;
+    color: var(--on-surface);
+}
+.timing-btn.active {
+    background: var(--primary);
+    color: white;
 }
 
 /* Main tabs */
@@ -395,72 +466,6 @@ body.dark-mode .tab-btn.active {
     border-radius: 20px;
     margin: 0.1rem 0;
     color: var(--on-surface);
-}
-
-/* Settings row - collapsible */
-.settings-row-compact {
-    flex: 0 0 auto;
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: flex-start;
-    gap: 0.2rem;
-    background: var(--surface);
-    border-radius: 20px;
-    padding: 0.1rem;
-    font-size: 0.7rem;
-    transition: all 0.2s;
-}
-.settings-row-compact.collapsed {
-    display: none;
-}
-.setting-compact {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.1rem;
-    background: var(--surface-variant);
-    border-radius: 30px;
-    padding: 0.1rem 0.3rem;
-    min-height: 28px;
-    font-size: 0.7rem;
-    white-space: nowrap;
-    color: var(--on-surface);
-}
-.setting-compact input,
-.setting-compact select {
-    background: none;
-    border: none;
-    font-size: 0.7rem;
-    padding: 0;
-    color: var(--on-surface);
-}
-.setting-compact input {
-    width: 38px;
-    text-align: center;
-}
-.discount-timing-buttons {
-    display: inline-flex;
-    gap: 0.1rem;
-    align-items: center;
-    flex-wrap: wrap;
-}
-.timing-btn {
-    background: var(--primary-container);
-    border: none;
-    border-radius: 30px;
-    padding: 0.1rem 0.3rem;
-    font-size: 0.65rem;
-    cursor: pointer;
-    min-height: 28px;
-    display: inline-flex;
-    align-items: center;
-    line-height: 1.2;
-    white-space: nowrap;
-    color: var(--on-surface);
-}
-.timing-btn.active {
-    background: var(--primary);
-    color: white;
 }
 
 /* Summary tab */

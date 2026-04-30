@@ -562,9 +562,11 @@ body.dark-mode .tab-btn.active {
     font-weight: normal;
 }
 .receipt-amount {
-    margin-left: 1.5rem;
+    margin-left: 2rem;
     font-family: monospace;
     font-size: 0.8rem;
+    text-align: right;
+    display: block;
 }
 .receipt-separator {
     margin: 0.5rem 0;

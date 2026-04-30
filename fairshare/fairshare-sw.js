@@ -1,10 +1,16 @@
-const CACHE_NAME = 'fairshare-v1.1';
+const CACHE_NAME = 'fairshare-v1';
 const urlsToCache = [
     './html/fairshare.html',
     './css/fairshare-style.css',
     './js/fairshare-script.js',
     './js/fairshare-manifest.json',
+    './image/fairshare-icons/icon-72.png',
+    './image/fairshare-icons/icon-96.png',
+    './image/fairshare-icons/icon-128.png',
+    './image/fairshare-icons/icon-144.png',
+    './image/fairshare-icons/icon-152.png',
     './image/fairshare-icons/icon-192.png',
+    './image/fairshare-icons/icon-384.png',
     './image/fairshare-icons/icon-512.png'
 ];
 

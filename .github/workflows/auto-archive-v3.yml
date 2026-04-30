@@ -109,7 +109,7 @@ jobs:
       - name: Install yt-dlp and bgutil
         run: |
           python3 -m pip install --pre yt-dlp[default,curl-cffi]
-          python3 -m pip install -U bgutil-ytdlp-pot-provider 'https://github.com/xob0t/google_photos_mobile_client/archive/refs/heads/main.zip'
+          python3 -m pip install -U bgutil-ytdlp-pot-provider
         
       - name: VPN Setup 
         env: 
@@ -186,9 +186,11 @@ jobs:
 
       - name: Upload Files to G Storage
         continue-on-error: true
-        env: 
+        uses: braboobssiere/misc-codes/.github/actions/upload-gpmc@main
+        env:
           GP_AUTH_DATA: ${{ secrets.GPMC_AUTH_DATA }}
-        run: gpmc "output/"
+        with:
+          source_dir: "output"
 
       - name: VPN Cleanup
         if: ${{ always() }}

@@ -1,0 +1,37 @@
+# =============================================================================
+# Reusable GitHub Action: Upload to gpmc
+# =============================================================================
+# 
+# USAGE:
+# 
+#   - uses: owner/repo/.github/actions/upload-gpmc
+#     env:
+#       GP_AUTH_DATA: ${{ secrets.GPMC_AUTH_DATA }}
+#     with:
+#       source_dir: "output"  # optional, defaults "output"
+# 
+# =============================================================================
+
+name: "Upload to gpmc"
+description: "Upload all files from a directory to gpmc."
+
+inputs:
+  source_dir:
+    description: "Directory containing the files to upload"
+    required: false
+    default: "output"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Install gpmc client
+      shell: bash
+      run: python3 -m pip install -U 'https://github.com/xob0t/google_photos_mobile_client/archive/refs/heads/main.zip'
+
+    - name: Upload files
+      shell: bash
+      env:
+        SOURCE_DIR: ${{ inputs.source_dir }}
+      run: |
+        mkdir -p "$SOURCE_DIR"
+        gpmc "$SOURCE_DIR" | grep -v "User:"

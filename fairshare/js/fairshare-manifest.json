@@ -3,6 +3,7 @@
   "short_name": "FairShare",
   "description": "Split bills fairly with friends",
   "start_url": "../html/fairshare.html",
+  "version": "1.1",
   "display": "standalone",
   "theme_color": "#6750A4",
   "background_color": "#fef7ff",

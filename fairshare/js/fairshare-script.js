@@ -255,46 +255,50 @@ function renderInvoiceTabs() {
     });
     sameDayInvoices.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
 
-    const container = document.querySelector('.invoice-tabs-container');
-    container.style.display = 'flex';
-
     elements.invoiceTabs.innerHTML = sameDayInvoices.map(inv => {
         const timeStr = formatTimestamp(new Date(inv.createdAt)).split(' ')[1];
         const label = `${inv.name} ${timeStr}`;
         const isActive = inv.id === appState.currentInvoiceId;
         return `
-            <button class="invoice-tab ${isActive ? 'active' : ''}" data-id="${inv.id}">
+            <div class="invoice-tab ${isActive ? 'active' : ''}" data-id="${inv.id}">
                 <button class="edit-invoice-name" data-id="${inv.id}" title="Edit invoice name">✏️</button>
-                ${escapeHtml(label)}
+                <span class="tab-label">${escapeHtml(label)}</span>
                 <span class="close-tab" data-id="${inv.id}" title="Delete this invoice">✕</span>
-            </button>
+            </div>
         `;
     }).join('');
 
-    document.querySelectorAll('.invoice-tab').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            if (e.target.classList.contains('close-tab') || e.target.classList.contains('edit-invoice-name')) return;
-            const newId = btn.dataset.id;
-            if (newId && appState.invoices[newId]) {
-                appState.currentInvoiceId = newId;
+    // Attach event listeners for each tab
+    document.querySelectorAll('.invoice-tab').forEach(tab => {
+        const invoiceId = tab.dataset.id;
+        // Click on the tab itself (but not on edit button or close span) switches invoice
+        tab.addEventListener('click', (e) => {
+            // If the click target is the edit button or close span, don't switch
+            if (e.target.classList.contains('edit-invoice-name') || e.target.classList.contains('close-tab')) {
+                return;
+            }
+            if (invoiceId && appState.invoices[invoiceId]) {
+                appState.currentInvoiceId = invoiceId;
                 saveState(true);
                 refreshUI();
             }
         });
-        const closeSpan = btn.querySelector('.close-tab');
-        if (closeSpan) {
-            closeSpan.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const id = closeSpan.dataset.id;
-                if (id) deleteInvoiceById(id);
-            });
-        }
-        const editBtn = btn.querySelector('.edit-invoice-name');
+        
+        const editBtn = tab.querySelector('.edit-invoice-name');
         if (editBtn) {
             editBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 const id = editBtn.dataset.id;
                 if (id) editInvoiceName(id);
+            });
+        }
+        
+        const closeSpan = tab.querySelector('.close-tab');
+        if (closeSpan) {
+            closeSpan.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const id = closeSpan.dataset.id;
+                if (id) deleteInvoiceById(id);
             });
         }
     });
@@ -346,7 +350,6 @@ function attachItemDelegation() {
         }
     });
 
-    let amountTimer;
     elements.itemsContainer.addEventListener('input', (e) => {
         const amountInput = e.target.closest('.item-amount-input');
         if (amountInput) {

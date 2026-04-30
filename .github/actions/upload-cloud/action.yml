@@ -4,7 +4,7 @@
 # 
 # USAGE:
 # 
-#   - uses: owner/repo/.github/actions/upload-cloud
+#     uses: owner/repo/.github/actions/upload-cloud@main
 #     with:
 #       source_dir: "output"  # optional, defaults "output"
 #       discord_webhook: ${{ secrets.DISCORD_WEBHOOK }}  # optional

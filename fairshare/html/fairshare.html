@@ -43,19 +43,7 @@
                 <button class="icon-btn tiny danger" id="resetInvoiceBtn">⟳ Reset</button>
             </div>
         </div>
-    </div>
-
-    <div class="main-tabs" role="tablist">
-        <button class="tab-btn active" data-tab="invoice">Invoice</button>
-        <button class="tab-btn" data-tab="summary">Summary</button>
-    </div>
-
-    <div class="dynamic-area">
-        <div id="invoiceTab" class="tab-panel active-panel">
-            <div id="itemsContainer" class="items-list">
-                <div class="empty-message">✨ Click to add your first item</div>
-            </div>
-            <div class="bill-total" id="invoiceTotalDisplay">TOTAL: 0.00 USD</div>
+        <!-- Settings panel moved here, directly under controls-row -->
             <div id="settingsCollapsible" class="settings-row-compact collapsed">
                 <label class="setting-compact"><input type="checkbox" id="enableSC">Service Charge <input type="text" id="scPercent" value="10">%</label>
                 <label class="setting-compact"><input type="checkbox" id="enableVAT">VAT <input type="text" id="vatPercent" value="7">%</label>
@@ -69,6 +57,19 @@
                     <button class="timing-btn active" data-timing="afterAll">After SC+VAT</button>
                 </div>
             </div>
+    </div>
+
+    <div class="main-tabs" role="tablist">
+        <button class="tab-btn active" data-tab="invoice">Invoice</button>
+        <button class="tab-btn" data-tab="summary">Summary</button>
+    </div>
+
+    <div class="dynamic-area">
+        <div id="invoiceTab" class="tab-panel active-panel">
+            <div id="itemsContainer" class="items-list">
+                <div class="empty-message">✨ Click to add your first item</div>
+            </div>
+            <div class="bill-total" id="invoiceTotalDisplay">TOTAL: 0.00 USD</div>
         </div>
 
         <div id="summaryTab" class="tab-panel">

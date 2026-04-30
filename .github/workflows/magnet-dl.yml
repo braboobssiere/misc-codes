@@ -177,6 +177,28 @@ jobs:
             echo "No files found. Skipping FTP upload."
           fi
 
+      - name: convert TS to MKV
+        run: |
+          # Check if any .ts files exist in ftp_upload
+          if find ftp_upload -name "*.ts" -type f | grep -q .; then
+            echo "Found .ts file(s). Installing ffmpeg..."
+            sudo apt-get update
+            sudo apt-get install -y ffmpeg
+            
+            for ts_file in ftp_upload/*.ts; do
+              if [ -f "$ts_file" ]; then
+                mkv_file="${ts_file%.ts}.mkv"
+                echo "Converting: $ts_file → $mkv_file"
+                ffmpeg -i "$ts_file" -c copy -y "$mkv_file"
+                
+                if [ $? -eq 0 ]; then
+                  echo "Conversion successful. Removing: $ts_file"
+                  rm "$ts_file"
+                fi
+              fi
+            done
+          fi
+
       - name: Upload Files to G Storage
         if: ${{ github.event.inputs.upload_to_gphoto == 'true' }}
         continue-on-error: true

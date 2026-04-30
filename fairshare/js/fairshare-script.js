@@ -177,11 +177,11 @@ function updateCurrentInvoice(updater, immediateSave = false) {
 // ========================
 //  UNIFIED DELETE INVOICE
 // ========================
-function deleteInvoiceById(id) {
+function deleteInvoiceById(id, skipConfirm = false) {
     if (!appState.invoices[id]) return;
-    const deletedDate = new Date(appState.invoices[id].createdAt).toDateString();
-    if (!confirm(`Delete invoice "${appState.invoices[id].name}"? This cannot be undone.`)) return;
+    if (!skipConfirm && !confirm(`Delete invoice "${appState.invoices[id].name}"? This cannot be undone.`)) return;
 
+    const deletedDate = new Date(appState.invoices[id].createdAt).toDateString();
     delete appState.invoices[id];
 
     if (Object.keys(appState.invoices).length === 0) {
@@ -1035,17 +1035,17 @@ function attachEventListeners() {
     document.getElementById('prevMonthBtn').onclick = () => { calendarDate.setMonth(calendarDate.getMonth()-1); rebuildCalendar(); };
     document.getElementById('nextMonthBtn').onclick = () => { calendarDate.setMonth(calendarDate.getMonth()+1); rebuildCalendar(); };
     document.getElementById('deleteSelectedInvoiceBtn').onclick = () => {
-        if (selectedDate) {
-            const invs = Object.values(appState.invoices).filter(inv => {
-                const d = new Date(inv.createdAt);
-                return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}` === selectedDate;
-            });
-            if (invs.length && confirm(`Delete ${invs.length} invoice(s) on ${selectedDate}?`)) {
-                invs.forEach(inv => deleteInvoiceById(inv.id));
-                rebuildCalendar();
-                refreshUI();
-            }
-        } else alert('Select a day first');
+    if (selectedDate) {
+        const invs = Object.values(appState.invoices).filter(inv => {
+            const d = new Date(inv.createdAt);
+            return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}` === selectedDate;
+        });
+        if (confirm(`Delete ${invs.length} invoice(s) on ${selectedDate}? This cannot be undone.`)) {
+            invs.forEach(inv => deleteInvoiceById(inv.id, true));
+            rebuildCalendar();
+            refreshUI();
+        }
+    }
     };
 }
 

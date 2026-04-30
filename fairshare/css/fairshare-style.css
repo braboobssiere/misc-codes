@@ -545,26 +545,6 @@ body.dark-mode .tab-btn.active {
     flex-wrap: wrap;
     gap: 0.3rem;
 }
-#invoiceTab {
-    padding-bottom: 12%;
-}
-.receipt-line {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    gap: 1rem;
-    white-space: nowrap;
-}
-.receipt-line .desc {
-    text-overflow: ellipsis;
-    overflow: hidden;
-    white-space: nowrap;
-}
-.receipt-line .amount {
-    font-family: monospace;
-    text-align: right;
-    flex-shrink: 0;
-}
 .receipt-box {
     font-family: monospace;
     font-size: 0.8rem;
@@ -574,7 +554,29 @@ body.dark-mode .tab-btn.active {
     margin-bottom: 0.6rem;
     overflow-x: auto;
 }
+
+.receipt-item {
+    margin-bottom: 0.2rem;
+}
+.receipt-label {
+    font-weight: normal;
+}
+.receipt-amount {
+    margin-left: 2rem;
+    font-family: monospace;
+    font-size: 0.8rem;
+    text-align: right;
+    display: block;
+}
 .receipt-separator {
-    text-align: center;
-    margin: 0.2rem 0;
+    margin: 0.5rem 0;
+    height: 1px;
+    background: var(--border-light);
+    border: none;
+}
+.receipt-total {
+    margin-top: 0.3rem;
+}
+.receipt-total .receipt-amount {
+    font-weight: bold;
 }

@@ -638,52 +638,62 @@ function renderSummary(d = null) {
     const sett = inv.settings;
     const curr = inv.currency;
 
+    const amountValues = [];
+    items.forEach(it => amountValues.push(it.amount));
+    amountValues.push(d.subtotalRaw);
+    if (sett.serviceCharge.enabled) amountValues.push(d.totalSC);
+    if (sett.vat.enabled) amountValues.push(d.totalVAT);
+    if (d.totalDiscountApplied > 0) amountValues.push(d.totalDiscountApplied);
+    amountValues.push(d.finalTotal);
+
+    let maxLen = 0;
+    amountValues.forEach(val => {
+        const str = val.toFixed(2);
+        if (str.length > maxLen) maxLen = str.length;
+    });
+
+    function formatAmount(value) {
+        const numStr = value.toFixed(2);
+        const padCount = maxLen - numStr.length;
+        const padding = '&nbsp;'.repeat(padCount);
+        return `${padding}${numStr} ${curr}`;
+    }
+
     const container = elements.receiptView;
     container.innerHTML = '';
 
-    // Helper to add a line (label + amount on next line)
-    function addLine(label, amountValue, isTotal = false) {
-        const div = document.createElement('div');
-        div.className = 'receipt-item' + (isTotal ? ' receipt-total' : '');
-        const labelSpan = document.createElement('div');
-        labelSpan.className = 'receipt-label';
-        labelSpan.textContent = label;
-        const amountSpan = document.createElement('div');
-        amountSpan.className = 'receipt-amount';
-        amountSpan.textContent = `${amountValue.toFixed(2)} ${curr}`;
-        div.appendChild(labelSpan);
-        div.appendChild(amountSpan);
-        container.appendChild(div);
-    }
-
-    // Header
     const title = document.createElement('div');
     title.innerHTML = '<strong>📋 RECEIPT</strong><br>';
     container.appendChild(title);
 
-    // Items
     if (items.length === 0) {
         const emptyMsg = document.createElement('div');
         emptyMsg.innerHTML = '<em>No items added yet</em><br>';
         container.appendChild(emptyMsg);
     } else {
         items.forEach(it => {
-            addLine(it.description, it.amount);
+            const div = document.createElement('div');
+            div.className = 'receipt-item';
+            div.innerHTML = `
+                <div class="receipt-label">${escapeHtml(it.description)}</div>
+                <div class="receipt-amount">${formatAmount(it.amount)}</div>
+            `;
+            container.appendChild(div);
         });
     }
 
-    // Separator
     const sep = document.createElement('div');
     sep.className = 'receipt-separator';
     container.appendChild(sep);
 
-    // Subtotal
-    addLine('Subtotal', d.subtotalRaw);
+    const subtotalDiv = document.createElement('div');
+    subtotalDiv.className = 'receipt-item';
+    subtotalDiv.innerHTML = `<div class="receipt-label">Subtotal</div><div class="receipt-amount">${formatAmount(d.subtotalRaw)}</div>`;
+    container.appendChild(subtotalDiv);
 
-    // Build lines according to discount timing
     const scLine = sett.serviceCharge.enabled ? { label: `Service Charge (${sett.serviceCharge.percent}%)`, amount: d.totalSC } : null;
     const vatLine = sett.vat.enabled ? { label: `VAT (${sett.vat.percent}%)`, amount: d.totalVAT } : null;
-    const discountLine = d.totalDiscountApplied > 0 ? { label: 'Discount', amount: -d.totalDiscountApplied } : null;
+    const discountLine = d.totalDiscountApplied > 0 ? { label: 'Discount', amount: d.totalDiscountApplied } : null;
 
     const lines = [];
     switch (sett.discount.timing) {
@@ -705,16 +715,23 @@ function renderSummary(d = null) {
     }
 
     lines.forEach(line => {
-        addLine(line.label, Math.abs(line.amount)); // amount stored as positive (except discount negative)
+        const div = document.createElement('div');
+        div.className = 'receipt-item';
+        const isDiscount = line.label === 'Discount';
+        const amountToShow = isDiscount ? -line.amount : line.amount;
+        div.innerHTML = `<div class="receipt-label">${line.label}</div><div class="receipt-amount">${formatAmount(amountToShow)}</div>`;
+        container.appendChild(div);
     });
 
-    // Final separator and total
     const finalSep = document.createElement('div');
     finalSep.className = 'receipt-separator';
     container.appendChild(finalSep);
-    addLine('FINAL TOTAL', d.finalTotal, true);
 
-    // Shares view remains unchanged
+    const totalDiv = document.createElement('div');
+    totalDiv.className = 'receipt-item receipt-total';
+    totalDiv.innerHTML = `<div class="receipt-label"><strong>FINAL TOTAL</strong></div><div class="receipt-amount"><strong>${formatAmount(d.finalTotal)}</strong></div>`;
+    container.appendChild(totalDiv);
+
     let sharesHtml = `<strong>🧾 PER PERSON SHARES</strong><br><br>`;
     if (people.length === 0) {
         sharesHtml += `<em>No people added</em>`;

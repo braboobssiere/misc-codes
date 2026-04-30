@@ -41,7 +41,6 @@ body {
     font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
     background: var(--bg);
     margin: 0;
-    padding: 0 0 12% 0;
     height: 100vh;
     overflow: hidden;
     color: var(--on-surface);
@@ -545,4 +544,37 @@ body.dark-mode .tab-btn.active {
     align-items: center;
     flex-wrap: wrap;
     gap: 0.3rem;
+}
+#invoiceTab {
+    padding-bottom: 12%;
+}
+.receipt-line {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 1rem;
+    white-space: nowrap;
+}
+.receipt-line .desc {
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+}
+.receipt-line .amount {
+    font-family: monospace;
+    text-align: right;
+    flex-shrink: 0;
+}
+.receipt-box {
+    font-family: monospace;
+    font-size: 0.8rem;
+    background: var(--surface);
+    border-radius: 20px;
+    padding: 0.5rem;
+    margin-bottom: 0.6rem;
+    overflow-x: auto;
+}
+.receipt-separator {
+    text-align: center;
+    margin: 0.2rem 0;
 }

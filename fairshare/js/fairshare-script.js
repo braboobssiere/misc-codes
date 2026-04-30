@@ -130,12 +130,8 @@ function loadState() {
 }
 
 let _saveTimer;
-let _pendingSave = false;
-// immediate = true → write to localStorage now (sync)
-// immediate = false → debounce for 300ms (for fast‑typing scenarios like live amount preview)
 function saveState(immediate = false) {
     if (immediate) {
-        // clear any pending timer and write now
         if (_saveTimer) clearTimeout(_saveTimer);
         _persistState();
     } else {
@@ -170,7 +166,6 @@ function getCurrentInvoice() {
     return appState.invoices[appState.currentInvoiceId];
 }
 
-// updated to accept an optional `immediateSave` flag
 function updateCurrentInvoice(updater, immediateSave = false) {
     const invoice = getCurrentInvoice();
     const updated = updater(clone(invoice));
@@ -242,6 +237,16 @@ function renderCurrencyDropdown(selected) {
     elements.globalCurrency.innerHTML = CURRENCIES.map(c => `<option ${c === selected ? 'selected' : ''}>${c}</option>`).join('');
 }
 
+function editInvoiceName(invoiceId) {
+    const inv = appState.invoices[invoiceId];
+    if (!inv) return;
+    const newName = prompt('Edit invoice name (e.g., #1, Dinner)', inv.name);
+    if (newName) {
+        updateCurrentInvoice(inv => { inv.name = newName; return inv; }, true);
+        refreshUI();
+    }
+}
+
 function renderInvoiceTabs() {
     const current = getCurrentInvoice();
     const currentDate = new Date(current.createdAt).toDateString();
@@ -251,7 +256,7 @@ function renderInvoiceTabs() {
     sameDayInvoices.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
 
     const container = document.querySelector('.invoice-tabs-container');
-    container.style.display = 'block';
+    container.style.display = 'flex';
 
     elements.invoiceTabs.innerHTML = sameDayInvoices.map(inv => {
         const timeStr = formatTimestamp(new Date(inv.createdAt)).split(' ')[1];
@@ -259,6 +264,7 @@ function renderInvoiceTabs() {
         const isActive = inv.id === appState.currentInvoiceId;
         return `
             <button class="invoice-tab ${isActive ? 'active' : ''}" data-id="${inv.id}">
+                <button class="edit-invoice-name" data-id="${inv.id}" title="Edit invoice name">✏️</button>
                 ${escapeHtml(label)}
                 <span class="close-tab" data-id="${inv.id}" title="Delete this invoice">✕</span>
             </button>
@@ -267,7 +273,7 @@ function renderInvoiceTabs() {
 
     document.querySelectorAll('.invoice-tab').forEach(btn => {
         btn.addEventListener('click', (e) => {
-            if (e.target.classList.contains('close-tab')) return;
+            if (e.target.classList.contains('close-tab') || e.target.classList.contains('edit-invoice-name')) return;
             const newId = btn.dataset.id;
             if (newId && appState.invoices[newId]) {
                 appState.currentInvoiceId = newId;
@@ -281,6 +287,14 @@ function renderInvoiceTabs() {
                 e.stopPropagation();
                 const id = closeSpan.dataset.id;
                 if (id) deleteInvoiceById(id);
+            });
+        }
+        const editBtn = btn.querySelector('.edit-invoice-name');
+        if (editBtn) {
+            editBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const id = editBtn.dataset.id;
+                if (id) editInvoiceName(id);
             });
         }
     });
@@ -320,7 +334,6 @@ function renderEmptyMessage() {
 
 // Event delegation for items
 function attachItemDelegation() {
-    // Description change (save immediately on blur/enter)
     elements.itemsContainer.addEventListener('change', (e) => {
         const descInput = e.target.closest('.item-desc');
         if (descInput) {
@@ -333,7 +346,6 @@ function attachItemDelegation() {
         }
     });
 
-    // Live amount preview (debounced save)
     let amountTimer;
     elements.itemsContainer.addEventListener('input', (e) => {
         const amountInput = e.target.closest('.item-amount-input');
@@ -347,13 +359,12 @@ function attachItemDelegation() {
                     inv.items[idx].amountRaw = raw;
                     inv.items[idx].amount = numeric;
                     return inv;
-                }, false); // debounced save
+                }, false);
                 updateTotalsAndSummary();
             }
         }
     });
 
-    // Amount blur → format and save immediately
     elements.itemsContainer.addEventListener('blur', (e) => {
         const amountInput = e.target.closest('.item-amount-input');
         if (amountInput) {
@@ -388,7 +399,6 @@ function attachItemDelegation() {
         }
     });
 
-    // Delete item (immediate save)
     elements.itemsContainer.addEventListener('click', (e) => {
         const delBtn = e.target.closest('.delete-item');
         if (delBtn) {
@@ -396,13 +406,12 @@ function attachItemDelegation() {
             if (card) {
                 const idx = parseInt(card.dataset.idx);
                 updateCurrentInvoice(inv => { inv.items.splice(idx, 1); return inv; }, true);
-                renderItems(); // structural change → full re-render
+                renderItems();
                 updateTotalsAndSummary();
             }
         }
     });
 
-    // Payer chip toggle (immediate save)
     elements.itemsContainer.addEventListener('click', (e) => {
         const chip = e.target.closest('.payer-chip');
         if (chip) {
@@ -419,7 +428,6 @@ function attachItemDelegation() {
                     }
                     return inv;
                 }, true);
-                // update only chips for this item
                 const chipsDiv = card.querySelector('.payer-chips');
                 if (chipsDiv) {
                     const updatedItem = getCurrentInvoice().items[itemIdx];
@@ -730,24 +738,8 @@ function attachEventListeners() {
         }
     };
 
-    document.getElementById('editInvoiceNameBtn').onclick = () => {
-        const newName = prompt('Edit invoice name (e.g., #1, Dinner)', getCurrentInvoice().name);
-        if (newName) {
-            updateCurrentInvoice(inv => { inv.name = newName; return inv; }, true);
-            refreshUI();
-        }
-    };
-
-    document.getElementById('resetInvoiceBtn').onclick = () => {
-        if (confirm('Reset current invoice? All items, people, settings, and custom currencies will be cleared (current currency will be kept).')) {
-            const currentCurr = getCurrentInvoice().currency;
-            updateCurrentInvoice(() => getDefaultInvoice(appState.currentInvoiceId, currentCurr), true);
-            resetCurrenciesToDefault(currentCurr);
-            refreshUI();
-        }
-    };
-
-    document.getElementById('newBillBtn').onclick = () => {
+    // New Bill via '+' button
+    document.getElementById('newBillTabBtn').onclick = () => {
         const current = getCurrentInvoice();
         const newId = 'inv_' + Date.now();
         const newInv = {
@@ -767,6 +759,22 @@ function attachEventListeners() {
         appState.currentInvoiceId = newId;
         saveState(true);
         refreshUI();
+    };
+
+    document.getElementById('resetInvoiceBtn').onclick = () => {
+        if (confirm('Reset current invoice? All items, people, settings, and custom currencies will be cleared (current currency will be kept).')) {
+            const currentCurr = getCurrentInvoice().currency;
+            updateCurrentInvoice(() => getDefaultInvoice(appState.currentInvoiceId, currentCurr), true);
+            resetCurrenciesToDefault(currentCurr);
+            refreshUI();
+        }
+    };
+
+    // Toggle settings collapsible
+    const toggleSettingsBtn = document.getElementById('toggleSettingsBtn');
+    const settingsPanel = document.getElementById('settingsCollapsible');
+    toggleSettingsBtn.onclick = () => {
+        settingsPanel.classList.toggle('collapsed');
     };
 
     document.getElementById('exportBtn').onclick = () => {
@@ -834,7 +842,6 @@ function attachEventListeners() {
         input.click();
     };
 
-    // Settings fields – use 'change' and save immediately
     const settingFields = ['enableSC', 'scPercent', 'enableVAT', 'vatPercent', 'discountType', 'discountValue'];
     settingFields.forEach(id => {
         const el = document.getElementById(id);

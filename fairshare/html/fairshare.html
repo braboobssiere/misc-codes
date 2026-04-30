@@ -45,10 +45,10 @@
         </div>
         <!-- Settings panel moved here, directly under controls-row -->
             <div id="settingsCollapsible" class="settings-row-compact collapsed">
-                <label class="setting-compact"><input type="checkbox" id="enableSC">Service Charge <input type="text" id="scPercent" value="10">%</label>
-                <label class="setting-compact"><input type="checkbox" id="enableVAT">VAT <input type="text" id="vatPercent" value="7">%</label>
+                <label class="setting-compact"><input type="checkbox" id="enableSC">+SC<input type="text" id="scPercent" value="10">%</label>
+                <label class="setting-compact"><input type="checkbox" id="enableVAT">+VAT<input type="text" id="vatPercent" value="7">%</label>
                 <div class="setting-compact">
-                    <select id="discountType"><option value="amount">Discount ($) </option><option value="percent">Discount (%) </option></select>
+                    <select id="discountType"><option value="amount">-$</option><option value="percent">-%</option></select>
                     <input type="text" id="discountValue" value="" placeholder="0">
                 </div>
                 <div class="discount-timing-buttons">

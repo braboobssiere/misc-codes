@@ -4,7 +4,7 @@
 # 
 # USAGE:
 # 
-#   - uses: owner/repo/.github/actions/upload-gpmc
+#     uses: owner/repo/.github/actions/upload-gpmc@main
 #     env:
 #       GP_AUTH_DATA: ${{ secrets.GPMC_AUTH_DATA }}
 #     with:

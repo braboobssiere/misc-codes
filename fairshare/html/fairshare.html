@@ -24,6 +24,7 @@
     <div class="top-controls">
         <div class="invoice-tabs-container">
             <div class="invoice-tabs" id="invoiceTabs"></div>
+            <button class="new-bill-tab" id="newBillTabBtn" title="New bill">➕</button>
         </div>
         <div class="controls-row">
             <div class="controls-left">
@@ -36,8 +37,9 @@
                     <input type="number" id="peopleCount" min="1" value="2">
                     <button class="icon-btn tiny" id="editNamesBtn">✏️ Name</button>
                 </div>
-                <button class="icon-btn tiny" id="editInvoiceNameBtn">✏️ Inv</button>
-                <button class="icon-btn tiny" id="newBillBtn">➕ Bill</button>
+            </div>
+            <div class="controls-right">
+                <button id="toggleSettingsBtn" class="icon-btn tiny" title="Bill settings">⚙️</button>
                 <button class="icon-btn tiny danger" id="resetInvoiceBtn">⟳ Reset</button>
             </div>
         </div>
@@ -54,17 +56,17 @@
                 <div class="empty-message">✨ Click to add your first item</div>
             </div>
             <div class="bill-total" id="invoiceTotalDisplay">TOTAL: 0.00 USD</div>
-            <div class="settings-row-compact">
-                <label class="setting-compact"><input type="checkbox" id="enableSC">+SC <input type="text" id="scPercent" value="10">%</label>
-                <label class="setting-compact"><input type="checkbox" id="enableVAT">+VAT <input type="text" id="vatPercent" value="7">%</label>
+            <div id="settingsCollapsible" class="settings-row-compact collapsed">
+                <label class="setting-compact"><input type="checkbox" id="enableSC">Service Charge <input type="text" id="scPercent" value="10">%</label>
+                <label class="setting-compact"><input type="checkbox" id="enableVAT">VAT <input type="text" id="vatPercent" value="7">%</label>
                 <div class="setting-compact">
-                    <select id="discountType"><option value="amount">-$ </option><option value="percent">-% </option></select>
+                    <select id="discountType"><option value="amount">Discount ($) </option><option value="percent">Discount (%) </option></select>
                     <input type="text" id="discountValue" value="" placeholder="0">
                 </div>
                 <div class="discount-timing-buttons">
                     <button class="timing-btn" data-timing="beforeSC">Before SC</button>
                     <button class="timing-btn" data-timing="beforeVAT">Before VAT</button>
-                    <button class="timing-btn active" data-timing="afterAll">After All</button>
+                    <button class="timing-btn active" data-timing="afterAll">After SC+VAT</button>
                 </div>
             </div>
         </div>
@@ -108,6 +110,5 @@ if ('serviceWorker' in navigator) {
     });
 }
 </script>
-
 </body>
 </html>

@@ -103,6 +103,14 @@ const clamp = (val, min, max) => Math.min(max, Math.max(min, val));
 
 const clone = obj => structuredClone(obj);
 
+// Add thousand separators (e.g., 1234.56 → "1,234.56")
+function formatNumberWithCommas(value) {
+    if (value === undefined || value === null) return '0.00';
+    const parts = value.toFixed(2).split('.');
+    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    return parts.join('.');
+}
+
 // ========================
 //  STATE MANAGEMENT
 // ========================
@@ -625,7 +633,7 @@ function computeDetailed(invoice) {
 function updateTotalsAndSummary() {
     const inv = getCurrentInvoice();
     const d = computeDetailed(inv);
-    elements.invoiceTotal.innerHTML = `BILL TOTAL: ${d.finalTotal.toFixed(2)} ${inv.currency}`;
+    elements.invoiceTotal.innerHTML = `BILL TOTAL: ${formatNumberWithCommas(d.finalTotal)} ${inv.currency}`;
     const activeTab = document.querySelector('.tab-btn.active').dataset.tab;
     if (activeTab === 'summary') renderSummary(d);
 }
@@ -638,34 +646,38 @@ function renderSummary(d = null) {
     const sett = inv.settings;
     const curr = inv.currency;
 
-    const amountValues = [];
-    items.forEach(it => amountValues.push(it.amount));
-    amountValues.push(d.subtotalRaw);
-    if (sett.serviceCharge.enabled) amountValues.push(d.totalSC);
-    if (sett.vat.enabled) amountValues.push(d.totalVAT);
-    if (d.totalDiscountApplied > 0) amountValues.push(d.totalDiscountApplied);
-    amountValues.push(d.finalTotal);
+    // Collect all raw amounts for max length calculation (raw = without commas)
+    const amountValuesRaw = [];
+    items.forEach(it => amountValuesRaw.push(it.amount));
+    amountValuesRaw.push(d.subtotalRaw);
+    if (sett.serviceCharge.enabled) amountValuesRaw.push(d.totalSC);
+    if (sett.vat.enabled) amountValuesRaw.push(d.totalVAT);
+    if (d.totalDiscountApplied > 0) amountValuesRaw.push(d.totalDiscountApplied);
+    amountValuesRaw.push(d.finalTotal);
 
     let maxLen = 0;
-    amountValues.forEach(val => {
+    amountValuesRaw.forEach(val => {
         const str = val.toFixed(2);
         if (str.length > maxLen) maxLen = str.length;
     });
 
     function formatAmount(value) {
-        const numStr = value.toFixed(2);
-        const padCount = maxLen - numStr.length;
-        const padding = '&nbsp;'.repeat(padCount);
+        const numStr = formatNumberWithCommas(value);
+        const rawStr = value.toFixed(2);
+        const padCount = maxLen - rawStr.length;
+        const padding = '&nbsp;'.repeat(Math.max(0, padCount));
         return `${padding}${numStr} ${curr}`;
     }
 
     const container = elements.receiptView;
     container.innerHTML = '';
 
+    // Title
     const title = document.createElement('div');
     title.innerHTML = '<strong>📋 RECEIPT</strong><br>';
     container.appendChild(title);
 
+    // Items
     if (items.length === 0) {
         const emptyMsg = document.createElement('div');
         emptyMsg.innerHTML = '<em>No items added yet</em><br>';
@@ -682,15 +694,18 @@ function renderSummary(d = null) {
         });
     }
 
+    // Separator
     const sep = document.createElement('div');
     sep.className = 'receipt-separator';
     container.appendChild(sep);
 
+    // Subtotal
     const subtotalDiv = document.createElement('div');
     subtotalDiv.className = 'receipt-item';
     subtotalDiv.innerHTML = `<div class="receipt-label">Subtotal</div><div class="receipt-amount">${formatAmount(d.subtotalRaw)}</div>`;
     container.appendChild(subtotalDiv);
 
+    // Build lines according to discount timing
     const scLine = sett.serviceCharge.enabled ? { label: `Service Charge (${sett.serviceCharge.percent}%)`, amount: d.totalSC } : null;
     const vatLine = sett.vat.enabled ? { label: `VAT (${sett.vat.percent}%)`, amount: d.totalVAT } : null;
     const discountLine = d.totalDiscountApplied > 0 ? { label: 'Discount', amount: d.totalDiscountApplied } : null;
@@ -707,7 +722,7 @@ function renderSummary(d = null) {
             if (discountLine) lines.push(discountLine);
             if (vatLine) lines.push(vatLine);
             break;
-        default: // afterAll
+        default:
             if (scLine) lines.push(scLine);
             if (vatLine) lines.push(vatLine);
             if (discountLine) lines.push(discountLine);
@@ -723,6 +738,7 @@ function renderSummary(d = null) {
         container.appendChild(div);
     });
 
+    // Final separator and total
     const finalSep = document.createElement('div');
     finalSep.className = 'receipt-separator';
     container.appendChild(finalSep);
@@ -732,17 +748,18 @@ function renderSummary(d = null) {
     totalDiv.innerHTML = `<div class="receipt-label"><strong>FINAL TOTAL</strong></div><div class="receipt-amount"><strong>${formatAmount(d.finalTotal)}</strong></div>`;
     container.appendChild(totalDiv);
 
+    // Shares view
     let sharesHtml = `<strong>🧾 PER PERSON SHARES</strong><br><br>`;
     if (people.length === 0) {
         sharesHtml += `<em>No people added</em>`;
     } else {
-        for (let i=0; i<people.length; i++) {
+        for (let i = 0; i < people.length; i++) {
             sharesHtml += `<div style="margin-bottom:1rem; border-left:4px solid #6750A4; padding-left:0.8rem;">`;
-            sharesHtml += `<strong style="font-size:1.05rem;">${escapeHtml(people[i].name)}  ${d.personFinal[i].toFixed(2)} ${curr}</strong><br>`;
-            sharesHtml += `&nbsp;&nbsp;• Subtotal: ${d.personSubtotal[i].toFixed(2)}<br>`;
-            if (sett.serviceCharge.enabled) sharesHtml += `&nbsp;&nbsp;• Service Charge: ${d.personSC[i].toFixed(2)}<br>`;
-            if (sett.vat.enabled) sharesHtml += `&nbsp;&nbsp;• VAT: ${d.personVAT[i].toFixed(2)}<br>`;
-            if (d.personDiscount[i] !== 0) sharesHtml += `&nbsp;&nbsp;• Discount: -${d.personDiscount[i].toFixed(2)}<br>`;
+            sharesHtml += `<strong style="font-size:1.05rem;">${escapeHtml(people[i].name)}  ${formatNumberWithCommas(d.personFinal[i])} ${curr}</strong><br>`;
+            sharesHtml += `&nbsp;&nbsp;• Subtotal: ${formatNumberWithCommas(d.personSubtotal[i])}<br>`;
+            if (sett.serviceCharge.enabled) sharesHtml += `&nbsp;&nbsp;• Service Charge: ${formatNumberWithCommas(d.personSC[i])}<br>`;
+            if (sett.vat.enabled) sharesHtml += `&nbsp;&nbsp;• VAT: ${formatNumberWithCommas(d.personVAT[i])}<br>`;
+            if (d.personDiscount[i] !== 0) sharesHtml += `&nbsp;&nbsp;• Discount: -${formatNumberWithCommas(Math.abs(d.personDiscount[i]))}<br>`;
             sharesHtml += `</div>`;
         }
     }

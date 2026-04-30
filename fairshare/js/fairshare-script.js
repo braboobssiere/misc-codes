@@ -78,9 +78,10 @@ function toggleTheme() {
 //  UTILITIES
 // ========================
 const escapeHtml = str => String(str).replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m]));
+
 const formatTimestamp = date =>
-    new Intl.DateTimeFormat('en-GB', { 
-        day: '2-digit', month: '2-digit', year: 'numeric',
+    new Intl.DateTimeFormat('en-GB', {
+        year: 'numeric', month: '2-digit', day: '2-digit',
         hour: '2-digit', minute: '2-digit', hour12: false
     }).format(date).replace(',', '');
 
@@ -100,6 +101,8 @@ const safeMathParse = expr => {
 
 const clamp = (val, min, max) => Math.min(max, Math.max(min, val));
 
+const clone = obj => structuredClone(obj);
+
 // ========================
 //  STATE MANAGEMENT
 // ========================
@@ -108,8 +111,6 @@ let appState = {
     invoices: {},
     lastCurrency: 'USD'
 };
-
-const clone = obj => structuredClone(obj);
 
 function loadState() {
     loadCurrencies();
@@ -124,18 +125,29 @@ function loadState() {
         const newId = 'inv_' + Date.now();
         appState.invoices[newId] = getDefaultInvoice(newId, appState.lastCurrency);
         appState.currentInvoiceId = newId;
-        saveState();
+        saveState(true);
     }
 }
 
 let _saveTimer;
-function saveState() {
-    clearTimeout(_saveTimer);
-    _saveTimer = setTimeout(() => {
-        localStorage.setItem('fairshare_invoices', JSON.stringify(appState.invoices));
-        localStorage.setItem('fairshare_current', appState.currentInvoiceId);
-        localStorage.setItem('fairshare_last_currency', appState.lastCurrency);
-    }, 1000);
+let _pendingSave = false;
+// immediate = true → write to localStorage now (sync)
+// immediate = false → debounce for 300ms (for fast‑typing scenarios like live amount preview)
+function saveState(immediate = false) {
+    if (immediate) {
+        // clear any pending timer and write now
+        if (_saveTimer) clearTimeout(_saveTimer);
+        _persistState();
+    } else {
+        if (_saveTimer) clearTimeout(_saveTimer);
+        _saveTimer = setTimeout(() => _persistState(), 300);
+    }
+}
+
+function _persistState() {
+    localStorage.setItem('fairshare_invoices', JSON.stringify(appState.invoices));
+    localStorage.setItem('fairshare_current', appState.currentInvoiceId);
+    localStorage.setItem('fairshare_last_currency', appState.lastCurrency);
 }
 
 function getDefaultInvoice(id, currency) {
@@ -158,11 +170,12 @@ function getCurrentInvoice() {
     return appState.invoices[appState.currentInvoiceId];
 }
 
-function updateCurrentInvoice(updater) {
+// updated to accept an optional `immediateSave` flag
+function updateCurrentInvoice(updater, immediateSave = false) {
     const invoice = getCurrentInvoice();
     const updated = updater(clone(invoice));
     appState.invoices[appState.currentInvoiceId] = updated;
-    saveState();
+    saveState(immediateSave);
     return updated;
 }
 
@@ -171,14 +184,16 @@ function updateCurrentInvoice(updater) {
 // ========================
 function deleteInvoiceById(id) {
     if (!appState.invoices[id]) return;
+    const deletedDate = new Date(appState.invoices[id].createdAt).toDateString();
     if (!confirm(`Delete invoice "${appState.invoices[id].name}"? This cannot be undone.`)) return;
-    const deletedDate = new Date(appState.invoices[id]?.createdAt).toDateString();
+
     delete appState.invoices[id];
+
     if (Object.keys(appState.invoices).length === 0) {
         const newId = 'inv_' + Date.now();
         appState.invoices[newId] = getDefaultInvoice(newId, appState.lastCurrency);
         appState.currentInvoiceId = newId;
-        saveState();
+        saveState(true);
         refreshUI();
         return;
     }
@@ -193,7 +208,7 @@ function deleteInvoiceById(id) {
         if (!nextInvoice) nextInvoice = Object.values(appState.invoices)[0];
         appState.currentInvoiceId = nextInvoice.id;
     }
-    saveState();
+    saveState(true);
     refreshUI();
 }
 
@@ -234,10 +249,10 @@ function renderInvoiceTabs() {
         return new Date(inv.createdAt).toDateString() === currentDate;
     });
     sameDayInvoices.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
-    
+
     const container = document.querySelector('.invoice-tabs-container');
     container.style.display = 'block';
-    
+
     elements.invoiceTabs.innerHTML = sameDayInvoices.map(inv => {
         const timeStr = formatTimestamp(new Date(inv.createdAt)).split(' ')[1];
         const label = `${inv.name} ${timeStr}`;
@@ -249,14 +264,14 @@ function renderInvoiceTabs() {
             </button>
         `;
     }).join('');
-    
+
     document.querySelectorAll('.invoice-tab').forEach(btn => {
         btn.addEventListener('click', (e) => {
             if (e.target.classList.contains('close-tab')) return;
             const newId = btn.dataset.id;
             if (newId && appState.invoices[newId]) {
                 appState.currentInvoiceId = newId;
-                saveState();
+                saveState(true);
                 refreshUI();
             }
         });
@@ -303,6 +318,133 @@ function renderEmptyMessage() {
     } else if (existingMsg) existingMsg.remove();
 }
 
+// Event delegation for items
+function attachItemDelegation() {
+    // Description change (save immediately on blur/enter)
+    elements.itemsContainer.addEventListener('change', (e) => {
+        const descInput = e.target.closest('.item-desc');
+        if (descInput) {
+            const card = descInput.closest('.item-card');
+            if (card) {
+                const idx = parseInt(card.dataset.idx);
+                updateCurrentInvoice(inv => { inv.items[idx].description = descInput.value; return inv; }, true);
+                updateTotalsAndSummary();
+            }
+        }
+    });
+
+    // Live amount preview (debounced save)
+    let amountTimer;
+    elements.itemsContainer.addEventListener('input', (e) => {
+        const amountInput = e.target.closest('.item-amount-input');
+        if (amountInput) {
+            const card = amountInput.closest('.item-card');
+            if (card) {
+                const idx = parseInt(card.dataset.idx);
+                const raw = amountInput.value;
+                const numeric = safeMathParse(raw);
+                updateCurrentInvoice(inv => {
+                    inv.items[idx].amountRaw = raw;
+                    inv.items[idx].amount = numeric;
+                    return inv;
+                }, false); // debounced save
+                updateTotalsAndSummary();
+            }
+        }
+    });
+
+    // Amount blur → format and save immediately
+    elements.itemsContainer.addEventListener('blur', (e) => {
+        const amountInput = e.target.closest('.item-amount-input');
+        if (amountInput) {
+            const card = amountInput.closest('.item-card');
+            if (card) {
+                const idx = parseInt(card.dataset.idx);
+                let raw = amountInput.value;
+                if (raw.trim() === '') {
+                    amountInput.value = '';
+                    updateCurrentInvoice(inv => {
+                        inv.items[idx].amountRaw = '';
+                        inv.items[idx].amount = 0;
+                        return inv;
+                    }, true);
+                    updateTotalsAndSummary();
+                    return;
+                }
+                let numeric = safeMathParse(raw);
+                if (isNaN(numeric)) numeric = 0;
+                let formatted = numeric.toString();
+                if (raw.indexOf('.') === -1 && Number.isInteger(numeric)) {
+                    formatted = Math.floor(numeric).toString();
+                }
+                amountInput.value = formatted;
+                updateCurrentInvoice(inv => {
+                    inv.items[idx].amountRaw = formatted;
+                    inv.items[idx].amount = numeric;
+                    return inv;
+                }, true);
+                updateTotalsAndSummary();
+            }
+        }
+    });
+
+    // Delete item (immediate save)
+    elements.itemsContainer.addEventListener('click', (e) => {
+        const delBtn = e.target.closest('.delete-item');
+        if (delBtn) {
+            const card = delBtn.closest('.item-card');
+            if (card) {
+                const idx = parseInt(card.dataset.idx);
+                updateCurrentInvoice(inv => { inv.items.splice(idx, 1); return inv; }, true);
+                renderItems(); // structural change → full re-render
+                updateTotalsAndSummary();
+            }
+        }
+    });
+
+    // Payer chip toggle (immediate save)
+    elements.itemsContainer.addEventListener('click', (e) => {
+        const chip = e.target.closest('.payer-chip');
+        if (chip) {
+            const card = chip.closest('.item-card');
+            if (card) {
+                const itemIdx = parseInt(card.dataset.idx);
+                const personId = parseInt(chip.dataset.personId);
+                updateCurrentInvoice(inv => {
+                    const item = inv.items[itemIdx];
+                    if (item.paidBy.includes(personId)) {
+                        if (item.paidBy.length > 1) item.paidBy = item.paidBy.filter(id => id !== personId);
+                    } else {
+                        item.paidBy.push(personId);
+                    }
+                    return inv;
+                }, true);
+                // update only chips for this item
+                const chipsDiv = card.querySelector('.payer-chips');
+                if (chipsDiv) {
+                    const updatedItem = getCurrentInvoice().items[itemIdx];
+                    renderPayerChips(chipsDiv, updatedItem.paidBy, itemIdx);
+                }
+                updateTotalsAndSummary();
+            }
+        }
+    });
+}
+
+function renderPayerChips(container, paidBy, itemIdx) {
+    const inv = getCurrentInvoice();
+    container.innerHTML = '';
+    inv.people.forEach(person => {
+        const chip = document.createElement('span');
+        chip.className = 'payer-chip' + (paidBy.includes(person.id) ? ' active' : '');
+        chip.innerText = person.name;
+        chip.setAttribute('role', 'button');
+        chip.setAttribute('tabindex', '0');
+        chip.dataset.personId = person.id;
+        container.appendChild(chip);
+    });
+}
+
 function renderItems() {
     const inv = getCurrentInvoice();
     const itemsHtml = inv.items.map((item, idx) => `
@@ -323,61 +465,10 @@ function renderItems() {
     inv.items.forEach((item, idx) => {
         const card = elements.itemsContainer.querySelector(`.item-card[data-idx="${idx}"]`);
         if (!card) return;
-        const descInput = card.querySelector('.item-desc');
-        const amountInput = card.querySelector('.item-amount-input');
-        const deleteBtn = card.querySelector('.delete-item');
         const chipsDiv = card.querySelector('.payer-chips');
-
-        descInput.addEventListener('change', () => {
-            updateCurrentInvoice(inv => { inv.items[idx].description = descInput.value; return inv; });
-            updateTotalsAndSummary();
-        });
-
-        amountInput.addEventListener('input', () => {
-            const raw = amountInput.value;
-            const numeric = safeMathParse(raw);
-            updateCurrentInvoice(inv => {
-                inv.items[idx].amountRaw = raw;
-                inv.items[idx].amount = numeric;
-                return inv;
-            });
-            updateTotalsAndSummary();
-        });
-
-        amountInput.addEventListener('blur', () => {
-            const raw = amountInput.value;
-            if (raw.trim() === '') {
-                amountInput.value = '';
-                updateCurrentInvoice(inv => {
-                    inv.items[idx].amountRaw = '';
-                    inv.items[idx].amount = 0;
-                    return inv;
-                });
-                updateTotalsAndSummary();
-                return;
-            }
-            let numeric = safeMathParse(raw);
-            if (isNaN(numeric)) numeric = 0;
-            let formatted = numeric.toString();
-            if (raw.indexOf('.') === -1 && Number.isInteger(numeric)) {
-                formatted = Math.floor(numeric).toString();
-            }
-            amountInput.value = formatted;
-            updateCurrentInvoice(inv => {
-                inv.items[idx].amountRaw = formatted;
-                inv.items[idx].amount = numeric;
-                return inv;
-            });
-            updateTotalsAndSummary();
-        });
-
-        deleteBtn.addEventListener('click', () => {
-            updateCurrentInvoice(inv => { inv.items.splice(idx, 1); return inv; });
-            renderItems();
-            updateTotalsAndSummary();
-        });
-
-        renderPayerChips(chipsDiv, item.paidBy, idx);
+        if (chipsDiv) {
+            renderPayerChips(chipsDiv, item.paidBy, idx);
+        }
     });
 
     const addBtn = document.createElement('button');
@@ -394,38 +485,12 @@ function renderItems() {
                 paidBy: inv.people.map(p => p.id)
             });
             return inv;
-        });
+        }, true);
         renderItems();
         updateTotalsAndSummary();
     };
     elements.itemsContainer.appendChild(addBtn);
     renderEmptyMessage();
-}
-
-function renderPayerChips(container, paidBy, itemIdx) {
-    const inv = getCurrentInvoice();
-    container.innerHTML = '';
-    inv.people.forEach(person => {
-        const chip = document.createElement('span');
-        chip.className = 'payer-chip' + (paidBy.includes(person.id) ? ' active' : '');
-        chip.innerText = person.name;
-        chip.setAttribute('role', 'button');
-        chip.setAttribute('tabindex', '0');
-        chip.onclick = () => {
-            updateCurrentInvoice(inv => {
-                const item = inv.items[itemIdx];
-                if (item.paidBy.includes(person.id)) {
-                    if (item.paidBy.length > 1) item.paidBy = item.paidBy.filter(id => id !== person.id);
-                } else {
-                    item.paidBy.push(person.id);
-                }
-                return inv;
-            });
-            renderPayerChips(container, getCurrentInvoice().items[itemIdx].paidBy, itemIdx);
-            updateTotalsAndSummary();
-        };
-        container.appendChild(chip);
-    });
 }
 
 // ========================
@@ -604,7 +669,6 @@ function refreshUI() {
     renderSettings();
     renderItems();
     updateTotalsAndSummary();
-    // Ensure correct panel is visible
     const activeTab = document.querySelector('.tab-btn.active').dataset.tab;
     if (activeTab === 'summary') {
         document.getElementById('invoiceTab').classList.remove('active-panel');
@@ -635,13 +699,13 @@ function attachEventListeners() {
                 if (!item.paidBy.length && inv.people.length) item.paidBy = [inv.people[0].id];
             });
             return inv;
-        });
+        }, true);
         refreshUI();
     });
 
     elements.globalCurrency.addEventListener('change', e => {
         const newCurrency = e.target.value;
-        updateCurrentInvoice(inv => { inv.currency = newCurrency; return inv; });
+        updateCurrentInvoice(inv => { inv.currency = newCurrency; return inv; }, true);
         appState.lastCurrency = newCurrency;
         refreshUI();
     });
@@ -661,7 +725,7 @@ function attachEventListeners() {
             updateCurrentInvoice(inv => {
                 inv.people.forEach((p, idx) => { if (idx < parts.length && parts[idx]) p.name = parts[idx]; });
                 return inv;
-            });
+            }, true);
             refreshUI();
         }
     };
@@ -669,7 +733,7 @@ function attachEventListeners() {
     document.getElementById('editInvoiceNameBtn').onclick = () => {
         const newName = prompt('Edit invoice name (e.g., #1, Dinner)', getCurrentInvoice().name);
         if (newName) {
-            updateCurrentInvoice(inv => { inv.name = newName; return inv; });
+            updateCurrentInvoice(inv => { inv.name = newName; return inv; }, true);
             refreshUI();
         }
     };
@@ -677,13 +741,12 @@ function attachEventListeners() {
     document.getElementById('resetInvoiceBtn').onclick = () => {
         if (confirm('Reset current invoice? All items, people, settings, and custom currencies will be cleared (current currency will be kept).')) {
             const currentCurr = getCurrentInvoice().currency;
-            updateCurrentInvoice(() => getDefaultInvoice(appState.currentInvoiceId, currentCurr));
+            updateCurrentInvoice(() => getDefaultInvoice(appState.currentInvoiceId, currentCurr), true);
             resetCurrenciesToDefault(currentCurr);
             refreshUI();
         }
     };
 
-    // New Bill: copy people only, reset settings to defaults
     document.getElementById('newBillBtn').onclick = () => {
         const current = getCurrentInvoice();
         const newId = 'inv_' + Date.now();
@@ -702,7 +765,7 @@ function attachEventListeners() {
         };
         appState.invoices[newId] = newInv;
         appState.currentInvoiceId = newId;
-        saveState();
+        saveState(true);
         refreshUI();
     };
 
@@ -758,7 +821,7 @@ function attachEventListeners() {
                                 appState.currentInvoiceId = newId;
                             }
                         }
-                        saveState();
+                        saveState(true);
                         refreshUI();
                         alert('Import successful!');
                     }
@@ -771,6 +834,7 @@ function attachEventListeners() {
         input.click();
     };
 
+    // Settings fields – use 'change' and save immediately
     const settingFields = ['enableSC', 'scPercent', 'enableVAT', 'vatPercent', 'discountType', 'discountValue'];
     settingFields.forEach(id => {
         const el = document.getElementById(id);
@@ -796,7 +860,7 @@ function attachEventListeners() {
                     elements.scPercent.value = inv.settings.serviceCharge.percent;
                     elements.vatPercent.value = inv.settings.vat.percent;
                     return inv;
-                });
+                }, true);
                 updateTotalsAndSummary();
                 renderSettings();
             });
@@ -805,7 +869,7 @@ function attachEventListeners() {
 
     document.querySelectorAll('.timing-btn').forEach(btn => {
         btn.addEventListener('click', () => {
-            updateCurrentInvoice(inv => { inv.settings.discount.timing = btn.dataset.timing; return inv; });
+            updateCurrentInvoice(inv => { inv.settings.discount.timing = btn.dataset.timing; return inv; }, true);
             updateTotalsAndSummary();
             renderSettings();
         });
@@ -847,11 +911,10 @@ function attachEventListeners() {
         a.click();
     };
 
-    // Theme toggle
     const themeBtn = document.getElementById('themeToggleBtn');
     if (themeBtn) themeBtn.onclick = toggleTheme;
 
-    // History modal (unchanged)
+    // History modal
     let calendarDate = new Date();
     let selectedDate = null;
 
@@ -903,7 +966,7 @@ function attachEventListeners() {
                         const id = btn.dataset.id;
                         if (btn.classList.contains('load-invoice')) {
                             appState.currentInvoiceId = id;
-                            saveState();
+                            saveState(true);
                             refreshUI();
                             elements.historyModal.classList.add('hidden');
                             document.querySelector('.tab-btn[data-tab="invoice"]').click();
@@ -948,6 +1011,7 @@ function attachEventListeners() {
 function init() {
     loadState();
     attachEventListeners();
+    attachItemDelegation();
     loadTheme();
     refreshUI();
 }

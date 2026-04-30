@@ -641,22 +641,7 @@ function renderSummary(d = null) {
     const container = elements.receiptView;
     container.innerHTML = '';
 
-    // Helper to add a line (label + amount on next line)
-    function addLine(label, amountValue, isTotal = false) {
-        const div = document.createElement('div');
-        div.className = 'receipt-item' + (isTotal ? ' receipt-total' : '');
-        const labelSpan = document.createElement('div');
-        labelSpan.className = 'receipt-label';
-        labelSpan.textContent = label;
-        const amountSpan = document.createElement('div');
-        amountSpan.className = 'receipt-amount';
-        amountSpan.textContent = `${amountValue.toFixed(2)} ${curr}`;
-        div.appendChild(labelSpan);
-        div.appendChild(amountSpan);
-        container.appendChild(div);
-    }
-
-    // Header
+    // Title
     const title = document.createElement('div');
     title.innerHTML = '<strong>📋 RECEIPT</strong><br>';
     container.appendChild(title);
@@ -668,22 +653,36 @@ function renderSummary(d = null) {
         container.appendChild(emptyMsg);
     } else {
         items.forEach(it => {
-            addLine(it.description, it.amount);
+            const line = document.createElement('div');
+            line.className = 'receipt-line';
+            const descSpan = document.createElement('span');
+            descSpan.className = 'desc';
+            descSpan.textContent = it.description;
+            const amountSpan = document.createElement('span');
+            amountSpan.className = 'amount';
+            amountSpan.textContent = `${it.amount.toFixed(2)} ${curr}`;
+            line.appendChild(descSpan);
+            line.appendChild(amountSpan);
+            container.appendChild(line);
         });
     }
 
     // Separator
     const sep = document.createElement('div');
     sep.className = 'receipt-separator';
+    sep.textContent = '────────────────────────';
     container.appendChild(sep);
 
     // Subtotal
-    addLine('Subtotal', d.subtotalRaw);
+    const subtotalLine = document.createElement('div');
+    subtotalLine.className = 'receipt-line';
+    subtotalLine.innerHTML = `<span class="desc">Subtotal</span><span class="amount">${d.subtotalRaw.toFixed(2)} ${curr}</span>`;
+    container.appendChild(subtotalLine);
 
-    // Build lines according to discount timing
-    const scLine = sett.serviceCharge.enabled ? { label: `Service Charge (${sett.serviceCharge.percent}%)`, amount: d.totalSC } : null;
-    const vatLine = sett.vat.enabled ? { label: `VAT (${sett.vat.percent}%)`, amount: d.totalVAT } : null;
-    const discountLine = d.totalDiscountApplied > 0 ? { label: 'Discount', amount: -d.totalDiscountApplied } : null;
+    // Build lines in order according to discount timing
+    const scLine = sett.serviceCharge.enabled ? { desc: `Service Charge (${sett.serviceCharge.percent}%)`, amount: d.totalSC } : null;
+    const vatLine = sett.vat.enabled ? { desc: `VAT (${sett.vat.percent}%)`, amount: d.totalVAT } : null;
+    const discountLine = d.totalDiscountApplied > 0 ? { desc: 'Discount', amount: -d.totalDiscountApplied } : null;
 
     const lines = [];
     switch (sett.discount.timing) {
@@ -705,16 +704,31 @@ function renderSummary(d = null) {
     }
 
     lines.forEach(line => {
-        addLine(line.label, Math.abs(line.amount)); // amount stored as positive (except discount negative)
+        const lineDiv = document.createElement('div');
+        lineDiv.className = 'receipt-line';
+        const descSpan = document.createElement('span');
+        descSpan.className = 'desc';
+        descSpan.textContent = line.desc;
+        const amountSpan = document.createElement('span');
+        amountSpan.className = 'amount';
+        const sign = line.amount < 0 ? '-' : '';
+        const absAmount = Math.abs(line.amount).toFixed(2);
+        amountSpan.textContent = `${sign}${absAmount} ${curr}`;
+        lineDiv.appendChild(descSpan);
+        lineDiv.appendChild(amountSpan);
+        container.appendChild(lineDiv);
     });
 
-    // Final separator and total
     const finalSep = document.createElement('div');
     finalSep.className = 'receipt-separator';
+    finalSep.textContent = '────────────────────────';
     container.appendChild(finalSep);
-    addLine('FINAL TOTAL', d.finalTotal, true);
 
-    // Shares view remains unchanged
+    const totalLine = document.createElement('div');
+    totalLine.className = 'receipt-line';
+    totalLine.innerHTML = `<strong class="desc">FINAL TOTAL</strong><strong class="amount">${d.finalTotal.toFixed(2)} ${curr}</strong>`;
+    container.appendChild(totalLine);
+
     let sharesHtml = `<strong>🧾 PER PERSON SHARES</strong><br><br>`;
     if (people.length === 0) {
         sharesHtml += `<em>No people added</em>`;
@@ -969,55 +983,16 @@ function attachEventListeners() {
 
     document.getElementById('printSummaryBtn').onclick = () => window.print();
     document.getElementById('exportCsvBtn').onclick = () => {
-    const inv = getCurrentInvoice();
-    const d = computeDetailed(inv);
-    const curr = inv.currency;
-    const rows = [];
-
-    // ----- Receipt section -----
-    rows.push('"RECEIPT"');
-    rows.push('"Description","Amount"');
-    inv.items.forEach(item => {
-        rows.push(`"${item.description}",${item.amount.toFixed(2)} ${curr}`);
-    });
-    rows.push('""'); // empty row
-    rows.push(`"Subtotal",${d.subtotalRaw.toFixed(2)} ${curr}`);
-    if (inv.settings.serviceCharge.enabled) {
-        rows.push(`"Service Charge (${inv.settings.serviceCharge.percent}%)",${d.totalSC.toFixed(2)} ${curr}`);
-    }
-    if (inv.settings.vat.enabled) {
-        rows.push(`"VAT (${inv.settings.vat.percent}%)",${d.totalVAT.toFixed(2)} ${curr}`);
-    }
-    if (d.totalDiscountApplied > 0) {
-        rows.push(`"Discount",-${d.totalDiscountApplied.toFixed(2)} ${curr}`);
-    }
-    rows.push('""');
-    rows.push(`"FINAL TOTAL",${d.finalTotal.toFixed(2)} ${curr}`);
-    rows.push(''); // blank line between sections
-    rows.push(''); 
-
-    // ----- Per‑person shares section -----
-    rows.push('"PER PERSON SHARES"');
-    rows.push('"Person","Total","Subtotal","SC","Discount","VAT"');
-    inv.people.forEach((p, i) => {
-        rows.push([
-            `"${p.name}"`,
-            d.personFinal[i].toFixed(2),
-            d.personSubtotal[i].toFixed(2),
-            d.personSC[i].toFixed(2),
-            d.personDiscount[i].toFixed(2),
-            d.personVAT[i].toFixed(2)
-        ].join(','));
-    });
-
-    const csv = rows.join('\n');
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = `fairshare_${inv.name}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
-};
+        const d = computeDetailed(getCurrentInvoice());
+        const rows = [['Person','Total','Subtotal','SC','Discount','VAT']];
+        getCurrentInvoice().people.forEach((p,i) => rows.push([p.name, d.personFinal[i].toFixed(2), d.personSubtotal[i].toFixed(2), d.personSC[i].toFixed(2), d.personDiscount[i].toFixed(2), d.personVAT[i].toFixed(2)]));
+        const csv = rows.map(r => r.join(',')).join('\n');
+        const blob = new Blob([csv], {type: 'text/csv'});
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `fairshare_${getCurrentInvoice().name}.csv`;
+        a.click();
+    };
 
     const themeBtn = document.getElementById('themeToggleBtn');
     if (themeBtn) themeBtn.onclick = toggleTheme;

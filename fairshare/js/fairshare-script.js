@@ -90,12 +90,18 @@ const safeMathParse = expr => {
     const cleaned = expr.replace(/[^0-9+\-*/().]/g, '');
     if (!cleaned) return 0;
     if (/^[\d.]+$/.test(cleaned)) {
-        const num = parseFloat(cleaned);
-        return isNaN(num) ? 0 : num;
+        let num = parseFloat(cleaned);
+        if (isNaN(num)) return 0;
+        num = Math.max(0, num);
+        return Math.round(num * 100) / 100;
     }
     try {
-        const val = Function('"use strict"; return (' + cleaned + ')')();
-        return (typeof val === 'number' && !isNaN(val) && isFinite(val)) ? Math.abs(val) : 0;
+        let val = Function('"use strict"; return (' + cleaned + ')')();
+        if (typeof val === 'number' && !isNaN(val) && isFinite(val)) {
+            val = Math.max(0, val);
+            return Math.round(val * 100) / 100;
+        }
+        return 0;
     } catch { return 0; }
 };
 
@@ -344,6 +350,38 @@ function renderEmptyMessage() {
     } else if (existingMsg) existingMsg.remove();
 }
 
+function handleAmountBlur(e) {
+    const amountInput = e.target;
+    const card = amountInput.closest('.item-card');
+    if (!card) return;
+
+    const idx = parseInt(card.dataset.idx);
+    let raw = amountInput.value.trim();
+
+    if (raw === '') {
+        amountInput.value = '';
+        updateCurrentInvoice(inv => {
+            inv.items[idx].amountRaw = '';
+            inv.items[idx].amount = 0;
+            return inv;
+        }, true);
+        updateTotalsAndSummary();
+        return;
+    }
+
+    let numeric = safeMathParse(raw);
+    if (isNaN(numeric)) numeric = 0;
+    const formatted = numeric.toFixed(2);
+    amountInput.value = formatted;
+
+    updateCurrentInvoice(inv => {
+        inv.items[idx].amountRaw = formatted;
+        inv.items[idx].amount = numeric;
+        return inv;
+    }, true);
+    updateTotalsAndSummary();
+}
+
 // Event delegation for items
 function attachItemDelegation() {
     elements.itemsContainer.addEventListener('change', (e) => {
@@ -371,40 +409,6 @@ function attachItemDelegation() {
                     inv.items[idx].amount = numeric;
                     return inv;
                 }, false);
-                updateTotalsAndSummary();
-            }
-        }
-    });
-
-    elements.itemsContainer.addEventListener('blur', (e) => {
-        const amountInput = e.target.closest('.item-amount-input');
-        if (amountInput) {
-            const card = amountInput.closest('.item-card');
-            if (card) {
-                const idx = parseInt(card.dataset.idx);
-                let raw = amountInput.value;
-                if (raw.trim() === '') {
-                    amountInput.value = '';
-                    updateCurrentInvoice(inv => {
-                        inv.items[idx].amountRaw = '';
-                        inv.items[idx].amount = 0;
-                        return inv;
-                    }, true);
-                    updateTotalsAndSummary();
-                    return;
-                }
-                let numeric = safeMathParse(raw);
-                if (isNaN(numeric)) numeric = 0;
-                let formatted = numeric.toString();
-                if (raw.indexOf('.') === -1 && Number.isInteger(numeric)) {
-                    formatted = Math.floor(numeric).toString();
-                }
-                amountInput.value = formatted;
-                updateCurrentInvoice(inv => {
-                    inv.items[idx].amountRaw = formatted;
-                    inv.items[idx].amount = numeric;
-                    return inv;
-                }, true);
                 updateTotalsAndSummary();
             }
         }
@@ -480,6 +484,11 @@ function renderItems() {
         </div>
     `).join('');
     elements.itemsContainer.innerHTML = itemsHtml;
+
+    // Attach blur listeners directly to each amount input
+    document.querySelectorAll('.item-amount-input').forEach(input => {
+        input.addEventListener('blur', handleAmountBlur);
+    });
 
     inv.items.forEach((item, idx) => {
         const card = elements.itemsContainer.querySelector(`.item-card[data-idx="${idx}"]`);
@@ -646,27 +655,37 @@ function renderSummary(d = null) {
     const sett = inv.settings;
     const curr = inv.currency;
 
-    // Collect all raw amounts for max length calculation (raw = without commas)
-    const amountValuesRaw = [];
-    items.forEach(it => amountValuesRaw.push(it.amount));
-    amountValuesRaw.push(d.subtotalRaw);
-    if (sett.serviceCharge.enabled) amountValuesRaw.push(d.totalSC);
-    if (sett.vat.enabled) amountValuesRaw.push(d.totalVAT);
-    if (d.totalDiscountApplied > 0) amountValuesRaw.push(d.totalDiscountApplied);
-    amountValuesRaw.push(d.finalTotal);
+    // Collect all displayed values (including negative for discount)
+    const displayValues = [];
+    items.forEach(it => displayValues.push(it.amount));
+    displayValues.push(d.subtotalRaw);
+    if (sett.serviceCharge.enabled) displayValues.push(d.totalSC);
+    if (sett.vat.enabled) displayValues.push(d.totalVAT);
+    if (d.totalDiscountApplied > 0) displayValues.push(-d.totalDiscountApplied);
+    displayValues.push(d.finalTotal);
 
+    // Compute formatted strings and max visual length (including sign, commas, currency)
     let maxLen = 0;
-    amountValuesRaw.forEach(val => {
-        const str = val.toFixed(2);
-        if (str.length > maxLen) maxLen = str.length;
+    const formattedCache = {};
+    displayValues.forEach(val => {
+        const absVal = Math.abs(val);
+        const sign = val < 0 ? '-' : '';
+        const numPart = formatNumberWithCommas(absVal);
+        const withCurrency = `${sign}${numPart} ${curr}`;
+        formattedCache[val] = withCurrency;
+        if (withCurrency.length > maxLen) maxLen = withCurrency.length;
     });
 
     function formatAmount(value) {
-        const numStr = formatNumberWithCommas(value);
-        const rawStr = value.toFixed(2);
-        const padCount = maxLen - rawStr.length;
+        const rawDisplay = formattedCache[value] || (() => {
+            const absVal = Math.abs(value);
+            const sign = value < 0 ? '-' : '';
+            const numPart = formatNumberWithCommas(absVal);
+            return `${sign}${numPart} ${curr}`;
+        })();
+        const padCount = maxLen - rawDisplay.length;
         const padding = '&nbsp;'.repeat(Math.max(0, padCount));
-        return `${padding}${numStr} ${curr}`;
+        return `${padding}${rawDisplay}`;
     }
 
     const container = elements.receiptView;
@@ -708,7 +727,12 @@ function renderSummary(d = null) {
     // Build lines according to discount timing
     const scLine = sett.serviceCharge.enabled ? { label: `Service Charge (${sett.serviceCharge.percent}%)`, amount: d.totalSC } : null;
     const vatLine = sett.vat.enabled ? { label: `VAT (${sett.vat.percent}%)`, amount: d.totalVAT } : null;
-    const discountLine = d.totalDiscountApplied > 0 ? { label: 'Discount', amount: d.totalDiscountApplied } : null;
+    const discountLine = d.totalDiscountApplied > 0 ? {
+    label: sett.discount.type === 'percent'
+        ? `Discount (${sett.discount.value}%)`
+        : 'Discount',
+    amount: -d.totalDiscountApplied
+    } : null;
 
     const lines = [];
     switch (sett.discount.timing) {
@@ -732,9 +756,7 @@ function renderSummary(d = null) {
     lines.forEach(line => {
         const div = document.createElement('div');
         div.className = 'receipt-item';
-        const isDiscount = line.label === 'Discount';
-        const amountToShow = isDiscount ? -line.amount : line.amount;
-        div.innerHTML = `<div class="receipt-label">${line.label}</div><div class="receipt-amount">${formatAmount(amountToShow)}</div>`;
+        div.innerHTML = `<div class="receipt-label">${line.label}</div><div class="receipt-amount">${formatAmount(line.amount)}</div>`;
         container.appendChild(div);
     });
 
@@ -748,7 +770,7 @@ function renderSummary(d = null) {
     totalDiv.innerHTML = `<div class="receipt-label"><strong>FINAL TOTAL</strong></div><div class="receipt-amount"><strong>${formatAmount(d.finalTotal)}</strong></div>`;
     container.appendChild(totalDiv);
 
-    // Shares view
+    // Shares view remains unchanged
     let sharesHtml = `<strong>🧾 PER PERSON SHARES</strong><br><br>`;
     if (people.length === 0) {
         sharesHtml += `<em>No people added</em>`;
@@ -1023,7 +1045,10 @@ function attachEventListeners() {
         rows.push(`"VAT (${inv.settings.vat.percent}%)",${d.totalVAT.toFixed(2)},"${curr}"`);
     }
     if (d.totalDiscountApplied > 0) {
-        rows.push(`"Discount",-${d.totalDiscountApplied.toFixed(2)},"${curr}"`);
+    const discountLabel = inv.settings.discount.type === 'percent'
+        ? `Discount (${inv.settings.discount.value}%)`
+        : 'Discount';
+    rows.push(`"${discountLabel}",-${d.totalDiscountApplied.toFixed(2)},"${curr}"`);
     }
     rows.push('""');
     rows.push(`"FINAL TOTAL",${d.finalTotal.toFixed(2)},"${curr}"`);

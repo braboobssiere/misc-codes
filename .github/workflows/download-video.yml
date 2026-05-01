@@ -58,7 +58,7 @@ jobs:
 
       - name: Maximize runner disk
         if: ${{ github.event.inputs.expand_storage == 'true' }}
-        uses: justinthelaw/maximize-github-runner-space@v0.8.0
+        uses: justinthelaw/maximize-github-runner-space@v0.9.0
         with:
            cleanup-profile: max
            skip-components: cached-tools

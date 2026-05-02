@@ -64,7 +64,7 @@ jobs:
           sudo mkdir -p /usr/local/sbin/noip-renew/
           echo "${{ secrets.NOIP_CREDENTIALS }}" | sudo tee /usr/local/sbin/noip-renew/credentials.txt > /dev/null
           chmod +x noip-renew/setup.sh
-          printf "Y\n" | noip-renew/setup.sh
+          printf "Y\n" | sudo noip-renew/setup.sh
 
       - name: VPN Cleanup
         if: always()

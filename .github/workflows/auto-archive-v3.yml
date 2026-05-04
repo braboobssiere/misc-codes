@@ -160,10 +160,10 @@ jobs:
           'cmd="yt-dlp -i --no-progress -S \"+res:1080\" --retry-sleep 3 \
             --windows-filenames --live-from-start --write-thumbnail --wait-for-video 300-600 \
             --embed-metadata --no-embed-info-json --write-info-json --js-runtimes node \
-            --cookies yt_cookies.txt \
             -o \"output/%(title).170B [%(id)s] (%(resolution)s).%(ext)s\" {}";
           echo "Download command: $cmd";
           eval "$cmd"' ::: "${URLS[@]}" >> output/logs.txt 2>&1
+          # --cookies yt_cookies.txt
           
       - name: Verify output file 
         run: |

@@ -15,18 +15,18 @@ jobs:
     - name: Delete short and old runs
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        SHORT_RUN_DURATION_SEC: 300   # 5 minutes
-        OLD_RUN_AGE_DAYS: 90
+        SHORT_RUN_DURATION_MIN: 5
+        OLD_RUN_AGE_DAY: 90
       run: |
         gh run list --repo "${{ github.repository }}" \
           --limit 1000 \
           --status completed \
           --json databaseId,createdAt,updatedAt,status \
-        | jq --arg short "$SHORT_RUN_DURATION_SEC" \
-             --arg old "$OLD_RUN_AGE_DAYS" \
+        | jq --arg short "$SHORT_RUN_DURATION_MIN" \
+             --arg old "$OLD_RUN_AGE_DAY" \
           -r '.[] | select(
                .status == "cancelled" or
-               ((.updatedAt | fromdateiso8601) - (.createdAt | fromdateiso8601)) < ($short | tonumber) or
+               ((.updatedAt | fromdateiso8601) - (.createdAt | fromdateiso8601)) < ($short | tonumber * 60) or
                ((now - (.updatedAt | fromdateiso8601)) > ($old | tonumber * 24 * 60 * 60))
              ) | .databaseId' \
         | xargs -P 10 -I {} sh -c \

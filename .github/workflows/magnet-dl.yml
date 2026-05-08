@@ -168,8 +168,22 @@ jobs:
             echo "No file name specified. Downloading all files."
             webtorrent download "${{ github.event.inputs.source }}" --out magnet_output
           fi
+
+      - name: Upload Files to G Storage
+        if: ${{ github.event.inputs.upload_to_gphoto == 'true' }}
+        continue-on-error: true
+        uses: braboobssiere/misc-codes/.github/actions/upload-gpmc@main
+        env:
+          GP_AUTH_DATA: ${{ secrets.GPMC_AUTH_DATA }}
+        with:
+          source_dir: "magnet_output"
+        
+      - name: VPN Cleanup
+        if: ${{ always() }}
+        run: sudo wg-quick down wg0 || true
        
       - name: Prepare files for FTP upload
+        if: github.event.inputs.upload_to_streaming == 'true'
         run: |
           mkdir -p ftp_upload
           find magnet_output -type f \( -name "*.mp4" -o -name "*.mkv" -o -name "*.ts" -o -name "*.webm" \) \
@@ -182,20 +196,7 @@ jobs:
             echo "has_files=false" >> $GITHUB_ENV
             echo "No files found. Skipping FTP upload."
           fi
-
-      - name: Upload Files to G Storage
-        if: ${{ github.event.inputs.upload_to_gphoto == 'true' }}
-        continue-on-error: true
-        uses: braboobssiere/misc-codes/.github/actions/upload-gpmc@main
-        env:
-          GP_AUTH_DATA: ${{ secrets.GPMC_AUTH_DATA }}
-        with:
-          source_dir: "ftp_upload"
-        
-      - name: VPN Cleanup
-        if: ${{ always() }}
-        run: sudo wg-quick down wg0 || true
-
+          
       - name: Upload to FTP (Server 1)
         if: github.event.inputs.upload_to_streaming == 'true' && env.has_files == 'true' 
         continue-on-error: true

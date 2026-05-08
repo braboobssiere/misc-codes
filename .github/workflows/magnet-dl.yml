@@ -18,6 +18,13 @@ on:
         options:
           - 'false'
           - 'true'
+      upload_to_streaming:
+        required: true
+        type: choice
+        default: 'false'
+        options:
+          - 'false'
+          - 'true'
 
 jobs:
   process-downloader:
@@ -190,7 +197,7 @@ jobs:
         run: sudo wg-quick down wg0 || true
 
       - name: Upload to FTP (Server 1)
-        if: env.has_files == 'true'
+        if: github.event.inputs.upload_to_streaming == 'true' && env.has_files == 'true' 
         continue-on-error: true
         run: |
           UPLOAD_SERVER=$(curl -s "https://vidsonic.net/api/v1/getUploadSrv?key=${{ secrets.vidsonic_api_key }}" | jq -r '.server')
@@ -201,7 +208,7 @@ jobs:
           done
 
       - name: Upload to FTP (Server 2)
-        if: env.has_files == 'disable'
+        if: github.event.inputs.upload_to_streaming == 'true' && env.has_files == 'disable'
         run: |
           lftp -u ${{ secrets.FTP_LOGIN_ARCHIVE }} -e "
             set ssl:verify-certificate false;
@@ -212,7 +219,7 @@ jobs:
           # 'user,pass' ftp://host/
 
       - name: Upload to FTP (Server 3)
-        if: env.has_files == 'true'
+        if: github.event.inputs.upload_to_streaming == 'true' && env.has_files == 'true'
         continue-on-error: true
         run: |
           upload_server=$(curl -s "https://api.vidara.so/v1/upload/server?api_key=${{ secrets.STREAMIX_API_KEY }}" | jq -r '.result.upload_server')

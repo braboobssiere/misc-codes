@@ -1,0 +1,40 @@
+name: RE-upload artifact
+
+on:
+  workflow_dispatch:
+    inputs:
+      run_url:
+        required: true
+
+jobs:
+  download:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Extract run ID from URL
+        id: extract
+        run: |
+          # Extract numeric run ID from the end of the URL
+          RUN_ID=$(echo "${{ github.event.inputs.run_url }}" | grep -oE '[0-9]+$')
+          echo "run_id=$RUN_ID" >> $GITHUB_OUTPUT
+          mkdir -p output
+
+      - name: Download artifact
+        uses: actions/download-artifact@v8
+        with:
+          run-id: ${{ steps.extract.outputs.run_id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: output
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: downloaded-video
+          path: output
+          compression-level: 1
+          if-no-files-found: error
+
+      - name: Upload Files to Gofile
+        uses: braboobssiere/misc-codes/.github/actions/upload-cloud@main
+        with:
+          source_dir: "output"
+          discord_webhook: ${{ secrets.DISCORD_WEBHOOK }}

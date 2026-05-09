@@ -26,22 +26,20 @@ jobs:
           channel: 'stable'
           cache: true
 
-      # The example app is at flutter/example/
-      - name: ✏️ Inject FFmpegKit config (full) into example/pubspec.yaml
+      # Insert config using echo lines instead of heredoc
+      - name: ✏️ Inject FFmpegKit config (full)
         working-directory: flutter/example
         run: |
           if ! grep -q "ffmpeg_kit_extended_config:" pubspec.yaml; then
-            cat >> pubspec.yaml << 'EOF'
-
-  ffmpeg_kit_extended_config:
-    type: "full"
-    gpl: true
-    small: false
-EOF
+            echo "" >> pubspec.yaml
+            echo "  ffmpeg_kit_extended_config:" >> pubspec.yaml
+            echo "    type: \"full\"" >> pubspec.yaml
+            echo "    gpl: true" >> pubspec.yaml
+            echo "    small: false" >> pubspec.yaml
           else
             echo "Config already present."
           fi
-          cat pubspec.yaml   # debug
+          cat pubspec.yaml   # Debug
 
       - name: 🧹 Clean previous builds
         working-directory: flutter/example
@@ -61,7 +59,7 @@ EOF
           restore-keys: |
             ${{ runner.os }}-gradle-
 
-      - name: 🔨 Build release APK
+      - name: 🔨 Build release APK (split per ABI)
         working-directory: flutter/example
         run: flutter build apk --release --split-per-abi
 
@@ -70,35 +68,4 @@ EOF
         with:
           name: ffmpegkit-full-apk
           path: flutter/example/build/app/outputs/flutter-apk/*.apk
-          retention-days: 30
-      # ✅ Now set working-directory for all Flutter commands
-      - name: 📦 Install dependencies
-        working-directory: flutter
-        run: flutter pub get
-
-      - name: 🎬 Configure FFmpegKit (Full)
-        working-directory: flutter
-        run: dart run ffmpeg_kit_extended_flutter:configure --platform=android --verbose
-        env:
-          FFMPEG_KIT_FULL: "true"
-
-      - name: 💾 Cache Gradle
-        uses: actions/cache@v5
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-          restore-keys: |
-            ${{ runner.os }}-gradle-
-
-      - name: 🔨 Build release APK
-        working-directory: flutter
-        run: flutter build apk --release --split-per-abi
-
-      - name: 📤 Upload APK artifacts
-        uses: actions/upload-artifact@v7
-        with:
-          name: ffmpegkit-example-apk
-          path: flutter/build/app/outputs/flutter-apk/*.apk
           retention-days: 30

@@ -22,11 +22,19 @@ jobs:
       - name: 🐦 Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.24.0'
+          flutter-version: '3.24.0'   # Or 'stable' for latest
           channel: 'stable'
           cache: true
 
-      # Insert config using echo lines instead of heredoc
+      # 🔧 Lower SDK constraint to match Dart 3.5.0
+      - name: 🔧 Fix SDK constraint
+        working-directory: flutter/example
+        run: |
+          sed -i 's/>=3.10.0/>=3.5.0/g' pubspec.yaml
+          echo "Updated SDK constraint:"
+          grep "sdk:" pubspec.yaml || true
+
+      # Inject full FFmpegKit config
       - name: ✏️ Inject FFmpegKit config (full)
         working-directory: flutter/example
         run: |
@@ -36,10 +44,7 @@ jobs:
             echo "    type: \"full\"" >> pubspec.yaml
             echo "    gpl: true" >> pubspec.yaml
             echo "    small: false" >> pubspec.yaml
-          else
-            echo "Config already present."
           fi
-          cat pubspec.yaml   # Debug
 
       - name: 🧹 Clean previous builds
         working-directory: flutter/example
@@ -59,7 +64,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-
 
-      - name: 🔨 Build release APK (split per ABI)
+      - name: 🔨 Build release APK
         working-directory: flutter/example
         run: flutter build apk --release --split-per-abi
 

@@ -1,4 +1,4 @@
-name: Build Android APK from FFmpegKit Extended Repo
+name: Build Example APK (Full FFmpegKit)
 
 on:
   workflow_dispatch:
@@ -26,15 +26,51 @@ jobs:
           channel: 'stable'
           cache: true
 
-      # 🔍 Debug: Show directory structure to locate the Flutter app
-      - name: 📂 List repository contents
-        run: ls -la
+      # The example app is at flutter/example/
+      - name: ✏️ Inject FFmpegKit config (full) into example/pubspec.yaml
+        working-directory: flutter/example
+        run: |
+          if ! grep -q "ffmpeg_kit_extended_config:" pubspec.yaml; then
+            cat >> pubspec.yaml << 'EOF'
 
-      # The Flutter app is inside the "flutter" folder
-      - name: 📂 Change to Flutter app directory
-        run: cd flutter
-        # Note: This cd only affects this step; we must set working-directory for later steps.
+  ffmpeg_kit_extended_config:
+    type: "full"
+    gpl: true
+    small: false
+EOF
+          else
+            echo "Config already present."
+          fi
+          cat pubspec.yaml   # debug
 
+      - name: 🧹 Clean previous builds
+        working-directory: flutter/example
+        run: flutter clean
+
+      - name: 📦 Install dependencies
+        working-directory: flutter/example
+        run: flutter pub get
+
+      - name: 💾 Cache Gradle
+        uses: actions/cache@v5
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('flutter/example/android/*.gradle*', 'flutter/example/android/gradle/wrapper/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: 🔨 Build release APK
+        working-directory: flutter/example
+        run: flutter build apk --release --split-per-abi
+
+      - name: 📤 Upload APK artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: ffmpegkit-full-apk
+          path: flutter/example/build/app/outputs/flutter-apk/*.apk
+          retention-days: 30
       # ✅ Now set working-directory for all Flutter commands
       - name: 📦 Install dependencies
         working-directory: flutter

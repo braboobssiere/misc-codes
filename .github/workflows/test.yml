@@ -1,4 +1,4 @@
-name: Build Android APK (Full FFmpegKit)
+name: Build Android APK from FFmpegKit Extended Repo
 
 on:
   workflow_dispatch:
@@ -8,36 +8,54 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # Latest checkout action
-      - name: 📥 Checkout code
+      # 1. Checkout the target repository (ffmpeg-kit-extended)
+      - name: 📥 Checkout ffmpeg-kit-extended
         uses: actions/checkout@v6
+        with:
+          repository: akashskypatel/ffmpeg-kit-extended
+          # You can specify a branch or tag; default is the default branch
+          # ref: main
 
-      # Latest setup-java action
+      # 2. Set up Java 17
       - name: ☕ Set up JDK 17
         uses: actions/setup-java@v5
         with:
           distribution: 'temurin'
           java-version: '17'
 
-      # Latest flutter-action (still v2 major tag)
+      # 3. Set up Flutter (latest stable)
       - name: 🐦 Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          # The latest stable Flutter version as of May 2026 is 3.41.8[reference:9].
-          # It's recommended to pin to a specific version for reproducible builds.
-          flutter-version: '3.41.8'
+          flutter-version: '3.24.0'  # or use 'stable' to pick latest
           channel: 'stable'
           cache: true
 
+      # 4. Navigate to the Flutter example app (assuming it's in /example)
+      - name: 📂 Change to example directory
+        run: |
+          ls -la   # Debug: list contents
+          if [ -d "example" ]; then
+            cd example
+            echo "Working in example directory"
+          else
+            echo "No example directory – building from root"
+          fi
+        working-directory: ${{ github.workspace }}
+
+      # 5. Get dependencies
       - name: 📦 Install dependencies
         run: flutter pub get
 
+      # 6. Configure FFmpegKit for "full" build (you can also set in pubspec.yaml)
       - name: 🎬 Configure FFmpegKit (Full)
         run: dart run ffmpeg_kit_extended_flutter:configure --platform=android --verbose
         env:
           FFMPEG_KIT_FULL: "true"
+        # If the plugin hasn't been published yet, you might need to use path dependency.
+        # But the repo includes the plugin via git dependency.
 
-      # Updated cache action
+      # 7. Cache Gradle
       - name: 💾 Cache Gradle
         uses: actions/cache@v5
         with:
@@ -48,13 +66,14 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-
 
+      # 8. Build APK (split per ABI)
       - name: 🔨 Build release APK
         run: flutter build apk --release --split-per-abi
 
-      # Updated upload-artifact action
+      # 9. Upload APK artifacts
       - name: 📤 Upload APK artifacts
         uses: actions/upload-artifact@v7
         with:
-          name: android-apk-full
+          name: ffmpegkit-example-apk
           path: build/app/outputs/flutter-apk/*.apk
           retention-days: 30

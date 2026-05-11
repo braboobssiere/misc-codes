@@ -26,7 +26,9 @@ runs:
   steps:
     - name: Install gpmc client
       shell: bash
-      run: python3 -m pip install -U 'https://github.com/xob0t/google_photos_mobile_client/archive/refs/heads/main.zip'
+      run: |
+        python3 -m pip install -U 'https://github.com/xob0t/google_photos_mobile_client/archive/refs/heads/main.zip'
+        mkdir -p "$SOURCE_DIR"
       
     - name: convert TS to MKV
       shell: bash
@@ -54,5 +56,4 @@ runs:
       env:
         SOURCE_DIR: ${{ inputs.source_dir }}
       run: |
-        mkdir -p "$SOURCE_DIR"
         gpmc "$SOURCE_DIR" | grep -v "User:"

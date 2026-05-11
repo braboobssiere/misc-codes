@@ -33,27 +33,26 @@ runs:
     - name: convert TS to MKV
       shell: bash
       run: |
-          # Check if any .ts files exist in ftp_upload
-          if find "$SOURCE_DIR" -name "*.ts" -type f | grep -q .; then
-            echo "Found .ts file(s). Installing ffmpeg..."
-            sudo apt-get update
-            sudo apt-get install -y ffmpeg
-            
-            for ts_file in "$SOURCE_DIR"/*.ts; do
-              if [ -f "$ts_file" ]; then
-                mkv_file="${ts_file%.ts}.mkv"
-                echo "Converting: $ts_file → $mkv_file"
-                ffmpeg -i "$ts_file" -c copy -y "$mkv_file" && {
-                  echo "Conversion successful. Removing: $ts_file"
-                  rm "$ts_file"
-                }
-              fi
-            done
-          fi
+        # Check if any .ts files exist in dir
+        if find "$SOURCE_DIR" -name "*.ts" -type f | grep -q .; then
+          echo "Found .ts file(s). Installing ffmpeg..."
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+          
+          # Recursively process each .ts file
+          find "$SOURCE_DIR" -name "*.ts" -type f | while read -r ts_file; do
+            mkv_file="${ts_file%.ts}.mkv"
+            echo "Converting: $ts_file → $mkv_file"
+            if ffmpeg -i "$ts_file" -c copy -y "$mkv_file"; then
+              echo "Conversion successful. Removing: $ts_file"
+              rm "$ts_file"
+            else
+              echo "Conversion failed for: $ts_file"
+            fi
+          done
+        fi
 
     - name: Upload files
       shell: bash
-      env:
-        SOURCE_DIR: ${{ inputs.source_dir }}
       run: |
-        gpmc "$SOURCE_DIR" | grep -v "User:"
+        gpmc "$SOURCE_DIR" --recursive | grep -v "User:"

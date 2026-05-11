@@ -55,4 +55,4 @@ runs:
     - name: Upload files
       shell: bash
       run: |
-        gpmc "$SOURCE_DIR" --recursive | grep -v "User:"
+        gpmc --recursive "$SOURCE_DIR" | grep -v "User:"

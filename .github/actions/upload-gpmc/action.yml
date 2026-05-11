@@ -28,12 +28,13 @@ runs:
       shell: bash
       run: |
         python3 -m pip install -U 'https://github.com/xob0t/google_photos_mobile_client/archive/refs/heads/main.zip'
-        mkdir -p "$SOURCE_DIR"
+        echo "SOURCE_DIR=${{ inputs.source_dir }}" >> $GITHUB_ENV
       
     - name: convert TS to MKV
       shell: bash
       run: |
         # Check if any .ts files exist in dir
+        mkdir -p "$SOURCE_DIR"
         if find "$SOURCE_DIR" -name "*.ts" -type f | grep -q .; then
           echo "Found .ts file(s). Installing ffmpeg..."
           sudo apt-get update

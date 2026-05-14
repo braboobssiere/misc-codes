@@ -24,7 +24,7 @@ jobs:
           echo "GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}" >> $GITHUB_ENV
 
       - name: Verify Gemini installation and authentication
-        run: gemini 
+        run: gemini hi
 
       - name: Run ai-sub to generate subtitles
         run: |

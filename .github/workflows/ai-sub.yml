@@ -27,7 +27,6 @@ jobs:
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: |
-          export GOOGLE_API_KEY=${GEMINI_API_KEY}
           # Download the file and capture the actual filename
           ACTUAL_FILE=$(curl -L -J -O --write-out '%{filename_effective}' --silent --show-error "${{ github.event.inputs.media_url }}")
           # Remux to MKV (fast & lossless) to ensure proper container format

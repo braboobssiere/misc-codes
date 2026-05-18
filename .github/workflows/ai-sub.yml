@@ -37,7 +37,7 @@ jobs:
           ffmpeg -i "$ACTUAL_FILE" -c copy "$REMUXED_FILE" -y
           
           # Run ai-sub on the remuxed file
-          ai-sub --split.re-encode.enabled=True --dir.out "./output/" "./$REMUXED_FILE"
+          ai-sub --ai.google.key ${GEMINI_API_KEY} --thread.lyrics 0 --dir.out "./output/" "./$REMUXED_FILE"
 
       - name: Upload subtitle files as artifact
         uses: actions/upload-artifact@v7

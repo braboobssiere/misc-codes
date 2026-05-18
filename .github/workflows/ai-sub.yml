@@ -27,7 +27,6 @@ jobs:
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: |
-          gemini "explained pgp"
           # Download the file and capture the actual filename
           ACTUAL_FILE=$(curl -L -J -O --write-out '%{filename_effective}' --silent --show-error "${{ github.event.inputs.media_url }}")
           

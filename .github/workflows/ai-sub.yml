@@ -11,9 +11,10 @@ on:
 jobs:
   process-media:
     runs-on: ubuntu-latest
+    env:
+      GEMINI_CLI_TRUST_WORKSPACE: true
 
     steps:
-
       - name: Install system dependencies
         run: |
           sudo apt-get update
@@ -21,19 +22,26 @@ jobs:
           pip install --upgrade ai-sub
           npm install -g @google/gemini-cli
           mkdir -p output
-          echo "GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}" >> $GITHUB_ENV
 
-      - name: Verify Gemini installation and authentication
-        run: gemini hi
-
-      - name: Run ai-sub to generate subtitles
+      - name: Download media and generate subtitles
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: |
-          curl -L -o media_file "${{ github.event.inputs.media_url }}"
-          ai-sub --split.re-encode.enabled=True --thread.lyrics=0 \
-            --dir.out "./output/" "./media_file"
+          gemini "explained pgp"
+          # Download the file and capture the actual filename
+          ACTUAL_FILE=$(curl -L -J -O --write-out '%{filename_effective}' --silent --show-error "${{ github.event.inputs.media_url }}")
+          
+          # Remux to MKV (fast & lossless) to ensure proper container format
+          BASENAME="${ACTUAL_FILE%.*}"
+          REMUXED_FILE="${BASENAME}.mkv"
+          ffmpeg -i "$ACTUAL_FILE" -c copy "$REMUXED_FILE" -y
+          
+          # Run ai-sub on the remuxed file
+          ai-sub --split.re-encode.enabled=True --dir.out "./output/" "./$REMUXED_FILE"
 
       - name: Upload subtitle files as artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: subtitles-output
-          path: output/
+          path: output
+          if-no-files-found: error

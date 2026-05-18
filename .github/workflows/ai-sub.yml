@@ -42,5 +42,6 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: subtitles-output
-          path: output
+          path: output/*.srt
+          compression-level: 1
           if-no-files-found: error

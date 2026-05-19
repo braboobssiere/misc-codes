@@ -21,7 +21,7 @@ on:
       upload_to_streaming:
         required: true
         type: choice
-        default: true'
+        default: 'false'
         options:
           - 'true'
           - 'false'

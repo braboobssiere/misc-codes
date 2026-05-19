@@ -140,8 +140,8 @@ jobs:
          
       - name: Commit stamps file
         run: |
-          git config --local user.email "github-actions@github.com"
-          git config --local user.name "GitHub Actions"
+          git config --local user.name "github-actions[bot]"
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git add input/instaloader/latest-stamps.ini
           git commit -m "Update latest-stamps" || echo "no changes to commit"
           git push

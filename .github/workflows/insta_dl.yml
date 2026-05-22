@@ -9,6 +9,13 @@ on:
         description: 'Use login'
         type: boolean
         default: false
+      duration:
+        type: choice
+        options:
+          - "All"
+          - "30 days"
+          - "90 days"
+          - "1 year"
 
 jobs:
   download:
@@ -84,16 +91,34 @@ jobs:
         env:
           UA: ${{ steps.ua_gen.outputs.user_agent }}
         run: |
-          PROFILE="${{ inputs.profile }}"
-          STAMPS_FILE="./input/instaloader/latest-stamps.ini"
+          FILTER_ARG=()
+          if [ "$DURATION" != "All" ]; then
+              case "$DURATION" in
+                  "30 days")
+                      FILTER_ARG=(--post-filter 'date_utc >= datetime.datetime.utcnow() - datetime.timedelta(days=30)')
+                      ;;
+                  "90 days")
+                      FILTER_ARG=(--post-filter 'date_utc >= datetime.datetime.utcnow() - datetime.timedelta(days=90)')
+                      ;;
+                  "1 year")
+                      FILTER_ARG=(--post-filter 'date_utc >= datetime.datetime.utcnow() - datetime.timedelta(days=365)')
+                      ;;
+              esac
+          fi
+          BASE_ARGS=(
+              profile "${{ inputs.profile }}"
+              --sanitize-paths --no-captions --no-profile-pic
+              --no-metadata-json --user-agent "$UA"
+              --latest-stamps "./input/instaloader/latest-stamps.ini"
+              "${FILTER_ARG[@]}"
+          )
+
           if [ "${{ inputs.login }}" = "true" ]; then
-            echo "${{ secrets.IG_SESSION_BASE64 }}" | base64 -d > IG_SESSION
-            instaloader profile $PROFILE --sanitize-paths --no-captions --no-profile-pic \
-            --no-metadata-json --user-agent "$UA" --latest-stamps "$STAMPS_FILE" \
-            --login ${{ secrets.IG_USERNAME }} --sessionfile IG_SESSION
+              echo "${{ secrets.IG_SESSION_BASE64 }}" | base64 -d > IG_SESSION
+              instaloader "${BASE_ARGS[@]}" \
+                  --login "${{ secrets.IG_USERNAME }}" --sessionfile IG_SESSION
           else
-            instaloader profile $PROFILE --sanitize-paths --no-captions --no-profile-pic \
-            --no-metadata-json --user-agent "$UA" --latest-stamps "$STAMPS_FILE"
+              instaloader "${BASE_ARGS[@]}"
           fi
 
       - name: Zip file 

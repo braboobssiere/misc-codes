@@ -21,11 +21,11 @@ jobs:
         gh run list --repo "${{ github.repository }}" \
           --limit 1000 \
           --status completed \
-          --json databaseId,createdAt,updatedAt,status \
+          --json databaseId,createdAt,updatedAt,conclusion \
         | jq --arg short "$SHORT_RUN_DURATION_MIN" \
              --arg old "$OLD_RUN_AGE_DAY" \
           -r '.[] | select(
-               .status == "cancelled" or
+               (.conclusion == "cancelled" or .conclusion == "failure") or
                ((.updatedAt | fromdateiso8601) - (.createdAt | fromdateiso8601)) < ($short | tonumber * 60) or
                ((now - (.updatedAt | fromdateiso8601)) > ($old | tonumber * 24 * 60 * 60))
              ) | .databaseId' \

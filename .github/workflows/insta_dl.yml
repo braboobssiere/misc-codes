@@ -82,26 +82,26 @@ jobs:
           from fake_useragent import UserAgent
           print(UserAgent(platforms=['desktop']).random)
           PY
-          )" >> $GITHUB_OUTPUT
+          )" >> $GITHUB_ENV
 
 
       - name: Download profile
         id: download
         continue-on-error: true
         env:
-          UA: ${{ steps.ua_gen.outputs.user_agent }}
+          UA: ${{ env.user_agent }}
         run: |
           FILTER_ARG=()
           if [ "$DURATION" != "All" ]; then
               case "$DURATION" in
                   "30 days")
-                      FILTER_ARG=(--post-filter 'date_utc >= datetime.datetime.utcnow() - datetime.timedelta(days=30)')
+                      FILTER_ARG=(--post-filter="date_utc >= datetime.utcnow() - datetime.timedelta(days=30)")
                       ;;
                   "90 days")
-                      FILTER_ARG=(--post-filter 'date_utc >= datetime.datetime.utcnow() - datetime.timedelta(days=90)')
+                      FILTER_ARG=(--post-filter="date_utc >= datetime.utcnow() - datetime.timedelta(days=90)")
                       ;;
                   "1 year")
-                      FILTER_ARG=(--post-filter 'date_utc >= datetime.datetime.utcnow() - datetime.timedelta(days=365)')
+                      FILTER_ARG=(--post-filter="date_utc >= datetime.utcnow() - datetime.timedelta(days=365)")
                       ;;
               esac
           fi

@@ -101,7 +101,6 @@ jobs:
             --windows-filenames --live-from-start --js-runtimes node \
             --embed-metadata --no-embed-info-json --write-info-json \
             -o "output/%(title).170B [%(id)s] (%(resolution)s).%(ext)s" \
-            --match-filter is_live --match-filter post_live \
             $( [ -n "$cookies" ] && echo "--cookies $cookies" ) \
             $YT_CHANNEL 2>&1 | tee >(awk '{ print strftime("[%Y-%m-%d %H:%M:%S UTC]"), $0 }' >> output/logs.txt)
             
@@ -110,15 +109,16 @@ jobs:
 
           # live check
           live_status=$(yt-dlp --print live_status "$YT_CHANNEL" 2>/dev/null || echo "")
-          if echo "$live_status" | grep -q "is_live"; then
-            echo "Live stream detected! Proceeding with download."
+          echo "$live_status"
+          if echo "$live_status" | grep -q -E "is_live|post_live"; then
+            echo "Proceeding with download."
           
             run_download "" || {
               echo "Download failed. Retrying with cookies..." | tee -a output/logs.txt
               run_download "yt_cookies.txt"
             }
           else
-            echo "No live stream found. Skipping download."
+            echo "Skipping download."
           fi
 
       - name: Verify output file

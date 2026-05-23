@@ -91,6 +91,7 @@ jobs:
         env:
           UA: ${{ env.user_agent }}
         run: |
+          DURATION="${{ inputs.duration }}"
           FILTER_ARG=()
           if [ "$DURATION" != "All" ]; then
               case "$DURATION" in

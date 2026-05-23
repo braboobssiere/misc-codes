@@ -99,6 +99,7 @@ jobs:
             
             yt-dlp -i --no-progress -S "+res:1080" --retry-sleep 3 \
             --windows-filenames --live-from-start --js-runtimes node \
+            --match-filter is_live --match-filter post_live \
             --embed-metadata --no-embed-info-json --write-info-json \
             -o "output/%(title).170B [%(id)s] (%(resolution)s).%(ext)s" \
             $( [ -n "$cookies" ] && echo "--cookies $cookies" ) \

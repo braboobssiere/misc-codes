@@ -107,11 +107,19 @@ jobs:
             
             [ "$(find output -type f \( -name "*.mp4" -o -name "*.webm" -o -name "*.mkv" -o -name "*.ts" \) | wc -l)" -gt 0 ]
           }
+
+          # live check
+          live_status=$(yt-dlp --print live_status "$YT_CHANNEL" 2>/dev/null || echo "")
+          if echo "$live_status" | grep -q "is_live"; then
+            echo "Live stream detected! Proceeding with download."
           
-          run_download "" || {
-            echo "Download failed. Retrying with cookies..." | tee -a output/logs.txt
-            run_download "yt_cookies.txt"
-          }
+            run_download "" || {
+              echo "Download failed. Retrying with cookies..." | tee -a output/logs.txt
+              run_download "yt_cookies.txt"
+            }
+          else
+            echo "No live stream found. Skipping download."
+          fi
 
       - name: Verify output file
         run: |

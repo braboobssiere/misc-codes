@@ -104,6 +104,6 @@ jobs:
           echo "${{ env.new_version }}" > PrivateBin_version.txt
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add PrivateBin_version.txt
+          git add input/privatebin/PrivateBin_version.txt
           git commit -m "Add files via upload" || echo "No changes to commit"
           git push

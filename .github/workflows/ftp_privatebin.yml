@@ -61,7 +61,7 @@ jobs:
       - name: 🔍 Locate & ☁️ FTP Deploy
         if: env.should_deploy == 'true'
         env:
-          FTP_CONFIG_JSON: ${{ secrets.FTP_CONFIG_2 }}
+          FTP_CONFIG_JSON: ${{ secrets.FTP_PRIVATEBIN }}
         run: |
             # Find the extracted source directory
             SOURCE_DIR=$(find privatebin_download -maxdepth 1 -type d -iname "PrivateBin-*" | head -1)

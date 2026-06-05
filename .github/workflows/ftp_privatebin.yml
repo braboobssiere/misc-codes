@@ -17,7 +17,7 @@ jobs:
       - name: 📂 Checkout version file
         uses: actions/checkout@v6
         with:
-          sparse-checkout: input/privatebin/
+          sparse-checkout: input/privatebin/**
           sparse-checkout-cone-mode: false
 
       # 2. Get latest release tag and download URL from GitHub API

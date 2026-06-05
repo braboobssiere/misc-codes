@@ -28,7 +28,6 @@ jobs:
           ZIP_URL=$(echo "$RELEASE_DATA" | jq -r '.zipball_url')
           echo "Latest tag: $LATEST_TAG"
           echo "zip_url=$ZIP_URL" >> $GITHUB_ENV
-          cd your-repo
           if [ ! -f "input/privatebin/PrivateBin_version.txt" ]; then
             echo "0" > input/privatebin/PrivateBin_version.txt
           fi
@@ -99,7 +98,6 @@ jobs:
       - name: 💾 Save New Version State
         if: env.should_deploy == 'true'
         run: |
-          cd your-repo
           echo "${{ env.new_version }}" > input/privatebin/PrivateBin_version.txt
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"

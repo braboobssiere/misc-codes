@@ -30,10 +30,10 @@ jobs:
           echo "Latest tag: $LATEST_TAG"
           echo "zip_url=$ZIP_URL" >> $GITHUB_ENV
           cd your-repo
-          if [ ! -f "PrivateBin_version.txt" ]; then
-            echo "0" > PrivateBin_version.txt
+          if [ ! -f "your-repo/PrivateBin_version.txt" ]; then
+            echo "0" > your-repo/PrivateBin_version.txt
           fi
-          OLD_VERSION=$(cat PrivateBin_version.txt)
+          OLD_VERSION=$(cat your-repo/PrivateBin_version.txt)
           NEW_VERSION=$LATEST_TAG
           echo "Old deployed version: $OLD_VERSION"
           echo "New available version: $NEW_VERSION"
@@ -101,9 +101,9 @@ jobs:
         if: env.should_deploy == 'true'
         run: |
           cd your-repo
-          echo "${{ env.new_version }}" > PrivateBin_version.txt
+          echo "${{ env.new_version }}" > your-repo/PrivateBin_version.txt
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add input/privatebin/PrivateBin_version.txt
+          git add your-repo/PrivateBin_version.txt
           git commit -m "Add files via upload" || echo "No changes to commit"
           git push

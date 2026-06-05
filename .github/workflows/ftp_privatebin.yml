@@ -1,0 +1,109 @@
+name: Deploy Latest PrivateBin
+
+on:
+  schedule:
+    - cron: '37 18 * * *'
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    name: Download & Deploy
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      # 1. Checkout repository 
+      - name: 📂 Checkout version file
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          sparse-checkout: ./input/privatebin/
+          path: your-repo
+
+      # 2. Get latest release tag and download URL from GitHub API
+      - name: 🏷️ Get Latest PrivateBin Release
+        run: |
+          RELEASE_DATA=$(curl -s https://api.github.com/repos/PrivateBin/PrivateBin/releases/latest)
+          LATEST_TAG=$(echo "$RELEASE_DATA" | jq -r '.tag_name')
+          ZIP_URL=$(echo "$RELEASE_DATA" | jq -r '.zipball_url')
+          echo "Latest tag: $LATEST_TAG"
+          echo "zip_url=$ZIP_URL" >> $GITHUB_ENV
+          cd your-repo
+          if [ ! -f "PrivateBin_version.txt" ]; then
+            echo "0" > PrivateBin_version.txt
+          fi
+          OLD_VERSION=$(cat PrivateBin_version.txt)
+          NEW_VERSION=$LATEST_TAG
+          echo "Old deployed version: $OLD_VERSION"
+          echo "New available version: $NEW_VERSION"
+          
+          if [ "$(printf '%s\n' "$OLD_VERSION" "$NEW_VERSION" | sort -V | tail -n1)" = "$NEW_VERSION" ] && \
+             [ "$OLD_VERSION" != "$NEW_VERSION" ]; then
+            echo "should_deploy=true" >> $GITHUB_ENV
+            echo "new_version=$NEW_VERSION" >> $GITHUB_ENV
+          else
+            echo "should_deploy=false" >> $GITHUB_ENV
+          fi
+
+      # 3. Download and extract the latest release ZIP
+      - name: 📥 Download and Extract Release ZIP
+        if: env.should_deploy == 'true'
+        run: |
+          mkdir -p privatebin_download
+          wget -O release.zip "${{ env.zip_url }}"
+          unzip -q release.zip -d privatebin_download
+          rm release.zip
+          echo "Extracted contents:"
+          ls -la privatebin_download/
+
+      # 4. Locate source directory and FTP deploy 
+      - name: 🔍 Locate & ☁️ FTP Deploy
+        if: env.should_deploy == 'true'
+        env:
+          FTP_CONFIG_JSON: ${{ secrets.FTP_CONFIG_2 }}
+        run: |
+            # Find the extracted source directory
+            SOURCE_DIR=$(find privatebin_download -maxdepth 1 -type d -iname "PrivateBin-*" | head -1)
+            if [ -z "$SOURCE_DIR" ]; then
+              echo "ERROR: Could not find extracted PrivateBin directory."
+              exit 1
+            fi
+            echo "Source directory: $SOURCE_DIR"
+            
+            # FTP deploy directly from $SOURCE_DIR
+            # {
+            #   "host": "ftp.example.com", "port": 21, "username": "your_username", "password": "your_password", "remote_folder": "/path/to/remote/folder"
+            # }
+            FTP_HOST=$(echo "$FTP_CONFIG_JSON" | jq -r '.host')
+            FTP_PORT=$(echo "$FTP_CONFIG_JSON" | jq -r '.port')
+            FTP_USER=$(echo "$FTP_CONFIG_JSON" | jq -r '.username')
+            FTP_PASS=$(echo "$FTP_CONFIG_JSON" | jq -r '.password')
+            FTP_PATH=$(echo "$FTP_CONFIG_JSON" | jq -r '.remote_folder')
+            echo "::add-mask::$FTP_HOST"
+            echo "::add-mask::$FTP_USER"
+            echo "::add-mask::$FTP_PASS"
+            
+            sudo apt-get update && sudo apt-get install -y lftp
+            
+            lftp -c "
+              set ftp:ssl-force true;
+              set ftp:ssl-protect-data true;
+              open -u '$FTP_USER','$FTP_PASS' -p $FTP_PORT ftp://$FTP_HOST;
+              mirror -R --verbose --no-perms \
+                --exclude 'cfg/conf.php' \
+                --exclude 'ShlinkProxy.php' \
+                '$SOURCE_DIR/' '$FTP_PATH'
+            "
+
+      # 5. Update state file in your repository
+      - name: 💾 Save New Version State
+        if: env.should_deploy == 'true'
+        run: |
+          cd your-repo
+          echo "${{ env.new_version }}" > PrivateBin_version.txt
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add PrivateBin_version.txt
+          git commit -m "Add files via upload" || echo "No changes to commit"
+          git push

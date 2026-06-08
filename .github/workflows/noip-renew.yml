@@ -1,4 +1,4 @@
-name: NoIP Renew
+name: zNoIP Renew
 
 on:
   workflow_dispatch:  

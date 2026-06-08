@@ -1,4 +1,4 @@
-name: Cleanup Short Runs and Old Runs
+name: zCleanup Short Runs and Old Runs
 
 on:
   workflow_dispatch:

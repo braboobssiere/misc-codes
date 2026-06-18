@@ -33,7 +33,7 @@ jobs:
       - name: Setup Dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install git+https://github.com/npiriou/instaloader.git@fix/profile-metadata-query-flags fake-useragent
+          pip install git+https://github.com/alimony/instaloader.git@fix-profile-resolution fake-useragent
           sudo apt-get update
           sudo apt-get install -y wireguard-tools
 

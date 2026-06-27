@@ -79,6 +79,8 @@ jobs:
             echo "url_check=youtube" >> $GITHUB_ENV
           elif [[ "$URL" == *"twitter.com"* || "$URL" == *"//x.com"* ]]; then
             echo "url_check=twitter" >> $GITHUB_ENV
+          elif [[ "$URL" == *"gofile.io"* ]]; then
+            echo "url_check=gofile" >> $GITHUB_ENV
           else
             echo "url_check=" >> $GITHUB_ENV
           fi
@@ -164,7 +166,16 @@ jobs:
               exit 13
           fi
 
+      - name: Download from Gofile using cyberdrop-dl
+        if: env.url_check == 'gofile'
+        run: |
+          pipx install cyberdrop-dl-patched
+          mkdir -p output
+          URL="${{ github.event.inputs.video_url }}"
+          cyberdrop-dl --download --output output ${URL}
+
       - name: Download and Process Video
+        if: env.url_check != 'gofile'
         continue-on-error: true
         run: |
           mkdir -p output

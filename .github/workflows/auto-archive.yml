@@ -18,7 +18,7 @@ jobs:
       urls: ${{ steps.feed-parser.outputs.urls }}
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Install parsing dependencies
         run: pip install requests
@@ -78,7 +78,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Setup Dependencies
         run: |

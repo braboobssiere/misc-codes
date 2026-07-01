@@ -25,7 +25,7 @@ jobs:
     steps:
 
       - name: Checkout stamps file
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           sparse-checkout-cone-mode: false
           sparse-checkout: input/instaloader/

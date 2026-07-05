@@ -172,7 +172,7 @@ jobs:
           pipx install cyberdrop-dl-patched
           mkdir -p output
           URL="${{ github.event.inputs.video_url }}"
-          cyberdrop-dl --download --output output ${URL}
+          cyberdrop-dl download --output output ${URL}
 
       - name: Download and Process Video
         if: env.url_check != 'gofile'

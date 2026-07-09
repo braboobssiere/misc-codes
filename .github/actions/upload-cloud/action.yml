@@ -28,7 +28,7 @@ runs:
   steps:
     - name: Install gigafile client
       shell: bash
-      run: python3 -m pip install -U git+https://github.com/fireattack/gfile.git
+      run: python3 -m pip install -U gigafile
 
     - name: Upload files
       shell: bash

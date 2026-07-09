@@ -135,8 +135,6 @@ runs:
     # 3. Send Discord notification (with only successful uploads)
     # ------------------------------------------------------------------------
     - name: Send Discord notification
-      id: discord
-      if: always()   # run even if previous steps failed
       shell: bash
       env:
         DISCORD_WEBHOOK: ${{ inputs.discord_webhook }}

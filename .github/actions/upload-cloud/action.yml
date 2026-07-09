@@ -37,6 +37,7 @@ runs:
         DISCORD_WEBHOOK: ${{ inputs.discord_webhook }}
 
       run: |
+        set +e
         UPLOAD_URL="https://upload.gofile.io/uploadfile"
         guest_token=""
         folder_id=""

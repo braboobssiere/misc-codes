@@ -30,12 +30,15 @@ runs:
       shell: bash
       run: python3 -m pip install -U gigafile
 
-    - name: Upload files
+    # ------------------------------------------------------------------------
+    # 1. Upload to Gofile (continue on error)
+    # ------------------------------------------------------------------------
+    - name: Upload to Gofile
+      id: gofile
+      continue-on-error: true
       shell: bash
       env:
         SOURCE_DIR: ${{ inputs.source_dir }}
-        DISCORD_WEBHOOK: ${{ inputs.discord_webhook }}
-
       run: |
         UPLOAD_URL="https://upload.gofile.io/uploadfile"
         guest_token=""
@@ -43,12 +46,20 @@ runs:
         UPLOAD_LINKS=""
         FIRST_FILE=true
         LINK=""
+        any_success=false
+
         mkdir -p "$SOURCE_DIR"
+
+        # Check if directory has any files
         if [ -z "$(find "$SOURCE_DIR" -type f -print -quit)" ]; then
-          echo "📂 $SOURCE_DIR is empty – nothing to upload"
+          echo "📂 $SOURCE_DIR is empty – nothing to upload to Gofile"
+          echo "gofile_success=false" >> $GITHUB_OUTPUT
+          echo "gofile_link=" >> $GITHUB_OUTPUT
+          echo "gofile_links=" >> $GITHUB_OUTPUT
           exit 0
         fi
 
+        # Loop over files
         while IFS= read -r -d '' file; do
           echo "▫️ Starting Gofile upload: $(basename "$file")"
           extra_args=()
@@ -70,23 +81,107 @@ runs:
           if [ "$STATUS" != "ok" ]; then
             echo "::warning::Gofile upload failed for $(basename "$file"): $DOWNLOAD_PAGE"
           else
-            echo "✓ Gofile success: $LINK"
+            echo "✓ Gofile success: $DOWNLOAD_PAGE"
+            LINK="$DOWNLOAD_PAGE"
+            UPLOAD_LINKS+="- $(basename "$file") ($DOWNLOAD_PAGE)\n"
+            any_success=true
           fi
-          LINK="$DOWNLOAD_PAGE"
-          UPLOAD_LINKS+="- $(basename "$file") \n"
         done < <(find "$SOURCE_DIR" -type f -print0)
 
-        set -euo pipefail
+        # Set outputs
+        echo "gofile_success=$any_success" >> $GITHUB_OUTPUT
+        echo "gofile_link=$LINK" >> $GITHUB_OUTPUT
+        # Multiline output for the file list
+        EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
+        echo "gofile_links<<$EOF" >> $GITHUB_OUTPUT
+        echo -e "$UPLOAD_LINKS" >> $GITHUB_OUTPUT
+        echo "$EOF" >> $GITHUB_OUTPUT
+
+    # ------------------------------------------------------------------------
+    # 2. Upload to GigaFile (continue on error)
+    # ------------------------------------------------------------------------
+    - name: Upload to GigaFile
+      id: giga
+      continue-on-error: true
+      shell: bash
+      env:
+        SOURCE_DIR: ${{ inputs.source_dir }}
+      run: |
+        # Check if directory has any files
+        if [ -z "$(find "$SOURCE_DIR" -type f -print -quit)" ]; then
+          echo "📂 $SOURCE_DIR is empty – nothing to upload to GigaFile"
+          echo "giga_success=false" >> $GITHUB_OUTPUT
+          echo "giga_link=" >> $GITHUB_OUTPUT
+          exit 0
+        fi
+
         name=$(date +%Y%m%d_%H%M%S)
         zip -r "${name}.zip" "$SOURCE_DIR"
         gout=$(gfile --hide-progress upload "${name}.zip")
         gigaURL=$(printf '%s\n' "$gout" | grep -oE 'https?://([^.[:space:]]+\.)?gigafile\.nu/[^[:space:]]+' | tail -n1)
 
-        echo "### File Uploads: $LINK I $gigaURL" >> $GITHUB_STEP_SUMMARY
-        echo -e "\n$UPLOAD_LINKS" >> $GITHUB_STEP_SUMMARY
+        if [ -z "$gigaURL" ]; then
+          echo "::warning::GigaFile upload failed"
+          echo "giga_success=false" >> $GITHUB_OUTPUT
+          echo "giga_link=" >> $GITHUB_OUTPUT
+        else
+          echo "✓ GigaFile success: $gigaURL"
+          echo "giga_success=true" >> $GITHUB_OUTPUT
+          echo "giga_link=$gigaURL" >> $GITHUB_OUTPUT
+        fi
 
+    # ------------------------------------------------------------------------
+    # 3. Send Discord notification (with only successful uploads)
+    # ------------------------------------------------------------------------
+    - name: Send Discord notification
+      id: discord
+      if: always()   # run even if previous steps failed
+      shell: bash
+      env:
+        DISCORD_WEBHOOK: ${{ inputs.discord_webhook }}
+        GOFILE_LINK: ${{ steps.gofile.outputs.gofile_link }}
+        GOFILE_SUCCESS: ${{ steps.gofile.outputs.gofile_success }}
+        GIGA_LINK: ${{ steps.giga.outputs.giga_link }}
+        GIGA_SUCCESS: ${{ steps.giga.outputs.giga_success }}
+      run: |
+        # Read the multiline file list from the gofile output
+        GOFILE_LINKS=$(cat <<'EOF'
+        ${{ steps.gofile.outputs.gofile_links }}
+        EOF
+        )
+
+        # Build step summary
+        echo "### File Uploads" >> $GITHUB_STEP_SUMMARY
+        if [ "$GOFILE_SUCCESS" = "true" ]; then
+          echo "**Gofile:** $GOFILE_LINK" >> $GITHUB_STEP_SUMMARY
+          echo "$GOFILE_LINKS" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "Gofile upload: failed or no files" >> $GITHUB_STEP_SUMMARY
+        fi
+
+        if [ "$GIGA_SUCCESS" = "true" ]; then
+          echo "**GigaFile:** $GIGA_LINK" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "GigaFile upload: failed or no files" >> $GITHUB_STEP_SUMMARY
+        fi
+
+        # Send to Discord only if webhook is provided
         if [ -n "$DISCORD_WEBHOOK" ]; then
+          CONTENT="File Uploads:\n"
+          if [ "$GOFILE_SUCCESS" = "true" ]; then
+            CONTENT+="Gofile: $GOFILE_LINK\n"
+            # Append the file list (escape newlines for JSON)
+            LIST_ESCAPED=$(echo "$GOFILE_LINKS" | sed 's/"/\\"/g' | sed ':a;N;$!ba;s/\n/\\n/g')
+            CONTENT+="$LIST_ESCAPED\n"
+          fi
+          if [ "$GIGA_SUCCESS" = "true" ]; then
+            CONTENT+="GigaFile: $GIGA_LINK\n"
+          fi
+          if [ "$GOFILE_SUCCESS" != "true" ] && [ "$GIGA_SUCCESS" != "true" ]; then
+            CONTENT="No files were uploaded successfully."
+          fi
+
           curl -X POST -H "Content-Type: application/json" \
-            -d "{\"content\":\"File Uploads: $LINK I $gigaURL \n$UPLOAD_LINKS\"}" \
-            "$DISCORD_WEBHOOK"
+            -d "{\"content\":\"$CONTENT\"}" \
+            "$DISCORD_WEBHOOK" || echo "Discord notification failed"
         fi

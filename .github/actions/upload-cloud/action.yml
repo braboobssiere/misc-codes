@@ -83,7 +83,8 @@ runs:
           else
             echo "✓ Gofile success: $DOWNLOAD_PAGE"
             LINK="$DOWNLOAD_PAGE"
-            UPLOAD_LINKS+="- $(basename "$file") ($DOWNLOAD_PAGE)\n"
+            # Store only the filename (not the URL) in the list
+            UPLOAD_LINKS+="- $(basename "$file")\n"
             any_success=true
           fi
         done < <(find "$SOURCE_DIR" -type f -print0)
@@ -91,7 +92,7 @@ runs:
         # Set outputs
         echo "gofile_success=$any_success" >> $GITHUB_OUTPUT
         echo "gofile_link=$LINK" >> $GITHUB_OUTPUT
-        # Multiline output for the file list
+        # Multiline output for the file list (filenames only)
         EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
         echo "gofile_links<<$EOF" >> $GITHUB_OUTPUT
         echo -e "$UPLOAD_LINKS" >> $GITHUB_OUTPUT
@@ -144,7 +145,7 @@ runs:
         GIGA_LINK: ${{ steps.giga.outputs.giga_link }}
         GIGA_SUCCESS: ${{ steps.giga.outputs.giga_success }}
       run: |
-        # Read the multiline file list from the gofile output
+        # Read the multiline file list from the gofile output (filenames only)
         GOFILE_LINKS=$(cat <<'EOF'
         ${{ steps.gofile.outputs.gofile_links }}
         EOF
@@ -170,7 +171,7 @@ runs:
           CONTENT="File Uploads:\n"
           if [ "$GOFILE_SUCCESS" = "true" ]; then
             CONTENT+="Gofile: $GOFILE_LINK\n"
-            # Append the file list (escape newlines for JSON)
+            # Append the file list (filenames only) – escape newlines for JSON
             LIST_ESCAPED=$(echo "$GOFILE_LINKS" | sed 's/"/\\"/g' | sed ':a;N;$!ba;s/\n/\\n/g')
             CONTENT+="$LIST_ESCAPED\n"
           fi

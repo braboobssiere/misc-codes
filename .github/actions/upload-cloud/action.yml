@@ -28,7 +28,7 @@ runs:
   steps:
     - name: Install gigafile client
       shell: bash
-      run: python3 -m pip install -U gigafile
+      run: python3 -m pip install -U git+https://github.com/fireattack/gfile.git
 
     - name: Upload files
       shell: bash
@@ -37,7 +37,6 @@ runs:
         DISCORD_WEBHOOK: ${{ inputs.discord_webhook }}
 
       run: |
-        set +e
         UPLOAD_URL="https://upload.gofile.io/uploadfile"
         guest_token=""
         folder_id=""

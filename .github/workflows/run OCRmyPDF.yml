@@ -43,9 +43,11 @@ jobs:
             sudo apt-get install -y "tesseract-ocr-$lang_code"
           done
         fi
+        pip install docling
         mkdir -p $OUTPUT_DIR $INPUT_DIR
 
     - name: Process files
+      continue-on-error: true
       run: |
         set -eo pipefail
 
@@ -96,10 +98,24 @@ jobs:
               success=true
             fi
           elif [[ "${extension,,}" == "pdf" ]]; then
+            # ----- Docling: Markdown from original PDF -----
+            output_md="$OUTPUT_DIR/${filename%.*}_$timestamp.md"
+            echo "Running Docling on $filename (original PDF)..."
+            if docling "$file" --output "$output_md"; then
+              success=true
+              echo "✅ Docling succeeded: $output_md"
+            else
+              echo "⚠️ Docling failed for $filename"
+            fi
+
+            # ----- OCRmyPDF: OCR the original PDF -----
             output_pdf="$OUTPUT_DIR/${filename%.*}_$timestamp.pdf"
             if ocrmypdf ${{ github.event.inputs.additional_param }} ${{ github.event.inputs.OCR_type }} --clean \
               --sidecar "${output_pdf}.txt" "$file" "$output_pdf"; then
               success=true
+              echo "✅ OCRmyPDF succeeded: $output_pdf"
+            else
+              echo "❌ OCRmyPDF failed for $filename"
             fi
           else
             echo "Skipped: $filename (unsupported format)"

@@ -55,23 +55,23 @@ jobs:
         if [ -n "${{ github.event.inputs.url }}" ]; then
           url="${{ github.event.inputs.url }}"
         
-          # Get the content type of the file
-          content_type=$(curl -sI "$url" | grep -i "Content-Type:" | awk '{print $2}' | tr -d '\r')
+          # Get the content type of the file, strip parameters (e.g. ; charset=...)
+          content_type=$(curl -sI "$url" | grep -i "Content-Type:" | awk '{print $2}' | tr -d '\r' | cut -d';' -f1 | xargs)
 
           # Determine the file extension based on the content type
           case "$content_type" in
-                "image/jpeg")
+                image/jpeg)
                         extension="jpg"
                         ;;
-                "image/png")
+                image/png)
                         extension="png"
                         ;;
-                "application/pdf")
+                application/pdf)
                         extension="pdf"
                         ;;
                 *)
                         # Use the filename and extension from the URL if the type is unsupported
-                        echo "Unsupported file type: $content_type. Using default filename and extension from URL."
+                        echo "Unsupported file type: '$content_type'. Using default filename and extension from URL."
                         extension="${url##*.}"  # Extract the extension from the URL
                         ;;
           esac

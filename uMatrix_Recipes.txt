@@ -110,12 +110,3 @@ BreezeWiki as 3rd party
  * fandom.com
  _ fandom.com css allow
  _ static.wikia.nocookie.net image allow
-
-vidguard video
-* guardstorage.net
- _ guardstorage.net media allow
- _ guardstorage.net xhr allow
- _ i.guardstorage.net image allow
- _ 1st-party cookie allow
- _ 1st-party frame allow
- _ 1st-party script allow

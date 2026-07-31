@@ -28,7 +28,7 @@ runs:
   steps:
     - name: Install gigafile client
       shell: bash
-      run: python3 -m pip install -U gigafile
+      run: python3 -m pip install -U gigafile==3.2.5
 
     # ------------------------------------------------------------------------
     # 1. Upload to Gofile (continue on error)

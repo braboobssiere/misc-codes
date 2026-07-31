@@ -159,8 +159,10 @@ runs:
         fi
 
         if [ "$GIGA_SUCCESS" = "true" ]; then
+          echo "" >> $GITHUB_STEP_SUMMARY
           echo "**GigaFile:** $GIGA_LINK" >> $GITHUB_STEP_SUMMARY
         else
+          echo "" >> $GITHUB_STEP_SUMMARY
           echo "GigaFile upload: failed or no files" >> $GITHUB_STEP_SUMMARY
         fi
 
@@ -174,7 +176,7 @@ runs:
             CONTENT+="$LIST_ESCAPED\n"
           fi
           if [ "$GIGA_SUCCESS" = "true" ]; then
-            CONTENT+="GigaFile: $GIGA_LINK\n"
+            CONTENT+="\nGigaFile: $GIGA_LINK\n"
           fi
           if [ "$GOFILE_SUCCESS" != "true" ] && [ "$GIGA_SUCCESS" != "true" ]; then
             CONTENT="No files were uploaded successfully."

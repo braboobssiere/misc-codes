@@ -52,7 +52,7 @@ jobs:
           
       - name: VPN Setup 
         env: 
-          PRIMARY_CONFIG: ${{ secrets.WIREGUARD_SANOOK }}
+          PRIMARY_CONFIG: ${{ secrets.WIREGUARD_GRANDCENTRAL }}
           SECONDARY_CONFIG: ${{ secrets.WIREGUARD_TRADEWAR }}
           
         run: |
@@ -114,9 +114,9 @@ jobs:
           if echo "$live_status" | grep -q -E "is_live|post_live"; then
             echo "Proceeding with download."
           
-            run_download "" || {
-              echo "Download failed. Retrying with cookies..." | tee -a output/logs.txt
-              run_download "yt_cookies.txt"
+            run_download "yt_cookies.txt" || {
+              echo "Download failed. Retrying without cookies..." | tee -a output/logs.txt
+              run_download ""
             }
           else
             echo "Skipping download."

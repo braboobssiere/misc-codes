@@ -12,12 +12,8 @@ on:
         required: false
         default: ''
       additional_param:
-        description: 'Additional parameters (specify language if translate)'
+        description: 'Additional parameters (specify language if translate and use --task translate)'
         required: false
-        type: choice
-        options:
-          - ''
-          - '--task translate'
 
 jobs:
   transcribe:

@@ -3,325 +3,129 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
 <title>Fishing</title>
 <style>
-  :root {
-    --bg:         #f4f6fa;
-    --card:       #ffffff;
-    --border:     #e3e8ef;
-    --border-2:   #eef1f6;
-    --divider:    #cbd5e1;
-    --text:       #0f172a;
-    --text-muted: #64748b;
-    --head:       #f8fafc;
-    --accent:     #0ea5e9;
-    --accent-soft:#e0f2fe;
-    --noon:       #f59e0b;
-    --noon-soft:  #fef3c7;
-    --noon-ink:   #92400e;
-    --night:      #6366f1;
-    --night-soft: #e0e7ff;
-    --night-ink:  #4338ca;
-    --row-alt:    #fafbfd;
-    --row-hover:  #f1f5f9;
-  }
+:root{
+  --bg:#f3f6fa;--card:#fff;--border:#e3e8ef;--border-2:#eef1f6;--col-line:#e1e7ef;--group-line:#a3b1c4;
+  --text:#0f172a;--muted:#5b6b82;--head:#f8fafc;--head-2:#eef2f7;--accent:#0284c7;--accent-soft:#e0f2fe;
+  --noon-soft:#fef3c7;--noon-ink:#92400e;--noon-bar:rgba(245,158,11,.24);
+  --night-soft:#e0e7ff;--night-ink:#4338ca;--night-bar:rgba(99,102,241,.22);
+  --row-alt:#fafbfd;--row-hover:#eef3f9;--err-bg:#fef2f2;--err-bd:#fecaca;--err:#b91c1c;
+  --shadow:0 1px 2px rgba(15,23,42,.05),0 6px 16px rgba(15,23,42,.04);
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#0b1220;--card:#111a2b;--border:#233047;--border-2:#1b2639;--col-line:#223049;--group-line:#51627c;
+  --text:#e6edf7;--muted:#93a4bc;--head:#152033;--head-2:#18253a;--accent:#38bdf8;--accent-soft:rgba(56,189,248,.16);
+  --noon-soft:rgba(245,158,11,.14);--noon-ink:#fcd34d;--noon-bar:rgba(245,158,11,.32);
+  --night-soft:rgba(129,140,248,.16);--night-ink:#a5b4fc;--night-bar:rgba(129,140,248,.34);
+  --row-alt:#0f1829;--row-hover:#1a283d;--err-bg:#2a1215;--err-bd:#5b2126;--err:#fca5a5;--shadow:none;
+}}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{font:16px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;padding-bottom:env(safe-area-inset-bottom)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 
-  * { box-sizing: border-box; }
-  html, body { margin: 0; padding: 0; }
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-                 "Helvetica Neue", Arial, sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    line-height: 1.45;
-    -webkit-font-smoothing: antialiased;
-    padding-bottom: env(safe-area-inset-bottom);
-  }
+header{background:var(--card);border-bottom:1px solid var(--border);padding:max(12px,env(safe-area-inset-top)) 16px 12px}
+@media (min-height:700px){header{position:sticky;top:0;z-index:20}}
+.bar{max-width:1100px;margin:0 auto;display:grid;gap:10px}
+header h1{margin:0;font-size:1.15rem;font-weight:700;letter-spacing:-.01em}
 
-  /* ---------- sticky top bar ---------- */
-  header {
-    position: sticky;
-    top: 0;
-    z-index: 20;
-    background: #ffffff;
-    border-bottom: 1px solid var(--border);
-    padding: 14px 16px 12px;
-    box-shadow: 0 1px 3px rgba(15,23,42,.04);
-  }
-  header h1 {
-    margin: 0 0 10px;
-    font-size: 1.15rem;
-    font-weight: 700;
-    letter-spacing: -0.01em;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  header h1::before {
-    content: "";
-    width: 8px; height: 8px;
-    border-radius: 50%;
-    background: var(--accent);
-    box-shadow: 0 0 0 4px var(--accent-soft);
-  }
+.seg{display:flex;gap:4px;padding:3px;background:var(--head-2);border-radius:12px;overflow-x:auto;scrollbar-width:none}
+.seg::-webkit-scrollbar{display:none}
+.seg button{flex:1 0 auto;font:inherit;font-size:.92rem;font-weight:600;padding:8px 14px;border:0;border-radius:9px;
+  background:none;color:var(--muted);cursor:pointer;white-space:nowrap;transition:background .12s,color .12s}
+.seg button:hover{color:var(--text)}
+.seg button[aria-selected=true]{background:var(--card);color:var(--text);box-shadow:0 1px 3px rgba(15,23,42,.14)}
 
-  .controls {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 8px;
-  }
-  @media (min-width: 560px) {
-    .controls { grid-template-columns: 1fr 1fr; }
-  }
+.filters{display:grid;gap:8px}
+@media (min-width:560px){.filters{grid-template-columns:1fr 1fr}}
+select,input[type=search]{font:inherit;font-size:1rem;width:100%;min-width:0;padding:10px 12px;border-radius:10px;
+  border:1px solid var(--border);background-color:var(--card);color:var(--text);transition:border-color .12s,box-shadow .12s}
+select{padding-right:34px;appearance:none;-webkit-appearance:none;cursor:pointer;background-repeat:no-repeat;background-position:right 12px center;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'><path d='M2 4l4 4 4-4' stroke='%2393a4bc' stroke-width='1.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>")}
+select:focus,input[type=search]:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+select:disabled,input:disabled{opacity:.55;cursor:not-allowed}
+input::placeholder{color:var(--muted)}
 
-  .field {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    min-width: 0;
-  }
-  .field label {
-    font-size: .74rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: .06em;
-    color: var(--text-muted);
-  }
-  select {
-    font-size: 1rem;
-    font-family: inherit;
-    padding: 10px 34px 10px 12px;
-    border-radius: 10px;
-    border: 1px solid var(--border);
-    background-color: #fff;
-    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'><path d='M2 4l4 4 4-4' stroke='%2364748b' stroke-width='1.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>");
-    background-repeat: no-repeat;
-    background-position: right 12px center;
-    color: var(--text);
-    appearance: none;
-    -webkit-appearance: none;
-    min-width: 0;
-    width: 100%;
-    cursor: pointer;
-    transition: border-color .12s, box-shadow .12s, opacity .12s;
-  }
-  select:focus {
-    outline: none;
-    border-color: var(--accent);
-    box-shadow: 0 0 0 3px var(--accent-soft);
-  }
-  select:disabled { opacity: .55; cursor: not-allowed; background-color: #f8fafc; }
+main{padding:16px;max-width:1100px;margin:0 auto}
+#status{margin-bottom:12px;padding:10px 14px;background:var(--err-bg);border:1px solid var(--err-bd);color:var(--err);border-radius:10px;font-size:.9rem}
+#status:empty{display:none}
+.empty{text-align:center;color:var(--muted);padding:40px 20px;font-size:.95rem}
+.retry{font:inherit;margin-left:8px;padding:6px 12px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--text);cursor:pointer}
+.loading{display:flex;flex-direction:column;align-items:center;gap:14px;padding:64px 20px;color:var(--muted);font-size:.95rem}
+.spinner{width:36px;height:36px;border-radius:50%;border:3px solid var(--accent-soft);border-top-color:var(--accent);animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.spinner{animation-duration:1.8s}}
 
-  main {
-    padding: 16px;
-    max-width: 1100px;
-    margin: 0 auto;
-  }
+/* off-screen sections skip layout and paint until scrolled near */
+section.bait{background:var(--card);border:1px solid var(--border);border-radius:14px;margin-bottom:16px;box-shadow:var(--shadow);
+  overflow:hidden;content-visibility:auto;contain-intrinsic-size:auto 420px}
+.bait-head{display:flex;align-items:baseline;gap:10px;padding:12px 16px;border-bottom:1px solid var(--border-2)}
+.bait-head h2{margin:0;font-size:1rem;font-weight:700;letter-spacing:-.01em}
+.bait-head .hash{color:var(--accent);margin-right:2px}
+.count{margin-left:auto;font-size:.8rem;color:var(--muted)}
+.table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
 
-  #status {
-    margin-bottom: 12px;
-    padding: 10px 14px;
-    background: #fef2f2;
-    border: 1px solid #fecaca;
-    color: #b91c1c;
-    border-radius: 10px;
-    font-size: .9rem;
-  }
-  #status:empty { display: none; }
+table{border-collapse:separate;border-spacing:0;width:100%;font-size:.88rem}
+thead th{background:var(--head);font-weight:600;font-size:.78rem;color:var(--muted);padding:6px 8px;white-space:nowrap;
+  text-align:center;height:32px;border-right:1px solid var(--col-line);border-bottom:1px solid var(--col-line)}
+thead tr:first-child th{background:var(--head-2);border-bottom-color:var(--group-line)}
+thead th:last-child{border-right:0}
+th.spot-group{color:var(--text);font-weight:700;font-size:.82rem}
+th.noon-head{color:var(--noon-ink);background:var(--noon-soft)}
+th.night-head{color:var(--night-ink);background:var(--night-soft)}
+th.sortable{cursor:pointer;user-select:none}
+th.sortable:hover{filter:brightness(.97)}
+th.sortable.active{box-shadow:inset 0 -2px 0 currentColor}
+th .arrow{display:inline-block;margin-left:4px;font-size:.7em;opacity:.75}
+th.group-end,td.group-end{border-right:2px solid var(--group-line)}
 
-  .empty {
-    text-align: center;
-    color: var(--text-muted);
-    padding: 40px 20px;
-    font-size: .95rem;
-  }
+tbody td{padding:7px 8px;border-bottom:1px solid var(--border-2);border-right:1px solid var(--col-line);text-align:center;
+  background-color:var(--card);font-variant-numeric:tabular-nums}
+tbody td:last-child{border-right:0}
+tbody tr:nth-child(even) td{background-color:var(--row-alt)}
+tbody tr:hover td{background-color:var(--row-hover)}
+tbody tr:last-child td{border-bottom:0}
 
-  /* ---------- loading ---------- */
-  .loading {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 14px;
-    padding: 64px 20px;
-    color: var(--text-muted);
-    font-size: .95rem;
-  }
-  .spinner {
-    width: 40px; height: 40px;
-    border-radius: 50%;
-    border: 3px solid var(--accent-soft);
-    border-top-color: var(--accent);
-    animation: spin .8s linear infinite;
-  }
-  @keyframes spin { to { transform: rotate(360deg); } }
-  @media (prefers-reduced-motion: reduce) {
-    .spinner { animation-duration: 1.6s; }
-  }
+.fish-name,.fish-head{position:sticky;left:0;text-align:left;border-right:2px solid var(--group-line)!important}
+.fish-name{z-index:2;font-weight:600;white-space:nowrap;min-width:130px}
+.fish-head{z-index:3;padding-left:12px;background:var(--head-2)!important}
 
-  /* ---------- bait card ---------- */
-  section.bait {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    margin-bottom: 16px;
-    box-shadow: 0 1px 2px rgba(15,23,42,.04),
-                0 4px 12px rgba(15,23,42,.03);
-    overflow: hidden;
-  }
+/* bar width comes from --v, set per cell */
+.pct{width:76px;min-width:76px;font-size:.84rem;
+  background-image:linear-gradient(to right,var(--bar) var(--v,0%),transparent var(--v,0%))}
+.pct.noon{--bar:var(--noon-bar);color:var(--noon-ink)}
+.pct.night{--bar:var(--night-bar);color:var(--night-ink)}
+.pct.top{font-weight:700}
+.pct.blank{color:var(--muted);opacity:.5;background-image:none}
 
-  .bait-head {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 12px 16px;
-    background: linear-gradient(180deg, #fbfcfe 0%, #f7f9fc 100%);
-    border-bottom: 1px solid var(--border-2);
-  }
-  .bait-head h2 {
-    margin: 0;
-    font-size: 1rem;
-    font-weight: 700;
-    letter-spacing: -0.01em;
-  }
-  .bait-head .hash {
-    color: var(--accent);
-    font-weight: 800;
-    margin-right: -4px;
-  }
-
-  /* ---------- horizontal scroll wrapper ---------- */
-  .table-wrap {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  table {
-    border-collapse: separate;
-    border-spacing: 0;
-    width: 100%;
-    font-size: .88rem;
-  }
-
-  /* ---------- header ---------- */
-  thead th {
-    background: var(--head);
-    font-weight: 600;
-    font-size: .72rem;
-    text-transform: uppercase;
-    letter-spacing: .05em;
-    color: var(--text-muted);
-    padding: 6px 8px;
-    border-bottom: 1px solid var(--border);
-    white-space: nowrap;
-    text-align: center;
-    height: 32px;
-  }
-  thead tr:first-child th { background: #eef2f7; }
-  .spot-group {
-    border-right: 2px solid var(--divider);
-    border-bottom: 1px solid var(--border-2);
-    color: var(--text);
-    font-weight: 700;
-    letter-spacing: 0;
-    text-transform: none;
-    font-size: .8rem;
-  }
-  th.noon-head  { color: var(--noon-ink);  background: var(--noon-soft); }
-  th.night-head { color: var(--night-ink); background: var(--night-soft); }
-
-  th.sortable { cursor: pointer; user-select: none; }
-  th.sortable:hover { filter: brightness(.96); }
-  th.sortable.active { box-shadow: inset 0 -2px 0 currentColor; }
-  th .arrow {
-    display: inline-block;
-    margin-left: 4px;
-    font-size: .7em;
-    opacity: .8;
-  }
-
-  /* ---------- body ---------- */
-  tbody td {
-    padding: 7px 8px;
-    border-bottom: 1px solid var(--border-2);
-    text-align: center;
-    vertical-align: middle;
-    background-color: #fff;
-    font-variant-numeric: tabular-nums;
-  }
-  tbody tr:nth-child(even) td { background-color: var(--row-alt); }
-  tbody tr:hover td { background-color: var(--row-hover); }
-  tbody tr:last-child td { border-bottom: none; }
-
-  /* sticky fish-name column */
-  .fish-name {
-    position: sticky;
-    left: 0;
-    z-index: 2;
-    text-align: left;
-    font-weight: 600;
-    white-space: nowrap;
-    min-width: 130px;
-    border-right: 1px solid var(--border);
-  }
-  .fish-head {
-    position: sticky;
-    left: 0;
-    z-index: 3;
-    text-align: left;
-    padding-left: 12px;
-    background: #eef2f7 !important;
-    border-right: 1px solid var(--border);
-  }
-
-  /* pct cells */
-  .pct-cell {
-    width: 76px;
-    min-width: 76px;
-    font-size: .84rem;
-  }
-  .pct-cell.noon  { color: var(--noon-ink); }
-  .pct-cell.night { color: var(--night-ink); }
-  .pct-cell.group-end { border-right: 2px solid var(--divider); }
-  .pct-cell.blank { color: #cbd5e1; }
-
-  /* ---------- mobile tweaks ---------- */
-  @media (max-width: 560px) {
-    main { padding: 12px; }
-    .bait-head { padding: 10px 12px; }
-    .bait-head h2 { font-size: .95rem; }
-    thead th { font-size: .68rem; padding: 5px 6px; height: 30px; }
-    .fish-name { min-width: 110px; font-size: .86rem; }
-    .pct-cell { width: 66px; min-width: 66px; font-size: .8rem; }
-    tbody td { padding: 6px 6px; }
-  }
+@media (max-width:560px){
+  main{padding:12px}
+  .bait-head{padding:10px 12px}
+  thead th{font-size:.72rem;padding:5px 6px;height:30px}
+  .fish-name{min-width:108px;font-size:.86rem}
+  .pct{width:68px;min-width:68px;font-size:.8rem}
+  tbody td{padding:6px}
+}
 </style>
 </head>
 <body>
-
 <header>
-  <h1>Fishing</h1>
-  <div class="controls">
-    <div class="field">
-      <label for="spotSelect">Spot</label>
-      <select id="spotSelect" disabled></select>
-    </div>
-    <div class="field">
-      <label for="baitSelect">Bait</label>
-      <select id="baitSelect" disabled>
-        <option value="">All baits</option>
-      </select>
+  <div class="bar">
+    <h1>Fishing</h1>
+    <div class="seg" id="spotTabs" role="tablist" aria-label="Spot"></div>
+    <div class="filters">
+      <select id="baitSelect" aria-label="Bait" disabled><option value="">All baits</option></select>
+      <input id="fishSearch" type="search" placeholder="Search fish" aria-label="Search fish" autocomplete="off" disabled>
     </div>
   </div>
 </header>
-
 <main>
-  <div id="status"></div>
+  <div id="status" role="alert"></div>
   <div id="output">
-    <div class="loading">
-      <div class="spinner" role="status" aria-label="Loading"></div>
-      <div>Loading data…</div>
-    </div>
+    <div class="loading"><div class="spinner" role="status" aria-label="Loading"></div><div>Loading data…</div></div>
   </div>
 </main>
 
@@ -329,426 +133,243 @@
 (() => {
   'use strict';
 
-  const DATA_DIR = './';
-  const FILE_LOTTERY = DATA_DIR + 'ParkFishingFishLottery.json';
-  const FILE_FISH    = DATA_DIR + 'LangParkFishingFish_Eng.json';
-  const FILE_BAIT    = DATA_DIR + 'LangParkFishingBait_Eng.json';
-
-  const SPOT_NAMES = {
-    '01': 'Fish Blue',
-    '02': "Lamy's Snow Dome",
-    '03': 'Bokoboko Beacon'
-  };
-
+  const FILES = ['./ParkFishingFishLottery.json', './LangParkFishingFish_Eng.json', './LangParkFishingBait_Eng.json'];
+  const SPOT_NAMES = { '01': 'Fish Blue', '02': "Lamy's Snow Dome", '03': 'Bokoboko Beacon' };
   const RE_SPOT = /^park_fishing_spot-(\d+)-(\d+)/;
   const RE_TIME = /^park_fishing_time_period-(.+)$/;
-  const RE_FISH = /fish-(\d+)/;
+  const STORE = 'fishing-ui-v1';
 
-  const select     = document.getElementById('spotSelect');
-  const baitSelect = document.getElementById('baitSelect');
-  const output     = document.getElementById('output');
-  const status     = document.getElementById('status');
+  const $ = id => document.getElementById(id);
+  const tabs = $('spotTabs'), baitSel = $('baitSelect'), search = $('fishSearch');
+  const output = $('output'), status = $('status');
 
-  let lottery = [];
-  const fishNames = new Map();
-  const baitNames = new Map();
+  const collator = new Intl.Collator(undefined, { numeric: true, sensitivity: 'base' });
+  const cmp = collator.compare;
 
-  /* Sort state per bait. col is one of:
-       'fish'                    – alphabetical by fish name
-       'spot:<spotId>:noon'      – by that spot's day %
-       'spot:<spotId>:night'     – by that spot's night %
-  */
-  const sortStates = new Map();
-  function getSort(baitId) {
-    return sortStates.get(baitId) || { col: 'fish', dir: 'asc' };
-  }
+  let model = new Map();            // main spot -> { spots: [spotId], baits: [bait] }
+  const sorts = new Map();          // "main|baitId" -> { col, dir }
+  const st = { spot: '', bait: '', q: '' };
 
-  /* ---------- helpers ---------- */
+  const esc = s => String(s).replace(/[&<>"']/g, c =>
+    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
-  function toArray(json) {
-    if (Array.isArray(json)) return json.map(e => (e && e.data) ? e.data : e);
-    if (json && typeof json === 'object') {
-      return Object.values(json).map(e => (e && e.data) ? e.data : e);
-    }
-    return [];
-  }
-
-  function coreId(id) {
-    const i = String(id).indexOf('park_fishing_');
-    return i >= 0 ? String(id).slice(i) : String(id);
-  }
+  const toArray = json => {
+    const list = Array.isArray(json) ? json : (json && typeof json === 'object' ? Object.values(json) : []);
+    return list.map(e => (e && e.data) ? e.data : e);
+  };
+  const coreId = id => { const s = String(id), i = s.indexOf('park_fishing_'); return i >= 0 ? s.slice(i) : s; };
 
   function buildNameMap(json) {
     const map = new Map();
     for (const e of toArray(json)) {
-      if (!e || typeof e.id !== 'string') continue;
+      if (!e || typeof e.id !== 'string' || typeof e.text !== 'string') continue;
       const cid = coreId(e.id);
-      if (cid.endsWith('-name') && typeof e.text === 'string') {
-        map.set(cid.slice(0, -'-name'.length), e.text);
-      }
+      if (cid.endsWith('-name')) map.set(cid.slice(0, -5), e.text);
     }
     return map;
   }
 
-  function spotParts(id) {
-    const m = RE_SPOT.exec(String(id || ''));
-    return m ? { main: m[1], sub: m[2] } : null;
+  const spotParts = id => { const m = RE_SPOT.exec(String(id || '')); return m ? { main: m[1], sub: m[2] } : null; };
+  const spotName = main => SPOT_NAMES[main] || 'Spot ' + main;
+  const spotLabel = id => { const p = spotParts(id); return p ? spotName(p.main) + ' ' + parseInt(p.sub, 10) : String(id); };
+  const timeOf = id => { const m = RE_TIME.exec(String(id || '')); return m && (m[1] === 'noon' || m[1] === 'night') ? m[1] : null; };
+  const cmpSpot = (a, b) => {
+    const pa = spotParts(a), pb = spotParts(b);
+    return cmp(pa.main, pb.main) || (parseInt(pa.sub, 10) - parseInt(pb.sub, 10));
+  };
+
+  /* ---------- one-pass aggregation: all heavy work happens once, here ---------- */
+  function buildModel(lot, fishName, baitName) {
+    const mains = new Map();
+    for (const d of toArray(lot)) {
+      if (!d || !d.parkFishingFishId || !d.parkFishingBaitId) continue;
+      const p = spotParts(d.parkFishingSpotId), t = timeOf(d.parkFishingTimePeriodId);
+      if (!p || !t) continue;
+      let m = mains.get(p.main);
+      if (!m) mains.set(p.main, m = { spots: new Set(), baits: new Map() });
+      m.spots.add(d.parkFishingSpotId);
+      let b = m.baits.get(d.parkFishingBaitId);
+      if (!b) m.baits.set(d.parkFishingBaitId, b = new Map());
+      let s = b.get(d.parkFishingSpotId);
+      if (!s) b.set(d.parkFishingSpotId, s = new Map());
+      let f = s.get(d.parkFishingFishId);
+      if (!f) s.set(d.parkFishingFishId, f = [0, 0]);
+      f[t === 'noon' ? 0 : 1] += Number(d.hitRatio) || 0;
+    }
+
+    const out = new Map();
+    for (const [main, m] of mains) {
+      const spots = [...m.spots].sort(cmpSpot);
+      const baits = [];
+      for (const [id, sm] of m.baits) {
+        const totals = spots.map(s => {
+          let a = 0, n = 0;
+          const fm = sm.get(s);
+          if (fm) for (const v of fm.values()) { a += v[0]; n += v[1]; }
+          return [a, n];
+        });
+        const fish = new Set();
+        for (const fm of sm.values()) for (const [fid, v] of fm) if (v[0] > 0 || v[1] > 0) fish.add(fid);
+        if (!fish.size) continue;
+
+        const top = new Array(spots.length * 2).fill(0);
+        const rows = [...fish].map(fid => {
+          const name = fishName(fid), pct = [];
+          spots.forEach((s, i) => {
+            const v = sm.get(s)?.get(fid);
+            for (let k = 0; k < 2; k++) {
+              let x = null;
+              if (v) {
+                const T = totals[i][k];
+                x = T > 0 ? Math.min(100, Math.max(0, v[k] / T * 100)) : 0;
+                if (x > top[i * 2 + k]) top[i * 2 + k] = x;
+              }
+              pct.push(x);
+            }
+          });
+          return { name, key: name.toLowerCase(), pct };
+        });
+        baits.push({ id, label: baitName(id), rows, top });
+      }
+      baits.sort((a, b) => cmp(a.label, b.label));
+      out.set(main, { spots, baits });
+    }
+    return out;
   }
 
-  function spotLabel(id) {
-    const p = spotParts(id);
-    if (!p) return String(id);
-    const name = SPOT_NAMES[p.main] || ('Spot ' + p.main);
-    return name + ' ' + parseInt(p.sub, 10);
+  /* ---------- rendering ---------- */
+  const getSort = (main, baitId) => sorts.get(main + '|' + baitId) || { col: -1, dir: 'asc' };
+
+  function sortedRows(bait, s) {
+    const rows = st.q ? bait.rows.filter(r => r.key.includes(st.q)) : bait.rows.slice();
+    const sg = s.dir === 'asc' ? 1 : -1, c = s.col;
+    rows.sort(c < 0
+      ? (a, b) => sg * cmp(a.name, b.name)
+      : (a, b) => sg * ((a.pct[c] ?? -Infinity) - (b.pct[c] ?? -Infinity)));
+    return rows;
   }
 
-  function timeOf(id) {
-    const m = RE_TIME.exec(String(id || ''));
-    const t = m ? m[1] : '';
-    return (t === 'noon' || t === 'night') ? t : null;
+  function tableHtml(spots, bait, rows, s) {
+    const th = (col, label, cls, attrs = '') => {
+      const on = s.col === col;
+      return `<th class="sortable ${cls}${on ? ' active' : ''}" data-col="${col}" role="button" tabindex="0" ` +
+        `aria-sort="${on ? (s.dir === 'asc' ? 'ascending' : 'descending') : 'none'}"${attrs}>` +
+        `${label}<span class="arrow" aria-hidden="true">${on ? (s.dir === 'asc' ? '▲' : '▼') : '⇅'}</span></th>`;
+    };
+    let top = th(-1, 'Fish', 'fish-head', ' rowspan="2"'), bot = '';
+    spots.forEach((id, i) => {
+      top += `<th colspan="2" class="spot-group group-end">${esc(spotLabel(id))}</th>`;
+      bot += th(i * 2, 'Day', 'noon-head') + th(i * 2 + 1, 'Night', 'night-head group-end');
+    });
+    const n = spots.length * 2;
+    let body = '';
+    for (const r of rows) {
+      body += `<tr><td class="fish-name">${esc(r.name)}</td>`;
+      for (let i = 0; i < n; i++) {
+        const v = r.pct[i], night = i & 1;
+        const cls = 'pct ' + (night ? 'night group-end' : 'noon');
+        body += v === null
+          ? `<td class="${cls} blank">–</td>`
+          : `<td class="${cls}${v > 0 && v === bait.top[i] ? ' top' : ''}" style="--v:${v.toFixed(1)}%">${v.toFixed(2)}%</td>`;
+      }
+      body += '</tr>';
+    }
+    return `<table><thead><tr>${top}</tr><tr>${bot}</tr></thead><tbody>${body}</tbody></table>`;
   }
 
-  function fishLabel(id) { return fishNames.get(coreId(id)) || String(id); }
-  function baitLabel(id) { return baitNames.get(coreId(id)) || String(id); }
-
-  function esc(s) {
-    return String(s).replace(/[&<>"']/g, c => (
-      { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]
-    ));
+  function render() {
+    const m = model.get(st.spot);
+    if (!m) { output.innerHTML = '<p class="empty">No lottery data found.</p>'; return; }
+    let html = '';
+    for (const b of m.baits) {
+      if (st.bait && b.id !== st.bait) continue;
+      const s = getSort(st.spot, b.id), rows = sortedRows(b, s);
+      if (!rows.length) continue;
+      html += `<section class="bait" data-id="${esc(b.id)}"><div class="bait-head">` +
+        `<h2><span class="hash">#</span>${esc(b.label)}</h2><span class="count">${rows.length} fish</span></div>` +
+        `<div class="table-wrap">${tableHtml(m.spots, b, rows, s)}</div></section>`;
+    }
+    output.innerHTML = html || `<p class="empty">${st.q ? 'No fish match your search.' : 'No fish data for this selection.'}</p>`;
   }
 
-  function cmpSpot(a, b) {
-    const pa = spotParts(a) || { main: '', sub: '0' };
-    const pb = spotParts(b) || { main: '', sub: '0' };
-    return pa.main.localeCompare(pb.main) ||
-           (parseInt(pa.sub, 10) - parseInt(pb.sub, 10));
+  /* ---------- state ---------- */
+  const save = () => { try { localStorage.setItem(STORE, JSON.stringify({ spot: st.spot, bait: st.bait })); } catch {} };
+  const restore = () => {
+    try { Object.assign(st, JSON.parse(localStorage.getItem(STORE) || '{}'), { q: '' }); } catch {}
+  };
+
+  function setSpot(main) {
+    st.spot = main;
+    for (const b of tabs.children) b.setAttribute('aria-selected', String(b.dataset.spot === main));
+    const baits = model.get(main)?.baits || [];
+    baitSel.innerHTML = '<option value="">All baits</option>' +
+      baits.map(b => `<option value="${esc(b.id)}">${esc(b.label)}</option>`).join('');
+    if (!baits.some(b => b.id === st.bait)) st.bait = '';
+    baitSel.value = st.bait;
+    save();
+    render();
   }
 
-  function fishNum(id) {
-    const m = RE_FISH.exec(String(id || ''));
-    return m ? parseInt(m[1], 10) : 0;
-  }
-
-  /* ---------- loading / error ---------- */
-
-  function showLoading(message) {
-    output.innerHTML = `
-      <div class="loading">
-        <div class="spinner" role="status" aria-label="Loading"></div>
-        <div>${esc(message || 'Loading data…')}</div>
-      </div>`;
-    select.disabled = true;
-    baitSelect.disabled = true;
-  }
-
-  function showError(message) {
-    status.textContent = message;
-    output.innerHTML = '<p class="empty">Unable to load data.</p>';
-    select.disabled = true;
-    baitSelect.disabled = true;
-  }
-
-  function clearLoading() {
-    status.textContent = '';
-    select.disabled = false;
-    baitSelect.disabled = false;
-  }
-
-  /* ---------- data loading ---------- */
-
+  /* ---------- boot ---------- */
   async function fetchJSON(url) {
     const r = await fetch(url, { cache: 'no-cache' });
     if (!r.ok) throw new Error(url + ' -> HTTP ' + r.status);
     return r.json();
   }
 
+  function setBusy(busy) { baitSel.disabled = search.disabled = busy; }
+
   async function boot() {
-    showLoading('Loading data…');
+    status.textContent = '';
+    output.innerHTML = '<div class="loading"><div class="spinner" role="status" aria-label="Loading"></div><div>Loading data…</div></div>';
+    setBusy(true);
     try {
-      const [lot, fishLang, baitLang] = await Promise.all([
-        fetchJSON(FILE_LOTTERY),
-        fetchJSON(FILE_FISH),
-        fetchJSON(FILE_BAIT)
-      ]);
-      init(lot, fishLang, baitLang);
-      clearLoading();
+      const [lot, fishLang, baitLang] = await Promise.all(FILES.map(fetchJSON));
+      const fn = buildNameMap(fishLang), bn = buildNameMap(baitLang);
+      model = buildModel(lot, id => fn.get(coreId(id)) || String(id), id => bn.get(coreId(id)) || String(id));
+      sorts.clear();
+      const mains = [...model.keys()].sort();
+      tabs.innerHTML = mains.map(m =>
+        `<button role="tab" data-spot="${esc(m)}" aria-selected="false">${esc(spotName(m))}</button>`).join('');
+      restore();
+      setBusy(false);
+      setSpot(model.has(st.spot) ? st.spot : (mains[0] || ''));
     } catch (err) {
-      showError(
-        'Could not load JSON files (' + err.message + '). ' +
-        'Serve this page over http(s) and make sure the files are in ' + DATA_DIR + '.'
-      );
+      status.textContent = 'Could not load the data files (' + err.message + '). Serve this page over http(s) with the JSON files in the same folder.';
+      output.innerHTML = '<p class="empty">Unable to load data. <button class="retry" type="button">Retry</button></p>';
     }
   }
 
-  function init(lot, fishLang, baitLang) {
-    lottery = toArray(lot).filter(d => d && d.parkFishingFishId);
-    fishNames.clear();
-    baitNames.clear();
-    for (const [k, v] of buildNameMap(fishLang)) fishNames.set(k, v);
-    for (const [k, v] of buildNameMap(baitLang)) baitNames.set(k, v);
-    sortStates.clear();
-    buildSpotDropdown();
-    refreshBaitDropdown();
-    render();
-  }
+  tabs.addEventListener('click', e => {
+    const b = e.target.closest('button[data-spot]');
+    if (b && b.dataset.spot !== st.spot) setSpot(b.dataset.spot);
+  });
+  baitSel.addEventListener('change', () => { st.bait = baitSel.value; save(); render(); });
 
-  function buildSpotDropdown() {
-    const mains = new Set();
-    for (const d of lottery) {
-      const p = spotParts(d.parkFishingSpotId);
-      if (p) mains.add(p.main);
-    }
-    const sorted = [...mains].sort();
-    select.innerHTML = sorted
-      .map(m => `<option value="${esc(m)}">${esc(SPOT_NAMES[m] || 'Spot ' + m)}</option>`)
-      .join('');
-    if (!sorted.length) {
-      output.innerHTML = '<p class="empty">No lottery data found.</p>';
-    }
-  }
-
-  function refreshBaitDropdown() {
-    const main = select.value;
-    const prev = baitSelect.value;
-    if (!main) {
-      baitSelect.innerHTML = '<option value="">All baits</option>';
-      return;
-    }
-    const entries = lottery.filter(d => {
-      const p = spotParts(d.parkFishingSpotId);
-      return p && p.main === main;
-    });
-    const baitSet = new Set();
-    for (const d of entries) {
-      if (d.parkFishingBaitId) baitSet.add(d.parkFishingBaitId);
-    }
-    const baitIds = [...baitSet].sort((a, b) =>
-      baitLabel(a).localeCompare(baitLabel(b))
-    );
-    let html = '<option value="">All baits</option>';
-    for (const b of baitIds) {
-      html += `<option value="${esc(b)}">${esc(baitLabel(b))}</option>`;
-    }
-    baitSelect.innerHTML = html;
-    if (prev && baitSet.has(prev)) baitSelect.value = prev;
-  }
-
-  /* ---------- header cells ---------- */
-
-  function fishHeadHtml(baitId) {
-    const s = getSort(baitId);
-    const active = s.col === 'fish';
-    const arrow = active ? (s.dir === 'asc' ? '▲' : '▼') : '⇅';
-    const cls = ['fish-head', 'sortable', active ? 'active' : '']
-                  .filter(Boolean).join(' ');
-    return `<th rowspan="2" class="${cls}" data-col="fish"
-              role="button" tabindex="0">Fish<span class="arrow">${arrow}</span></th>`;
-  }
-
-  function groupHeadHtml(spotId) {
-    return `<th colspan="2" class="spot-group">${esc(spotLabel(spotId))}</th>`;
-  }
-
-  function subHeadHtml(baitId, spotId, period, label, isLast) {
-    const col = 'spot:' + spotId + ':' + period;
-    const s = getSort(baitId);
-    const active = s.col === col;
-    const arrow = active ? (s.dir === 'asc' ? '▲' : '▼') : '⇅';
-    const cls = [
-      'sortable',
-      period + '-head',
-      active ? 'active' : '',
-      isLast ? 'group-end' : ''
-    ].filter(Boolean).join(' ');
-    return `<th class="${cls}" data-col="${esc(col)}"
-              role="button" tabindex="0">${esc(label)}<span class="arrow">${arrow}</span></th>`;
-  }
-
-  /* ---------- body cells ---------- */
-
-  function cellHtml(pct, period, isGroupEnd) {
-    const cls = ['pct-cell', period, isGroupEnd ? 'group-end' : '']
-                  .filter(Boolean).join(' ');
-    if (pct === null) {
-      return `<td class="${cls} blank">–</td>`;
-    }
-    const v = Math.max(0, Math.min(100, pct));
-    const fill = period === 'noon'
-      ? 'rgba(245,158,11,.20)'
-      : 'rgba(99,102,241,.20)';
-    // fill from the bottom up, hard stop at v%
-    const bg = `linear-gradient(to top, ${fill} 0%, ${fill} ${v}%, transparent ${v}%)`;
-    return `<td class="${cls}" style="background-image:${bg}">${v.toFixed(2)}%</td>`;
-  }
-
-  /* ---------- render ---------- */
-
-  function render() {
-    const main = select.value;
-    const baitFilter = baitSelect.value;
-    if (!main) return;
-
-    const entries = lottery.filter(d => {
-      const p = spotParts(d.parkFishingSpotId);
-      return p && p.main === main;
-    });
-
-    // Aggregate: baitId -> spotId -> fishId -> { noon, night }
-    const baits = new Map();
-    const allSpots = new Set();
-
-    for (const d of entries) {
-      const t = timeOf(d.parkFishingTimePeriodId);
-      if (!t) continue;
-      const baitId = d.parkFishingBaitId;
-      const spotId = d.parkFishingSpotId;
-      const fishId = d.parkFishingFishId;
-
-      allSpots.add(spotId);
-
-      if (!baits.has(baitId)) baits.set(baitId, new Map());
-      const spotsMap = baits.get(baitId);
-      if (!spotsMap.has(spotId)) spotsMap.set(spotId, new Map());
-      const fishMap = spotsMap.get(spotId);
-      if (!fishMap.has(fishId)) fishMap.set(fishId, { noon: 0, night: 0 });
-      fishMap.get(fishId)[t] += Number(d.hitRatio) || 0;
-    }
-
-    const sortedSpots = [...allSpots].sort(cmpSpot);
-    const baitIds = [...baits.keys()].sort((a, b) =>
-      baitLabel(a).localeCompare(baitLabel(b))
-    );
-
-    const sections = [];
-
-    for (const baitId of baitIds) {
-      if (baitFilter && baitId !== baitFilter) continue;
-
-      const spotsMap = baits.get(baitId);
-      const sort = getSort(baitId);
-      const sign = sort.dir === 'asc' ? 1 : -1;
-
-      // --- fish present for this bait (any spot, any period) ---
-      const fishSet = new Set();
-      for (const spotId of sortedSpots) {
-        const fm = spotsMap.get(spotId);
-        if (!fm) continue;
-        for (const [fid, v] of fm) {
-          if (v.noon > 0 || v.night > 0) fishSet.add(fid);
-        }
-      }
-      if (!fishSet.size) continue;
-
-      // --- per-spot totals (noon and night separately) ---
-      const totals = new Map();
-      for (const spotId of sortedSpots) {
-        const fm = spotsMap.get(spotId);
-        let noon = 0, night = 0;
-        if (fm) for (const v of fm.values()) { noon += v.noon; night += v.night; }
-        totals.set(spotId, { noon, night });
-      }
-
-      // --- resolve a cell's percentage (null if the fish isn't in that spot) ---
-      function cellValue(fid, spotId, period) {
-        const fm = spotsMap.get(spotId);
-        if (!fm) return null;
-        const v = fm.get(fid);
-        if (!v) return null;
-        const t = totals.get(spotId);
-        const total = period === 'noon' ? t.noon : t.night;
-        if (total <= 0) return 0;
-        return (v[period] / total) * 100;
-      }
-
-      // --- sort fish ---
-      const fishList = [...fishSet];
-      if (sort.col === 'fish') {
-        fishList.sort((a, b) =>
-          sign * fishLabel(a).localeCompare(fishLabel(b))
-        );
-      } else if (sort.col.startsWith('spot:')) {
-        const [, spotId, period] = sort.col.split(':');
-        fishList.sort((a, b) => {
-          const va = cellValue(a, spotId, period);
-          const vb = cellValue(b, spotId, period);
-          // nulls (fish not in this spot) always go last
-          const na = va === null ? -Infinity : va;
-          const nb = vb === null ? -Infinity : vb;
-          return sign * (na - nb);
-        });
-      }
-
-      // --- build headers ---
-      let headTop = fishHeadHtml(baitId);
-      let headBot = '';
-      sortedSpots.forEach((spotId, i) => {
-        const isLast = i === sortedSpots.length - 1;
-        headTop += groupHeadHtml(spotId);
-        headBot += subHeadHtml(baitId, spotId, 'noon',  'Day',   false);
-        headBot += subHeadHtml(baitId, spotId, 'night', 'Night', isLast);
-      });
-
-      // --- build body rows ---
-      let rows = '';
-      for (const fid of fishList) {
-        let cells = `<td class="fish-name">${esc(fishLabel(fid))}</td>`;
-        sortedSpots.forEach((spotId, i) => {
-          const isLast = i === sortedSpots.length - 1;
-          cells += cellHtml(cellValue(fid, spotId, 'noon'),  'noon',  false);
-          cells += cellHtml(cellValue(fid, spotId, 'night'), 'night', isLast);
-        });
-        rows += `<tr>${cells}</tr>`;
-      }
-
-      sections.push(`
-        <section class="bait" data-bait-id="${esc(baitId)}">
-          <div class="bait-head">
-            <h2><span class="hash">#</span>${esc(baitLabel(baitId))}</h2>
-          </div>
-          <div class="table-wrap">
-            <table>
-              <thead>
-                <tr>${headTop}</tr>
-                <tr>${headBot}</tr>
-              </thead>
-              <tbody>${rows}</tbody>
-            </table>
-          </div>
-        </section>`);
-    }
-
-    output.innerHTML = sections.join('') ||
-      '<p class="empty">No fish data for this selection.</p>';
-  }
-
-  /* ---------- events ---------- */
-
-  select.addEventListener('change', () => {
-    refreshBaitDropdown();
-    render();
+  let timer = 0;
+  search.addEventListener('input', () => {
+    clearTimeout(timer);
+    timer = setTimeout(() => { st.q = search.value.trim().toLowerCase(); render(); }, 120);
   });
 
-  baitSelect.addEventListener('change', render);
-
-  output.addEventListener('click', (e) => {
+  // Sorting re-renders only the clicked table, not the whole page.
+  output.addEventListener('click', e => {
+    if (e.target.closest('.retry')) return boot();
     const th = e.target.closest('th[data-col]');
-    if (!th) return;
-    const section = th.closest('section.bait');
-    if (!section) return;
-    const baitId = section.dataset.baitId;
-    const col = th.dataset.col;
-    const cur = getSort(baitId);
-    const dir = (cur.col === col && cur.dir === 'asc') ? 'desc' : 'asc';
-    sortStates.set(baitId, { col, dir });
-    render();
+    const sec = th && th.closest('section.bait');
+    if (!sec) return;
+    const m = model.get(st.spot), bait = m.baits.find(b => b.id === sec.dataset.id);
+    const col = +th.dataset.col, cur = getSort(st.spot, bait.id);
+    const s = { col, dir: cur.col === col && cur.dir === 'asc' ? 'desc' : 'asc' };
+    sorts.set(st.spot + '|' + bait.id, s);
+    sec.querySelector('.table-wrap').innerHTML = tableHtml(m.spots, bait, sortedRows(bait, s), s);
+    sec.querySelector(`th[data-col="${col}"]`)?.focus({ preventScroll: true });
   });
 
-  output.addEventListener('keydown', (e) => {
+  output.addEventListener('keydown', e => {
     if (e.key !== 'Enter' && e.key !== ' ') return;
     const th = e.target.closest('th[data-col]');
-    if (!th) return;
-    e.preventDefault();
-    th.click();
+    if (th) { e.preventDefault(); th.click(); }
   });
 
   boot();

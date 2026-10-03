@@ -10,14 +10,18 @@
     --card:       #ffffff;
     --border:     #e3e8ef;
     --border-2:   #eef1f6;
-    --divider:    #b8c2d0;
+    --divider:    #cbd5e1;
     --text:       #0f172a;
     --text-muted: #64748b;
     --head:       #f8fafc;
     --accent:     #0ea5e9;
     --accent-soft:#e0f2fe;
+    --noon:       #f59e0b;
     --noon-soft:  #fef3c7;
+    --noon-ink:   #92400e;
+    --night:      #6366f1;
     --night-soft: #e0e7ff;
+    --night-ink:  #4338ca;
     --row-alt:    #fafbfd;
     --row-hover:  #f1f5f9;
   }
@@ -34,10 +38,11 @@
     padding-bottom: env(safe-area-inset-bottom);
   }
 
+  /* ---------- sticky top bar ---------- */
   header {
     position: sticky;
     top: 0;
-    z-index: 10;
+    z-index: 20;
     background: #ffffff;
     border-bottom: 1px solid var(--border);
     padding: 14px 16px 12px;
@@ -105,11 +110,7 @@
     border-color: var(--accent);
     box-shadow: 0 0 0 3px var(--accent-soft);
   }
-  select:disabled {
-    opacity: .55;
-    cursor: not-allowed;
-    background-color: #f8fafc;
-  }
+  select:disabled { opacity: .55; cursor: not-allowed; background-color: #f8fafc; }
 
   main {
     padding: 16px;
@@ -135,7 +136,7 @@
     font-size: .95rem;
   }
 
-  /* ---------- loading indicator ---------- */
+  /* ---------- loading ---------- */
   .loading {
     display: flex;
     flex-direction: column;
@@ -147,20 +148,18 @@
     font-size: .95rem;
   }
   .spinner {
-    width: 40px;
-    height: 40px;
+    width: 40px; height: 40px;
     border-radius: 50%;
     border: 3px solid var(--accent-soft);
     border-top-color: var(--accent);
     animation: spin .8s linear infinite;
   }
-  @keyframes spin {
-    to { transform: rotate(360deg); }
-  }
+  @keyframes spin { to { transform: rotate(360deg); } }
   @media (prefers-reduced-motion: reduce) {
     .spinner { animation-duration: 1.6s; }
   }
 
+  /* ---------- bait card ---------- */
   section.bait {
     background: var(--card);
     border: 1px solid var(--border);
@@ -191,146 +190,110 @@
     margin-right: -4px;
   }
 
+  /* ---------- horizontal scroll wrapper ---------- */
   .table-wrap {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
   }
+
   table {
     border-collapse: separate;
     border-spacing: 0;
     width: 100%;
-    min-width: 460px;
-    font-size: .92rem;
+    font-size: .88rem;
   }
+
+  /* ---------- header ---------- */
   thead th {
-    position: sticky;
-    top: 0;
     background: var(--head);
     font-weight: 600;
-    font-size: .78rem;
+    font-size: .72rem;
     text-transform: uppercase;
     letter-spacing: .05em;
     color: var(--text-muted);
-    padding: 10px 12px;
-    text-align: left;
+    padding: 6px 8px;
     border-bottom: 1px solid var(--border);
     white-space: nowrap;
+    text-align: center;
+    height: 32px;
   }
-  th.sortable {
-    cursor: pointer;
-    user-select: none;
-    transition: background .12s, color .12s;
-  }
-  th.sortable:hover {
-    background: #eef2f7;
+  thead tr:first-child th { background: #eef2f7; }
+  .spot-group {
+    border-right: 2px solid var(--divider);
+    border-bottom: 1px solid var(--border-2);
     color: var(--text);
+    font-weight: 700;
+    letter-spacing: 0;
+    text-transform: none;
+    font-size: .8rem;
   }
-  th.sortable.active {
-    color: var(--accent);
-    background: var(--accent-soft);
-  }
+  th.noon-head  { color: var(--noon-ink);  background: var(--noon-soft); }
+  th.night-head { color: var(--night-ink); background: var(--night-soft); }
+
+  th.sortable { cursor: pointer; user-select: none; }
+  th.sortable:hover { filter: brightness(.96); }
+  th.sortable.active { box-shadow: inset 0 -2px 0 currentColor; }
   th .arrow {
     display: inline-block;
-    margin-left: 6px;
+    margin-left: 4px;
     font-size: .7em;
-    opacity: .9;
+    opacity: .8;
   }
 
+  /* ---------- body ---------- */
   tbody td {
-    padding: 9px 12px;
+    padding: 7px 8px;
     border-bottom: 1px solid var(--border-2);
+    text-align: center;
     vertical-align: middle;
+    background-color: #fff;
+    font-variant-numeric: tabular-nums;
   }
-  tbody tr:nth-child(even) td {
-    background: var(--row-alt);
-  }
-  tbody tr:hover td {
-    background: var(--row-hover);
-  }
+  tbody tr:nth-child(even) td { background-color: var(--row-alt); }
+  tbody tr:hover td { background-color: var(--row-hover); }
   tbody tr:last-child td { border-bottom: none; }
 
-  tbody tr.group-start td {
-    border-top: 2px solid var(--divider);
-    box-shadow: inset 0 3px 4px -3px rgba(15,23,42,.10);
-  }
-  tbody tr.group-start:first-child td {
-    border-top: none;
-    box-shadow: none;
-  }
-
-  td.spot {
+  /* sticky fish-name column */
+  .fish-name {
+    position: sticky;
+    left: 0;
+    z-index: 2;
+    text-align: left;
     font-weight: 600;
     white-space: nowrap;
-    border-left: 3px solid var(--accent);
-    padding-left: 10px;
-    background: #fff;
+    min-width: 130px;
+    border-right: 1px solid var(--border);
   }
-  tbody tr:nth-child(even) td.spot { background: var(--row-alt); }
-  tbody tr:hover td.spot { background: var(--row-hover); }
-
-  td.num {
-    text-align: right;
-    font-variant-numeric: tabular-nums;
-    width: 130px;
-    padding: 0;
-  }
-
-  .pct-inner {
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    padding: 9px 12px;
-    min-height: 36px;
-  }
-  .pct-inner .bar {
-    position: absolute;
-    left: 12px;
-    right: 12px;
-    top: 50%;
-    transform: translateY(-50%);
-    height: 18px;
-    border-radius: 4px;
-    overflow: hidden;
-    pointer-events: none;
-  }
-  .pct-inner .bar span {
-    display: block;
-    height: 100%;
-    border-radius: 4px;
-    transition: width .25s ease;
-  }
-  .pct.noon  .bar span { background: var(--noon-soft); }
-  .pct.night .bar span { background: var(--night-soft); }
-
-  .pct-inner .val {
-    position: relative;
-    font-weight: 600;
-    z-index: 1;
-  }
-  .pct.noon  .val { color: #92400e; }
-  .pct.night .val { color: #4338ca; }
-  .pct-inner .val.winner { font-weight: 800; }
-  .pct-inner .val.winner::after {
-    content: "";
-    display: inline-block;
-    width: 5px; height: 5px;
-    border-radius: 50%;
-    margin-left: 6px;
-    vertical-align: middle;
-    background: currentColor;
-    opacity: .6;
+  .fish-head {
+    position: sticky;
+    left: 0;
+    z-index: 3;
+    text-align: left;
+    padding-left: 12px;
+    background: #eef2f7 !important;
+    border-right: 1px solid var(--border);
   }
 
+  /* pct cells */
+  .pct-cell {
+    width: 76px;
+    min-width: 76px;
+    font-size: .84rem;
+  }
+  .pct-cell.noon  { color: var(--noon-ink); }
+  .pct-cell.night { color: var(--night-ink); }
+  .pct-cell.group-end { border-right: 2px solid var(--divider); }
+  .pct-cell.blank { color: #cbd5e1; }
+
+  /* ---------- mobile tweaks ---------- */
   @media (max-width: 560px) {
     main { padding: 12px; }
-    thead th { padding: 9px 10px; }
-    tbody td { padding: 0; }
-    td.num { width: 108px; }
-    .pct-inner { padding: 8px 10px; min-height: 34px; }
-    .pct-inner .bar { left: 10px; right: 10px; height: 16px; }
     .bait-head { padding: 10px 12px; }
     .bait-head h2 { font-size: .95rem; }
+    thead th { font-size: .68rem; padding: 5px 6px; height: 30px; }
+    .fish-name { min-width: 110px; font-size: .86rem; }
+    .pct-cell { width: 66px; min-width: 66px; font-size: .8rem; }
+    tbody td { padding: 6px 6px; }
   }
 </style>
 </head>
@@ -390,10 +353,17 @@
   const fishNames = new Map();
   const baitNames = new Map();
 
+  /* Sort state per bait. col is one of:
+       'fish'                    – alphabetical by fish name
+       'spot:<spotId>:noon'      – by that spot's day %
+       'spot:<spotId>:night'     – by that spot's night %
+  */
   const sortStates = new Map();
   function getSort(baitId) {
-    return sortStates.get(baitId) || { col: 'spot', dir: 'asc' };
+    return sortStates.get(baitId) || { col: 'fish', dir: 'asc' };
   }
+
+  /* ---------- helpers ---------- */
 
   function toArray(json) {
     if (Array.isArray(json)) return json.map(e => (e && e.data) ? e.data : e);
@@ -441,8 +411,6 @@
   function fishLabel(id) { return fishNames.get(coreId(id)) || String(id); }
   function baitLabel(id) { return baitNames.get(coreId(id)) || String(id); }
 
-  function fmtPct(v) { return v.toFixed(2) + '%'; }
-
   function esc(s) {
     return String(s).replace(/[&<>"']/g, c => (
       { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]
@@ -461,7 +429,7 @@
     return m ? parseInt(m[1], 10) : 0;
   }
 
-  /* ---------- loading / status helpers ---------- */
+  /* ---------- loading / error ---------- */
 
   function showLoading(message) {
     output.innerHTML = `
@@ -489,8 +457,6 @@
   /* ---------- data loading ---------- */
 
   async function fetchJSON(url) {
-    // no-cache: always revalidate with server (fast when unchanged,
-    // fresh when the file was edited)
     const r = await fetch(url, { cache: 'no-cache' });
     if (!r.ok) throw new Error(url + ' -> HTTP ' + r.status);
     return r.json();
@@ -567,27 +533,55 @@
     if (prev && baitSet.has(prev)) baitSelect.value = prev;
   }
 
-  function thHtml(baitId, col, label, extraClass) {
+  /* ---------- header cells ---------- */
+
+  function fishHeadHtml(baitId) {
+    const s = getSort(baitId);
+    const active = s.col === 'fish';
+    const arrow = active ? (s.dir === 'asc' ? '▲' : '▼') : '⇅';
+    const cls = ['fish-head', 'sortable', active ? 'active' : '']
+                  .filter(Boolean).join(' ');
+    return `<th rowspan="2" class="${cls}" data-col="fish"
+              role="button" tabindex="0">Fish<span class="arrow">${arrow}</span></th>`;
+  }
+
+  function groupHeadHtml(spotId) {
+    return `<th colspan="2" class="spot-group">${esc(spotLabel(spotId))}</th>`;
+  }
+
+  function subHeadHtml(baitId, spotId, period, label, isLast) {
+    const col = 'spot:' + spotId + ':' + period;
     const s = getSort(baitId);
     const active = s.col === col;
     const arrow = active ? (s.dir === 'asc' ? '▲' : '▼') : '⇅';
-    const cls = ['sortable', active ? 'active' : '', extraClass || '']
-                  .filter(Boolean).join(' ');
-    return `<th data-col="${col}" class="${cls}" role="button" tabindex="0"
-              aria-sort="${active ? (s.dir === 'asc' ? 'ascending' : 'descending') : 'none'}">
-              ${esc(label)}<span class="arrow">${arrow}</span>
-            </th>`;
+    const cls = [
+      'sortable',
+      period + '-head',
+      active ? 'active' : '',
+      isLast ? 'group-end' : ''
+    ].filter(Boolean).join(' ');
+    return `<th class="${cls}" data-col="${esc(col)}"
+              role="button" tabindex="0">${esc(label)}<span class="arrow">${arrow}</span></th>`;
   }
 
-  function pctCell(pct, type, isWinner) {
-    const w = Math.max(0, Math.min(100, pct));
-    return `<td class="num pct ${type}">
-              <div class="pct-inner">
-                <div class="bar"><span style="width:${w}%"></span></div>
-                <span class="val ${isWinner ? 'winner' : ''}">${fmtPct(pct)}</span>
-              </div>
-            </td>`;
+  /* ---------- body cells ---------- */
+
+  function cellHtml(pct, period, isGroupEnd) {
+    const cls = ['pct-cell', period, isGroupEnd ? 'group-end' : '']
+                  .filter(Boolean).join(' ');
+    if (pct === null) {
+      return `<td class="${cls} blank">–</td>`;
+    }
+    const v = Math.max(0, Math.min(100, pct));
+    const fill = period === 'noon'
+      ? 'rgba(245,158,11,.20)'
+      : 'rgba(99,102,241,.20)';
+    // fill from the bottom up, hard stop at v%
+    const bg = `linear-gradient(to top, ${fill} 0%, ${fill} ${v}%, transparent ${v}%)`;
+    return `<td class="${cls}" style="background-image:${bg}">${v.toFixed(2)}%</td>`;
   }
+
+  /* ---------- render ---------- */
 
   function render() {
     const main = select.value;
@@ -599,87 +593,112 @@
       return p && p.main === main;
     });
 
+    // Aggregate: baitId -> spotId -> fishId -> { noon, night }
     const baits = new Map();
+    const allSpots = new Set();
+
     for (const d of entries) {
       const t = timeOf(d.parkFishingTimePeriodId);
       if (!t) continue;
       const baitId = d.parkFishingBaitId;
       const spotId = d.parkFishingSpotId;
       const fishId = d.parkFishingFishId;
+
+      allSpots.add(spotId);
+
       if (!baits.has(baitId)) baits.set(baitId, new Map());
-      const spots = baits.get(baitId);
-      if (!spots.has(spotId)) spots.set(spotId, new Map());
-      const fish = spots.get(spotId);
-      if (!fish.has(fishId)) fish.set(fishId, { noon: 0, night: 0 });
-      fish.get(fishId)[t] += Number(d.hitRatio) || 0;
+      const spotsMap = baits.get(baitId);
+      if (!spotsMap.has(spotId)) spotsMap.set(spotId, new Map());
+      const fishMap = spotsMap.get(spotId);
+      if (!fishMap.has(fishId)) fishMap.set(fishId, { noon: 0, night: 0 });
+      fishMap.get(fishId)[t] += Number(d.hitRatio) || 0;
     }
 
+    const sortedSpots = [...allSpots].sort(cmpSpot);
+    const baitIds = [...baits.keys()].sort((a, b) =>
+      baitLabel(a).localeCompare(baitLabel(b))
+    );
+
     const sections = [];
-    const baitIds = [...baits.keys()].sort();
 
     for (const baitId of baitIds) {
       if (baitFilter && baitId !== baitFilter) continue;
 
-      const spots = baits.get(baitId);
-      const { col, dir } = getSort(baitId);
-      const sign = dir === 'asc' ? 1 : -1;
-      const spotRows = [];
+      const spotsMap = baits.get(baitId);
+      const sort = getSort(baitId);
+      const sign = sort.dir === 'asc' ? 1 : -1;
 
-      for (const spotId of spots.keys()) {
-        const fishMap = spots.get(spotId);
-        let totalNoon = 0, totalNight = 0;
-        for (const v of fishMap.values()) {
-          totalNoon  += v.noon;
-          totalNight += v.night;
+      // --- fish present for this bait (any spot, any period) ---
+      const fishSet = new Set();
+      for (const spotId of sortedSpots) {
+        const fm = spotsMap.get(spotId);
+        if (!fm) continue;
+        for (const [fid, v] of fm) {
+          if (v.noon > 0 || v.night > 0) fishSet.add(fid);
         }
-        let list = [...fishMap.entries()]
-          .filter(([, v]) => v.noon > 0 || v.night > 0)
-          .map(([fid, v]) => ({
-            fid,
-            noonPct:  totalNoon  > 0 ? (v.noon  / totalNoon)  * 100 : 0,
-            nightPct: totalNight > 0 ? (v.night / totalNight) * 100 : 0
-          }));
-        if (!list.length) continue;
+      }
+      if (!fishSet.size) continue;
 
-        if (col === 'fish') {
-          list.sort((a, b) =>
-            sign * fishLabel(a.fid).localeCompare(fishLabel(b.fid)));
-        } else if (col === 'noon') {
-          list.sort((a, b) => sign * (a.noonPct - b.noonPct));
-        } else if (col === 'night') {
-          list.sort((a, b) => sign * (a.nightPct - b.nightPct));
-        } else {
-          list.sort((a, b) => fishNum(a.fid) - fishNum(b.fid));
-        }
-
-        spotRows.push({ spotId, list });
+      // --- per-spot totals (noon and night separately) ---
+      const totals = new Map();
+      for (const spotId of sortedSpots) {
+        const fm = spotsMap.get(spotId);
+        let noon = 0, night = 0;
+        if (fm) for (const v of fm.values()) { noon += v.noon; night += v.night; }
+        totals.set(spotId, { noon, night });
       }
 
-      if (col === 'spot') {
-        spotRows.sort((a, b) =>
-          sign * spotLabel(a.spotId).localeCompare(spotLabel(b.spotId)));
-      } else {
-        spotRows.sort((a, b) => cmpSpot(a.spotId, b.spotId));
+      // --- resolve a cell's percentage (null if the fish isn't in that spot) ---
+      function cellValue(fid, spotId, period) {
+        const fm = spotsMap.get(spotId);
+        if (!fm) return null;
+        const v = fm.get(fid);
+        if (!v) return null;
+        const t = totals.get(spotId);
+        const total = period === 'noon' ? t.noon : t.night;
+        if (total <= 0) return 0;
+        return (v[period] / total) * 100;
       }
 
+      // --- sort fish ---
+      const fishList = [...fishSet];
+      if (sort.col === 'fish') {
+        fishList.sort((a, b) =>
+          sign * fishLabel(a).localeCompare(fishLabel(b))
+        );
+      } else if (sort.col.startsWith('spot:')) {
+        const [, spotId, period] = sort.col.split(':');
+        fishList.sort((a, b) => {
+          const va = cellValue(a, spotId, period);
+          const vb = cellValue(b, spotId, period);
+          // nulls (fish not in this spot) always go last
+          const na = va === null ? -Infinity : va;
+          const nb = vb === null ? -Infinity : vb;
+          return sign * (na - nb);
+        });
+      }
+
+      // --- build headers ---
+      let headTop = fishHeadHtml(baitId);
+      let headBot = '';
+      sortedSpots.forEach((spotId, i) => {
+        const isLast = i === sortedSpots.length - 1;
+        headTop += groupHeadHtml(spotId);
+        headBot += subHeadHtml(baitId, spotId, 'noon',  'Day',   false);
+        headBot += subHeadHtml(baitId, spotId, 'night', 'Night', isLast);
+      });
+
+      // --- build body rows ---
       let rows = '';
-      for (const { spotId, list } of spotRows) {
-        let first = true;
-        for (const item of list) {
-          const noonIsWinner = item.noonPct >= item.nightPct;
-          rows += `<tr${first ? ' class="group-start"' : ''}>`;
-          if (first) {
-            rows += `<td class="spot" rowspan="${list.length}">${esc(spotLabel(spotId))}</td>`;
-            first = false;
-          }
-          rows += `<td>${esc(fishLabel(item.fid))}</td>`;
-          rows += pctCell(item.noonPct,  'noon',  noonIsWinner);
-          rows += pctCell(item.nightPct, 'night', !noonIsWinner);
-          rows += '</tr>';
-        }
+      for (const fid of fishList) {
+        let cells = `<td class="fish-name">${esc(fishLabel(fid))}</td>`;
+        sortedSpots.forEach((spotId, i) => {
+          const isLast = i === sortedSpots.length - 1;
+          cells += cellHtml(cellValue(fid, spotId, 'noon'),  'noon',  false);
+          cells += cellHtml(cellValue(fid, spotId, 'night'), 'night', isLast);
+        });
+        rows += `<tr>${cells}</tr>`;
       }
-
-      if (!rows) continue;
 
       sections.push(`
         <section class="bait" data-bait-id="${esc(baitId)}">
@@ -689,12 +708,8 @@
           <div class="table-wrap">
             <table>
               <thead>
-                <tr>
-                  ${thHtml(baitId, 'spot', 'Spot')}
-                  ${thHtml(baitId, 'fish', 'Fish')}
-                  ${thHtml(baitId, 'noon', 'Noon', 'num')}
-                  ${thHtml(baitId, 'night', 'Night', 'num')}
-                </tr>
+                <tr>${headTop}</tr>
+                <tr>${headBot}</tr>
               </thead>
               <tbody>${rows}</tbody>
             </table>
@@ -705,6 +720,8 @@
     output.innerHTML = sections.join('') ||
       '<p class="empty">No fish data for this selection.</p>';
   }
+
+  /* ---------- events ---------- */
 
   select.addEventListener('change', () => {
     refreshBaitDropdown();

@@ -13,6 +13,7 @@
   --night-soft:#e0e7ff;--night-ink:#4338ca;--night-bar:rgba(99,102,241,.22);
   --row-alt:#fafbfd;--row-hover:#eef3f9;--err-bg:#fef2f2;--err-bd:#fecaca;--err:#b91c1c;
   --shadow:0 1px 2px rgba(15,23,42,.05),0 6px 16px rgba(15,23,42,.04);
+  --own:44px;
 }
 @media (prefers-color-scheme:dark){:root{
   --bg:#0b1220;--card:#111a2b;--border:#233047;--border-2:#1b2639;--col-line:#223049;--group-line:#51627c;
@@ -87,7 +88,11 @@ tbody tr:nth-child(even) td{background-color:var(--row-alt)}
 tbody tr:hover td{background-color:var(--row-hover)}
 tbody tr:last-child td{border-bottom:0}
 
-.fish-name,.fish-head{position:sticky;left:0;text-align:left;border-right:2px solid var(--group-line)!important}
+.own-head,.own-cell{position:sticky;left:0;width:var(--own);min-width:var(--own);max-width:var(--own);padding:0;text-align:center}
+.own-head{z-index:3;background:var(--head-2)!important}
+.own-cell{z-index:2}
+input.own{width:18px;height:18px;margin:0;vertical-align:middle;accent-color:var(--accent);cursor:pointer}
+.fish-name,.fish-head{position:sticky;left:var(--own);text-align:left;border-right:2px solid var(--group-line)!important}
 .fish-name{z-index:2;font-weight:600;white-space:nowrap;min-width:130px}
 .fish-head{z-index:3;padding-left:12px;background:var(--head-2)!important}
 
@@ -100,6 +105,7 @@ tbody tr:last-child td{border-bottom:0}
 .pct.blank{color:var(--muted);opacity:.5;background-image:none}
 
 @media (max-width:560px){
+  :root{--own:38px}
   main{padding:12px}
   .bait-head{padding:10px 12px}
   thead th{font-size:.72rem;padding:5px 6px;height:30px}
@@ -143,6 +149,21 @@ tbody tr:last-child td{border-bottom:0}
 
   const collator = new Intl.Collator(undefined, { numeric: true, sensitivity: 'base' });
   const cmp = collator.compare;
+
+  /* owned fish: localStorage holds just the number from park_fishing_fish-0001, e.g. "0001~0002" */
+  const OWNED_KEY = 'fishOwned', PFX = 'park_fishing_fish-';
+  const owned = new Set();
+  function loadOwned() {
+    owned.clear();
+    try {
+      for (const id of (localStorage.getItem(OWNED_KEY) || '').split('~')) if (id) owned.add(/^\d+$/.test(id) ? PFX + id : id);
+    } catch {}
+  }
+  function saveOwned() {
+    try {
+      localStorage.setItem(OWNED_KEY, [...owned].map(c => c.startsWith(PFX) ? c.slice(PFX.length) : c).join('~'));
+    } catch {}
+  }
 
   let allFish = new Map();          // every fish (core id -> name), not just the current spot's
   let model = new Map();            // main spot -> { spots: [spotId], baits: [bait] }
@@ -226,7 +247,7 @@ tbody tr:last-child td{border-bottom:0}
               pct.push(x);
             }
           });
-          return { id: fid, name, pct };
+          return { id: fid, cid: coreId(fid), name, pct };
         });
         baits.push({ id, label: baitName(id), rows, top });
       }
@@ -240,10 +261,11 @@ tbody tr:last-child td{border-bottom:0}
   const getSort = (main, baitId) => sorts.get(main + '|' + baitId) || { col: -1, dir: 'asc' };
 
   function sortedRows(bait, s) {
-    const rows = st.fish ? bait.rows.filter(r => coreId(r.id) === st.fish) : bait.rows.slice();
+    const rows = st.fish ? bait.rows.filter(r => r.cid === st.fish) : bait.rows.slice();
     const sg = s.dir === 'asc' ? 1 : -1, c = s.col;
-    rows.sort(c < 0
-      ? (a, b) => sg * cmp(coreId(a.id), coreId(b.id))
+    const byId = (a, b) => cmp(a.cid, b.cid);
+    rows.sort(c === -1 ? (a, b) => sg * byId(a, b)
+      : c === -2 ? (a, b) => sg * (owned.has(a.cid) - owned.has(b.cid)) || byId(a, b)
       : (a, b) => sg * ((a.pct[c] ?? -Infinity) - (b.pct[c] ?? -Infinity)));
     return rows;
   }
@@ -255,7 +277,8 @@ tbody tr:last-child td{border-bottom:0}
         `aria-sort="${on ? (s.dir === 'asc' ? 'ascending' : 'descending') : 'none'}"${attrs}>` +
         `${label}<span class="arrow" aria-hidden="true">${on ? (s.dir === 'asc' ? '▲' : '▼') : '⇅'}</span></th>`;
     };
-    let top = th(-1, 'Fish', 'fish-head', ' rowspan="2"'), bot = '';
+    let top = th(-2, '✓', 'own-head', ' rowspan="2" aria-label="Owned" title="Owned"') +
+      th(-1, 'Fish', 'fish-head', ' rowspan="2"'), bot = '';
     spots.forEach((id, i) => {
       top += `<th colspan="2" class="spot-group group-end">${esc(spotLabel(id))}</th>`;
       bot += th(i * 2, 'Day', 'noon-head') + th(i * 2 + 1, 'Night', 'night-head group-end');
@@ -263,7 +286,9 @@ tbody tr:last-child td{border-bottom:0}
     const n = spots.length * 2;
     let body = '';
     for (const r of rows) {
-      body += `<tr><td class="fish-name">${esc(r.name)}</td>`;
+      body += `<tr><td class="own-cell"><input type="checkbox" class="own" data-fish="${esc(r.cid)}" ` +
+        `aria-label="Owned: ${esc(r.name)}"${owned.has(r.cid) ? ' checked' : ''}></td>` +
+        `<td class="fish-name">${esc(r.name)}</td>`;
       for (let i = 0; i < n; i++) {
         const v = r.pct[i], night = i & 1;
         const cls = 'pct ' + (night ? 'night group-end' : 'noon');
@@ -329,6 +354,7 @@ tbody tr:last-child td{border-bottom:0}
       const fn = buildNameMap(fishLang), bn = buildNameMap(baitLang);
       model = buildModel(lot, id => fn.get(coreId(id)) || String(id), id => bn.get(coreId(id)) || String(id));
       sorts.clear();
+      loadOwned();
       allFish = new Map(fn);
       for (const m of model.values()) for (const b of m.baits) for (const r of b.rows) {
         const c = coreId(r.id);
@@ -369,6 +395,16 @@ tbody tr:last-child td{border-bottom:0}
     sorts.set(st.spot + '|' + bait.id, s);
     sec.querySelector('.table-wrap').innerHTML = tableHtml(m.spots, bait, sortedRows(bait, s), s);
     sec.querySelector(`th[data-col="${col}"]`)?.focus({ preventScroll: true });
+  });
+
+  // Ticking a fish updates every checkbox for that fish, across all bait tables.
+  output.addEventListener('change', e => {
+    const cb = e.target.closest('input.own');
+    if (!cb) return;
+    const id = cb.dataset.fish;
+    if (cb.checked) owned.add(id); else owned.delete(id);
+    saveOwned();
+    for (const o of output.querySelectorAll('input.own')) if (o.dataset.fish === id) o.checked = cb.checked;
   });
 
   output.addEventListener('keydown', e => {

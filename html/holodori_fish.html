@@ -10,14 +10,13 @@
     --card:       #ffffff;
     --border:     #e3e8ef;
     --border-2:   #eef1f6;
+    --divider:    #b8c2d0;
     --text:       #0f172a;
     --text-muted: #64748b;
     --head:       #f8fafc;
     --accent:     #0ea5e9;
     --accent-soft:#e0f2fe;
-    --noon:       #f59e0b;
     --noon-soft:  #fef3c7;
-    --night:      #6366f1;
     --night-soft: #e0e7ff;
     --row-alt:    #fafbfd;
     --row-hover:  #f1f5f9;
@@ -35,12 +34,11 @@
     padding-bottom: env(safe-area-inset-bottom);
   }
 
-  /* ---------- sticky top bar ---------- */
   header {
     position: sticky;
     top: 0;
     z-index: 10;
-    background: linear-gradient(180deg, #ffffff 0%, #ffffff 100%);
+    background: #ffffff;
     border-bottom: 1px solid var(--border);
     padding: 14px 16px 12px;
     box-shadow: 0 1px 3px rgba(15,23,42,.04);
@@ -100,15 +98,19 @@
     min-width: 0;
     width: 100%;
     cursor: pointer;
-    transition: border-color .12s, box-shadow .12s;
+    transition: border-color .12s, box-shadow .12s, opacity .12s;
   }
   select:focus {
     outline: none;
     border-color: var(--accent);
     box-shadow: 0 0 0 3px var(--accent-soft);
   }
+  select:disabled {
+    opacity: .55;
+    cursor: not-allowed;
+    background-color: #f8fafc;
+  }
 
-  /* ---------- main ---------- */
   main {
     padding: 16px;
     max-width: 1100px;
@@ -133,7 +135,32 @@
     font-size: .95rem;
   }
 
-  /* ---------- bait card ---------- */
+  /* ---------- loading indicator ---------- */
+  .loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    padding: 64px 20px;
+    color: var(--text-muted);
+    font-size: .95rem;
+  }
+  .spinner {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 3px solid var(--accent-soft);
+    border-top-color: var(--accent);
+    animation: spin .8s linear infinite;
+  }
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .spinner { animation-duration: 1.6s; }
+  }
+
   section.bait {
     background: var(--card);
     border: 1px solid var(--border);
@@ -164,7 +191,6 @@
     margin-right: -4px;
   }
 
-  /* ---------- table ---------- */
   .table-wrap {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
@@ -208,7 +234,6 @@
     margin-left: 6px;
     font-size: .7em;
     opacity: .9;
-    transition: transform .15s;
   }
 
   tbody td {
@@ -224,6 +249,15 @@
   }
   tbody tr:last-child td { border-bottom: none; }
 
+  tbody tr.group-start td {
+    border-top: 2px solid var(--divider);
+    box-shadow: inset 0 3px 4px -3px rgba(15,23,42,.10);
+  }
+  tbody tr.group-start:first-child td {
+    border-top: none;
+    box-shadow: none;
+  }
+
   td.spot {
     font-weight: 600;
     white-space: nowrap;
@@ -238,17 +272,18 @@
     text-align: right;
     font-variant-numeric: tabular-nums;
     width: 130px;
+    padding: 0;
   }
 
-  /* percentage cell with inline bar */
-  .pct {
+  .pct-inner {
     position: relative;
     display: flex;
     align-items: center;
     justify-content: flex-end;
-    gap: 8px;
+    padding: 9px 12px;
+    min-height: 36px;
   }
-  .pct .bar {
+  .pct-inner .bar {
     position: absolute;
     left: 12px;
     right: 12px;
@@ -256,29 +291,27 @@
     transform: translateY(-50%);
     height: 18px;
     border-radius: 4px;
-    background: transparent;
     overflow: hidden;
     pointer-events: none;
   }
-  .pct .bar span {
+  .pct-inner .bar span {
     display: block;
     height: 100%;
     border-radius: 4px;
     transition: width .25s ease;
   }
-  .pct.noon .bar span { background: var(--noon-soft); }
+  .pct.noon  .bar span { background: var(--noon-soft); }
   .pct.night .bar span { background: var(--night-soft); }
-  .pct .val {
+
+  .pct-inner .val {
     position: relative;
     font-weight: 600;
     z-index: 1;
   }
-  .pct.noon .val { color: #92400e; }
+  .pct.noon  .val { color: #92400e; }
   .pct.night .val { color: #4338ca; }
-  .pct .val.winner {
-    font-weight: 800;
-  }
-  .pct .val.winner::after {
+  .pct-inner .val.winner { font-weight: 800; }
+  .pct-inner .val.winner::after {
     content: "";
     display: inline-block;
     width: 5px; height: 5px;
@@ -292,9 +325,10 @@
   @media (max-width: 560px) {
     main { padding: 12px; }
     thead th { padding: 9px 10px; }
-    tbody td { padding: 8px 10px; }
+    tbody td { padding: 0; }
     td.num { width: 108px; }
-    .pct .bar { left: 10px; right: 10px; height: 16px; }
+    .pct-inner { padding: 8px 10px; min-height: 34px; }
+    .pct-inner .bar { left: 10px; right: 10px; height: 16px; }
     .bait-head { padding: 10px 12px; }
     .bait-head h2 { font-size: .95rem; }
   }
@@ -307,11 +341,11 @@
   <div class="controls">
     <div class="field">
       <label for="spotSelect">Spot</label>
-      <select id="spotSelect"></select>
+      <select id="spotSelect" disabled></select>
     </div>
     <div class="field">
       <label for="baitSelect">Bait</label>
-      <select id="baitSelect">
+      <select id="baitSelect" disabled>
         <option value="">All baits</option>
       </select>
     </div>
@@ -320,7 +354,12 @@
 
 <main>
   <div id="status"></div>
-  <div id="output"></div>
+  <div id="output">
+    <div class="loading">
+      <div class="spinner" role="status" aria-label="Loading"></div>
+      <div>Loading data…</div>
+    </div>
+  </div>
 </main>
 
 <script>
@@ -355,8 +394,6 @@
   function getSort(baitId) {
     return sortStates.get(baitId) || { col: 'spot', dir: 'asc' };
   }
-
-  /* ---------- helpers ---------- */
 
   function toArray(json) {
     if (Array.isArray(json)) return json.map(e => (e && e.data) ? e.data : e);
@@ -424,15 +461,43 @@
     return m ? parseInt(m[1], 10) : 0;
   }
 
+  /* ---------- loading / status helpers ---------- */
+
+  function showLoading(message) {
+    output.innerHTML = `
+      <div class="loading">
+        <div class="spinner" role="status" aria-label="Loading"></div>
+        <div>${esc(message || 'Loading data…')}</div>
+      </div>`;
+    select.disabled = true;
+    baitSelect.disabled = true;
+  }
+
+  function showError(message) {
+    status.textContent = message;
+    output.innerHTML = '<p class="empty">Unable to load data.</p>';
+    select.disabled = true;
+    baitSelect.disabled = true;
+  }
+
+  function clearLoading() {
+    status.textContent = '';
+    select.disabled = false;
+    baitSelect.disabled = false;
+  }
+
   /* ---------- data loading ---------- */
 
   async function fetchJSON(url) {
-    const r = await fetch(url);
+    // no-cache: always revalidate with server (fast when unchanged,
+    // fresh when the file was edited)
+    const r = await fetch(url, { cache: 'no-cache' });
     if (!r.ok) throw new Error(url + ' -> HTTP ' + r.status);
     return r.json();
   }
 
   async function boot() {
+    showLoading('Loading data…');
     try {
       const [lot, fishLang, baitLang] = await Promise.all([
         fetchJSON(FILE_LOTTERY),
@@ -440,10 +505,12 @@
         fetchJSON(FILE_BAIT)
       ]);
       init(lot, fishLang, baitLang);
+      clearLoading();
     } catch (err) {
-      status.textContent =
+      showError(
         'Could not load JSON files (' + err.message + '). ' +
-        'Serve this page over http(s) and make sure the files are in ' + DATA_DIR + '.';
+        'Serve this page over http(s) and make sure the files are in ' + DATA_DIR + '.'
+      );
     }
   }
 
@@ -457,7 +524,6 @@
     buildSpotDropdown();
     refreshBaitDropdown();
     render();
-    status.textContent = '';
   }
 
   function buildSpotDropdown() {
@@ -501,8 +567,6 @@
     if (prev && baitSet.has(prev)) baitSelect.value = prev;
   }
 
-  /* ---------- sortable header ---------- */
-
   function thHtml(baitId, col, label, extraClass) {
     const s = getSort(baitId);
     const active = s.col === col;
@@ -515,17 +579,15 @@
             </th>`;
   }
 
-  /* ---------- percentage cell ---------- */
-
   function pctCell(pct, type, isWinner) {
     const w = Math.max(0, Math.min(100, pct));
     return `<td class="num pct ${type}">
-              <div class="bar"><span style="width:${w}%"></span></div>
-              <span class="val ${isWinner ? 'winner' : ''}">${fmtPct(pct)}</span>
+              <div class="pct-inner">
+                <div class="bar"><span style="width:${w}%"></span></div>
+                <span class="val ${isWinner ? 'winner' : ''}">${fmtPct(pct)}</span>
+              </div>
             </td>`;
   }
-
-  /* ---------- render ---------- */
 
   function render() {
     const main = select.value;
@@ -605,7 +667,7 @@
         let first = true;
         for (const item of list) {
           const noonIsWinner = item.noonPct >= item.nightPct;
-          rows += '<tr>';
+          rows += `<tr${first ? ' class="group-start"' : ''}>`;
           if (first) {
             rows += `<td class="spot" rowspan="${list.length}">${esc(spotLabel(spotId))}</td>`;
             first = false;
@@ -643,8 +705,6 @@
     output.innerHTML = sections.join('') ||
       '<p class="empty">No fish data for this selection.</p>';
   }
-
-  /* ---------- events ---------- */
 
   select.addEventListener('change', () => {
     refreshBaitDropdown();

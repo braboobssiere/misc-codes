@@ -2,72 +2,336 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Fishing</title>
 <style>
-  :root { --border:#d0d7de; --head:#f2f5f8; }
+  :root {
+    --bg:         #f4f6fa;
+    --card:       #ffffff;
+    --border:     #e3e8ef;
+    --border-2:   #eef1f6;
+    --text:       #0f172a;
+    --text-muted: #64748b;
+    --head:       #f8fafc;
+    --accent:     #0ea5e9;
+    --accent-soft:#e0f2fe;
+    --noon:       #f59e0b;
+    --noon-soft:  #fef3c7;
+    --night:      #6366f1;
+    --night-soft: #e0e7ff;
+    --row-alt:    #fafbfd;
+    --row-hover:  #f1f5f9;
+  }
+
   * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
   body {
-    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-    margin: 0; padding: 24px; background: #f7f9fb; color: #1b1f24;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+                 "Helvetica Neue", Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.45;
+    -webkit-font-smoothing: antialiased;
+    padding-bottom: env(safe-area-inset-bottom);
   }
-  h1 { font-size: 1.4rem; margin: 0 0 16px; }
-  .controls { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+
+  /* ---------- sticky top bar ---------- */
+  header {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: linear-gradient(180deg, #ffffff 0%, #ffffff 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 16px 12px;
+    box-shadow: 0 1px 3px rgba(15,23,42,.04);
+  }
+  header h1 {
+    margin: 0 0 10px;
+    font-size: 1.15rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  header h1::before {
+    content: "";
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 0 4px var(--accent-soft);
+  }
+
+  .controls {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  @media (min-width: 560px) {
+    .controls { grid-template-columns: 1fr 1fr; }
+  }
+
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+  }
+  .field label {
+    font-size: .74rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    color: var(--text-muted);
+  }
   select {
-    font-size: 1rem; padding: 6px 10px; border-radius: 6px;
-    border: 1px solid var(--border); background: #fff;
+    font-size: 1rem;
+    font-family: inherit;
+    padding: 10px 34px 10px 12px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background-color: #fff;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'><path d='M2 4l4 4 4-4' stroke='%2364748b' stroke-width='1.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    color: var(--text);
+    appearance: none;
+    -webkit-appearance: none;
+    min-width: 0;
+    width: 100%;
+    cursor: pointer;
+    transition: border-color .12s, box-shadow .12s;
   }
+  select:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-soft);
+  }
+
+  /* ---------- main ---------- */
+  main {
+    padding: 16px;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  #status {
+    margin-bottom: 12px;
+    padding: 10px 14px;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    color: #b91c1c;
+    border-radius: 10px;
+    font-size: .9rem;
+  }
+  #status:empty { display: none; }
+
+  .empty {
+    text-align: center;
+    color: var(--text-muted);
+    padding: 40px 20px;
+    font-size: .95rem;
+  }
+
+  /* ---------- bait card ---------- */
   section.bait {
-    background: #fff; border: 1px solid var(--border); border-radius: 10px;
-    padding: 14px 16px 18px; margin-bottom: 18px;
-    box-shadow: 0 1px 2px rgba(0,0,0,.04);
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    margin-bottom: 16px;
+    box-shadow: 0 1px 2px rgba(15,23,42,.04),
+                0 4px 12px rgba(15,23,42,.03);
+    overflow: hidden;
   }
-  section.bait h2 { font-size: 1.05rem; margin: 0 0 10px; }
-  table { border-collapse: collapse; width: 100%; font-size: .94rem; }
-  th, td { border: 1px solid var(--border); padding: 6px 10px; text-align: left; vertical-align: top; }
-  thead th { background: var(--head); font-weight: 600; }
-  th.sortable { cursor: pointer; user-select: none; white-space: nowrap; }
-  th.sortable:hover { background: #e6ebf0; }
-  th .arrow { display: inline-block; width: 1em; opacity: .85; font-size: .8em; }
-  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
-  td.spot { white-space: nowrap; font-weight: 600; }
-  .empty { color: #666; }
-  #status { margin-bottom: 12px; color: #a33; }
-  code { background:#eef1f4; padding:1px 4px; border-radius:4px; }
+
+  .bait-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    background: linear-gradient(180deg, #fbfcfe 0%, #f7f9fc 100%);
+    border-bottom: 1px solid var(--border-2);
+  }
+  .bait-head h2 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+  .bait-head .hash {
+    color: var(--accent);
+    font-weight: 800;
+    margin-right: -4px;
+  }
+
+  /* ---------- table ---------- */
+  .table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  table {
+    border-collapse: separate;
+    border-spacing: 0;
+    width: 100%;
+    min-width: 460px;
+    font-size: .92rem;
+  }
+  thead th {
+    position: sticky;
+    top: 0;
+    background: var(--head);
+    font-weight: 600;
+    font-size: .78rem;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    color: var(--text-muted);
+    padding: 10px 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  th.sortable {
+    cursor: pointer;
+    user-select: none;
+    transition: background .12s, color .12s;
+  }
+  th.sortable:hover {
+    background: #eef2f7;
+    color: var(--text);
+  }
+  th.sortable.active {
+    color: var(--accent);
+    background: var(--accent-soft);
+  }
+  th .arrow {
+    display: inline-block;
+    margin-left: 6px;
+    font-size: .7em;
+    opacity: .9;
+    transition: transform .15s;
+  }
+
+  tbody td {
+    padding: 9px 12px;
+    border-bottom: 1px solid var(--border-2);
+    vertical-align: middle;
+  }
+  tbody tr:nth-child(even) td {
+    background: var(--row-alt);
+  }
+  tbody tr:hover td {
+    background: var(--row-hover);
+  }
+  tbody tr:last-child td { border-bottom: none; }
+
+  td.spot {
+    font-weight: 600;
+    white-space: nowrap;
+    border-left: 3px solid var(--accent);
+    padding-left: 10px;
+    background: #fff;
+  }
+  tbody tr:nth-child(even) td.spot { background: var(--row-alt); }
+  tbody tr:hover td.spot { background: var(--row-hover); }
+
+  td.num {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    width: 130px;
+  }
+
+  /* percentage cell with inline bar */
+  .pct {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+  }
+  .pct .bar {
+    position: absolute;
+    left: 12px;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    height: 18px;
+    border-radius: 4px;
+    background: transparent;
+    overflow: hidden;
+    pointer-events: none;
+  }
+  .pct .bar span {
+    display: block;
+    height: 100%;
+    border-radius: 4px;
+    transition: width .25s ease;
+  }
+  .pct.noon .bar span { background: var(--noon-soft); }
+  .pct.night .bar span { background: var(--night-soft); }
+  .pct .val {
+    position: relative;
+    font-weight: 600;
+    z-index: 1;
+  }
+  .pct.noon .val { color: #92400e; }
+  .pct.night .val { color: #4338ca; }
+  .pct .val.winner {
+    font-weight: 800;
+  }
+  .pct .val.winner::after {
+    content: "";
+    display: inline-block;
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    margin-left: 6px;
+    vertical-align: middle;
+    background: currentColor;
+    opacity: .6;
+  }
+
+  @media (max-width: 560px) {
+    main { padding: 12px; }
+    thead th { padding: 9px 10px; }
+    tbody td { padding: 8px 10px; }
+    td.num { width: 108px; }
+    .pct .bar { left: 10px; right: 10px; height: 16px; }
+    .bait-head { padding: 10px 12px; }
+    .bait-head h2 { font-size: .95rem; }
+  }
 </style>
 </head>
 <body>
 
-<h1>Fishing</h1>
+<header>
+  <h1>Fishing</h1>
+  <div class="controls">
+    <div class="field">
+      <label for="spotSelect">Spot</label>
+      <select id="spotSelect"></select>
+    </div>
+    <div class="field">
+      <label for="baitSelect">Bait</label>
+      <select id="baitSelect">
+        <option value="">All baits</option>
+      </select>
+    </div>
+  </div>
+</header>
 
-<div class="controls">
-  <label for="spotSelect"><strong>Spot:</strong></label>
-  <select id="spotSelect"></select>
-
-  <label for="baitSelect"><strong>Bait:</strong></label>
-  <select id="baitSelect">
-    <option value="">All baits</option>
-  </select>
-</div>
-
-<div id="status"></div>
-<div id="output"></div>
+<main>
+  <div id="status"></div>
+  <div id="output"></div>
+</main>
 
 <script>
 (() => {
   'use strict';
 
-  /* --------------------------------------------------------------
-     Relative paths to the JSON files.
-     Change DATA_DIR if you keep the files in a subfolder, e.g.
-     './data/' or '../json/'.
-     -------------------------------------------------------------- */
   const DATA_DIR = './';
   const FILE_LOTTERY = DATA_DIR + 'ParkFishingFishLottery.json';
   const FILE_FISH    = DATA_DIR + 'LangParkFishingFish_Eng.json';
   const FILE_BAIT    = DATA_DIR + 'LangParkFishingBait_Eng.json';
 
-  /* Main spot id -> display name. Sub number is appended automatically. */
   const SPOT_NAMES = {
     '01': 'Fish Blue',
     '02': "Lamy's Snow Dome",
@@ -84,10 +348,9 @@
   const status     = document.getElementById('status');
 
   let lottery = [];
-  const fishNames = new Map();   // 'park_fishing_fish-0001' -> 'Sardine'
-  const baitNames = new Map();   // 'park_fishing_bait-001' -> 'Fishing Bait'
+  const fishNames = new Map();
+  const baitNames = new Map();
 
-  /* Per-bait sort state: baitId -> { col, dir } */
   const sortStates = new Map();
   function getSort(baitId) {
     return sortStates.get(baitId) || { col: 'spot', dir: 'asc' };
@@ -180,21 +443,17 @@
     } catch (err) {
       status.textContent =
         'Could not load JSON files (' + err.message + '). ' +
-        'Make sure the page is served over http(s) and the files are in ' +
-        DATA_DIR + '.';
+        'Serve this page over http(s) and make sure the files are in ' + DATA_DIR + '.';
     }
   }
 
   function init(lot, fishLang, baitLang) {
     lottery = toArray(lot).filter(d => d && d.parkFishingFishId);
-
     fishNames.clear();
     baitNames.clear();
     for (const [k, v] of buildNameMap(fishLang)) fishNames.set(k, v);
     for (const [k, v] of buildNameMap(baitLang)) baitNames.set(k, v);
-
     sortStates.clear();
-
     buildSpotDropdown();
     refreshBaitDropdown();
     render();
@@ -216,55 +475,61 @@
     }
   }
 
-  /* Build bait dropdown from the currently selected spot.
-     Always keeps "All baits" as first option and preserves
-     the previous selection when possible. */
   function refreshBaitDropdown() {
     const main = select.value;
     const prev = baitSelect.value;
-
     if (!main) {
       baitSelect.innerHTML = '<option value="">All baits</option>';
       return;
     }
-
     const entries = lottery.filter(d => {
       const p = spotParts(d.parkFishingSpotId);
       return p && p.main === main;
     });
-
     const baitSet = new Set();
     for (const d of entries) {
       if (d.parkFishingBaitId) baitSet.add(d.parkFishingBaitId);
     }
-
     const baitIds = [...baitSet].sort((a, b) =>
       baitLabel(a).localeCompare(baitLabel(b))
     );
-
     let html = '<option value="">All baits</option>';
     for (const b of baitIds) {
       html += `<option value="${esc(b)}">${esc(baitLabel(b))}</option>`;
     }
     baitSelect.innerHTML = html;
-
     if (prev && baitSet.has(prev)) baitSelect.value = prev;
   }
 
-  /* ---------- sortable header helper ---------- */
+  /* ---------- sortable header ---------- */
 
   function thHtml(baitId, col, label, extraClass) {
     const s = getSort(baitId);
-    const arrow = s.col === col ? (s.dir === 'asc' ? '▲' : '▼') : '';
-    const cls = ['sortable', extraClass || ''].filter(Boolean).join(' ');
-    return `<th data-col="${col}" class="${cls}">${esc(label)}<span class="arrow">${arrow}</span></th>`;
+    const active = s.col === col;
+    const arrow = active ? (s.dir === 'asc' ? '▲' : '▼') : '⇅';
+    const cls = ['sortable', active ? 'active' : '', extraClass || '']
+                  .filter(Boolean).join(' ');
+    return `<th data-col="${col}" class="${cls}" role="button" tabindex="0"
+              aria-sort="${active ? (s.dir === 'asc' ? 'ascending' : 'descending') : 'none'}">
+              ${esc(label)}<span class="arrow">${arrow}</span>
+            </th>`;
   }
 
-  /* ---------- rendering ---------- */
+  /* ---------- percentage cell ---------- */
+
+  function pctCell(pct, type, isWinner) {
+    const w = Math.max(0, Math.min(100, pct));
+    return `<td class="num pct ${type}">
+              <div class="bar"><span style="width:${w}%"></span></div>
+              <span class="val ${isWinner ? 'winner' : ''}">${fmtPct(pct)}</span>
+            </td>`;
+  }
+
+  /* ---------- render ---------- */
 
   function render() {
     const main = select.value;
-    const baitFilter = baitSelect.value;   // '' means all baits
+    const baitFilter = baitSelect.value;
     if (!main) return;
 
     const entries = lottery.filter(d => {
@@ -272,22 +537,18 @@
       return p && p.main === main;
     });
 
-    // baitId -> spotId -> fishId -> { noon, night }
     const baits = new Map();
     for (const d of entries) {
       const t = timeOf(d.parkFishingTimePeriodId);
       if (!t) continue;
-
       const baitId = d.parkFishingBaitId;
       const spotId = d.parkFishingSpotId;
       const fishId = d.parkFishingFishId;
-
       if (!baits.has(baitId)) baits.set(baitId, new Map());
       const spots = baits.get(baitId);
       if (!spots.has(spotId)) spots.set(spotId, new Map());
       const fish = spots.get(spotId);
       if (!fish.has(fishId)) fish.set(fishId, { noon: 0, night: 0 });
-
       fish.get(fishId)[t] += Number(d.hitRatio) || 0;
     }
 
@@ -300,18 +561,15 @@
       const spots = baits.get(baitId);
       const { col, dir } = getSort(baitId);
       const sign = dir === 'asc' ? 1 : -1;
-
       const spotRows = [];
 
       for (const spotId of spots.keys()) {
         const fishMap = spots.get(spotId);
-
         let totalNoon = 0, totalNight = 0;
         for (const v of fishMap.values()) {
           totalNoon  += v.noon;
           totalNight += v.night;
         }
-
         let list = [...fishMap.entries()]
           .filter(([, v]) => v.noon > 0 || v.night > 0)
           .map(([fid, v]) => ({
@@ -319,7 +577,6 @@
             noonPct:  totalNoon  > 0 ? (v.noon  / totalNoon)  * 100 : 0,
             nightPct: totalNight > 0 ? (v.night / totalNight) * 100 : 0
           }));
-
         if (!list.length) continue;
 
         if (col === 'fish') {
@@ -347,14 +604,15 @@
       for (const { spotId, list } of spotRows) {
         let first = true;
         for (const item of list) {
+          const noonIsWinner = item.noonPct >= item.nightPct;
           rows += '<tr>';
           if (first) {
             rows += `<td class="spot" rowspan="${list.length}">${esc(spotLabel(spotId))}</td>`;
             first = false;
           }
           rows += `<td>${esc(fishLabel(item.fid))}</td>`;
-          rows += `<td class="num">${fmtPct(item.noonPct)}</td>`;
-          rows += `<td class="num">${fmtPct(item.nightPct)}</td>`;
+          rows += pctCell(item.noonPct,  'noon',  noonIsWinner);
+          rows += pctCell(item.nightPct, 'night', !noonIsWinner);
           rows += '</tr>';
         }
       }
@@ -363,18 +621,22 @@
 
       sections.push(`
         <section class="bait" data-bait-id="${esc(baitId)}">
-          <h2># ${esc(baitLabel(baitId))}</h2>
-          <table>
-            <thead>
-              <tr>
-                ${thHtml(baitId, 'spot', 'Spot')}
-                ${thHtml(baitId, 'fish', 'Fish')}
-                ${thHtml(baitId, 'noon', 'Noon', 'num')}
-                ${thHtml(baitId, 'night', 'Night', 'num')}
-              </tr>
-            </thead>
-            <tbody>${rows}</tbody>
-          </table>
+          <div class="bait-head">
+            <h2><span class="hash">#</span>${esc(baitLabel(baitId))}</h2>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  ${thHtml(baitId, 'spot', 'Spot')}
+                  ${thHtml(baitId, 'fish', 'Fish')}
+                  ${thHtml(baitId, 'noon', 'Noon', 'num')}
+                  ${thHtml(baitId, 'night', 'Night', 'num')}
+                </tr>
+              </thead>
+              <tbody>${rows}</tbody>
+            </table>
+          </div>
         </section>`);
     }
 
@@ -396,14 +658,20 @@
     if (!th) return;
     const section = th.closest('section.bait');
     if (!section) return;
-
     const baitId = section.dataset.baitId;
     const col = th.dataset.col;
     const cur = getSort(baitId);
-
     const dir = (cur.col === col && cur.dir === 'asc') ? 'desc' : 'asc';
     sortStates.set(baitId, { col, dir });
     render();
+  });
+
+  output.addEventListener('keydown', (e) => {
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+    const th = e.target.closest('th[data-col]');
+    if (!th) return;
+    e.preventDefault();
+    th.click();
   });
 
   boot();

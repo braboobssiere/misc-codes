@@ -9,3 +9,4 @@ Tools page links:
 - [Touhou Gensou Mahjong (switch ver.) Character list](https://braboobssiere.github.io/misc-codes/files/md/thmj)
 - [Fairshare](https://braboobssiere.github.io/misc-codes/fairshare/html/fairshare)
 - [Privatebin](https://post-it.free.nf/)
+- [holodori fishing table](https://braboobssiere.github.io/misc-codes/html/holodori_fish)

@@ -227,11 +227,11 @@ tbody tr:last-child td{border-bottom:0}
               pct.push(x);
             }
           });
-          return { name, key: name.toLowerCase(), pct };
+          return { id: fid, name, key: name.toLowerCase(), pct };
         });
         baits.push({ id, label: baitName(id), rows, top });
       }
-      baits.sort((a, b) => cmp(a.label, b.label));
+      baits.sort((a, b) => cmp(coreId(a.id), coreId(b.id)));
       out.set(main, { spots, baits });
     }
     return out;
@@ -244,7 +244,7 @@ tbody tr:last-child td{border-bottom:0}
     const rows = st.q ? bait.rows.filter(r => r.key.includes(st.q)) : bait.rows.slice();
     const sg = s.dir === 'asc' ? 1 : -1, c = s.col;
     rows.sort(c < 0
-      ? (a, b) => sg * cmp(a.name, b.name)
+      ? (a, b) => sg * cmp(coreId(a.id), coreId(b.id))
       : (a, b) => sg * ((a.pct[c] ?? -Infinity) - (b.pct[c] ?? -Infinity)));
     return rows;
   }

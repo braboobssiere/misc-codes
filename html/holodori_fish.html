@@ -41,13 +41,11 @@ header h1{margin:0;font-size:1.15rem;font-weight:700;letter-spacing:-.01em}
 
 .filters{display:grid;gap:8px}
 @media (min-width:560px){.filters{grid-template-columns:1fr 1fr}}
-select,input[type=search]{font:inherit;font-size:1rem;width:100%;min-width:0;padding:10px 12px;border-radius:10px;
-  border:1px solid var(--border);background-color:var(--card);color:var(--text);transition:border-color .12s,box-shadow .12s}
-select{padding-right:34px;appearance:none;-webkit-appearance:none;cursor:pointer;background-repeat:no-repeat;background-position:right 12px center;
+select{font:inherit;font-size:1rem;width:100%;min-width:0;padding:10px 34px 10px 12px;border-radius:10px;
+  border:1px solid var(--border);background-color:var(--card);color:var(--text);transition:border-color .12s,box-shadow .12s;appearance:none;-webkit-appearance:none;cursor:pointer;background-repeat:no-repeat;background-position:right 12px center;
   background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'><path d='M2 4l4 4 4-4' stroke='%2393a4bc' stroke-width='1.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>")}
-select:focus,input[type=search]:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
-select:disabled,input:disabled{opacity:.55;cursor:not-allowed}
-input::placeholder{color:var(--muted)}
+select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+select:disabled{opacity:.55;cursor:not-allowed}
 
 main{padding:16px;max-width:1100px;margin:0 auto}
 #status{margin-bottom:12px;padding:10px 14px;background:var(--err-bg);border:1px solid var(--err-bd);color:var(--err);border-radius:10px;font-size:.9rem}
@@ -118,7 +116,7 @@ tbody tr:last-child td{border-bottom:0}
     <div class="seg" id="spotTabs" role="tablist" aria-label="Spot"></div>
     <div class="filters">
       <select id="baitSelect" aria-label="Bait" disabled><option value="">All baits</option></select>
-      <input id="fishSearch" type="search" placeholder="Search fish" aria-label="Search fish" autocomplete="off" disabled>
+      <select id="fishSelect" aria-label="Fish" disabled><option value="">All fish</option></select>
     </div>
   </div>
 </header>
@@ -140,15 +138,16 @@ tbody tr:last-child td{border-bottom:0}
   const STORE = 'fishing-ui-v1';
 
   const $ = id => document.getElementById(id);
-  const tabs = $('spotTabs'), baitSel = $('baitSelect'), search = $('fishSearch');
+  const tabs = $('spotTabs'), baitSel = $('baitSelect'), fishSel = $('fishSelect');
   const output = $('output'), status = $('status');
 
   const collator = new Intl.Collator(undefined, { numeric: true, sensitivity: 'base' });
   const cmp = collator.compare;
 
+  let allFish = new Map();          // every fish (core id -> name), not just the current spot's
   let model = new Map();            // main spot -> { spots: [spotId], baits: [bait] }
   const sorts = new Map();          // "main|baitId" -> { col, dir }
-  const st = { spot: '', bait: '', q: '' };
+  const st = { spot: '', bait: '', fish: '' };
 
   const esc = s => String(s).replace(/[&<>"']/g, c =>
     ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -227,7 +226,7 @@ tbody tr:last-child td{border-bottom:0}
               pct.push(x);
             }
           });
-          return { id: fid, name, key: name.toLowerCase(), pct };
+          return { id: fid, name, pct };
         });
         baits.push({ id, label: baitName(id), rows, top });
       }
@@ -241,7 +240,7 @@ tbody tr:last-child td{border-bottom:0}
   const getSort = (main, baitId) => sorts.get(main + '|' + baitId) || { col: -1, dir: 'asc' };
 
   function sortedRows(bait, s) {
-    const rows = st.q ? bait.rows.filter(r => r.key.includes(st.q)) : bait.rows.slice();
+    const rows = st.fish ? bait.rows.filter(r => coreId(r.id) === st.fish) : bait.rows.slice();
     const sg = s.dir === 'asc' ? 1 : -1, c = s.col;
     rows.sort(c < 0
       ? (a, b) => sg * cmp(coreId(a.id), coreId(b.id))
@@ -289,13 +288,13 @@ tbody tr:last-child td{border-bottom:0}
         `<h2><span class="hash">#</span>${esc(b.label)}</h2><span class="count">${rows.length} fish</span></div>` +
         `<div class="table-wrap">${tableHtml(m.spots, b, rows, s)}</div></section>`;
     }
-    output.innerHTML = html || `<p class="empty">${st.q ? 'No fish match your search.' : 'No fish data for this selection.'}</p>`;
+    output.innerHTML = html || `<p class="empty">${st.fish ? 'That fish isn’t available with this spot and bait.' : 'No fish data for this selection.'}</p>`;
   }
 
   /* ---------- state ---------- */
-  const save = () => { try { localStorage.setItem(STORE, JSON.stringify({ spot: st.spot, bait: st.bait })); } catch {} };
+  const save = () => { try { localStorage.setItem(STORE, JSON.stringify({ spot: st.spot, bait: st.bait, fish: st.fish })); } catch {} };
   const restore = () => {
-    try { Object.assign(st, JSON.parse(localStorage.getItem(STORE) || '{}'), { q: '' }); } catch {}
+    try { Object.assign(st, JSON.parse(localStorage.getItem(STORE) || '{}')); } catch {}
   };
 
   function setSpot(main) {
@@ -306,6 +305,8 @@ tbody tr:last-child td{border-bottom:0}
       baits.map(b => `<option value="${esc(b.id)}">${esc(b.label)}</option>`).join('');
     if (!baits.some(b => b.id === st.bait)) st.bait = '';
     baitSel.value = st.bait;
+    if (!allFish.has(st.fish)) st.fish = '';
+    fishSel.value = st.fish;
     save();
     render();
   }
@@ -317,7 +318,7 @@ tbody tr:last-child td{border-bottom:0}
     return r.json();
   }
 
-  function setBusy(busy) { baitSel.disabled = search.disabled = busy; }
+  function setBusy(busy) { baitSel.disabled = fishSel.disabled = busy; }
 
   async function boot() {
     status.textContent = '';
@@ -328,6 +329,14 @@ tbody tr:last-child td{border-bottom:0}
       const fn = buildNameMap(fishLang), bn = buildNameMap(baitLang);
       model = buildModel(lot, id => fn.get(coreId(id)) || String(id), id => bn.get(coreId(id)) || String(id));
       sorts.clear();
+      allFish = new Map(fn);
+      for (const m of model.values()) for (const b of m.baits) for (const r of b.rows) {
+        const c = coreId(r.id);
+        if (!allFish.has(c)) allFish.set(c, r.name);
+      }
+      fishSel.innerHTML = '<option value="">All fish</option>' +
+        [...allFish].sort((a, b) => cmp(a[0], b[0]))
+          .map(([id, n]) => `<option value="${esc(id)}">${esc(n)}</option>`).join('');
       const mains = [...model.keys()].sort();
       tabs.innerHTML = mains.map(m =>
         `<button role="tab" data-spot="${esc(m)}" aria-selected="false">${esc(spotName(m))}</button>`).join('');
@@ -346,11 +355,7 @@ tbody tr:last-child td{border-bottom:0}
   });
   baitSel.addEventListener('change', () => { st.bait = baitSel.value; save(); render(); });
 
-  let timer = 0;
-  search.addEventListener('input', () => {
-    clearTimeout(timer);
-    timer = setTimeout(() => { st.q = search.value.trim().toLowerCase(); render(); }, 120);
-  });
+  fishSel.addEventListener('change', () => { st.fish = fishSel.value; save(); render(); });
 
   // Sorting re-renders only the clicked table, not the whole page.
   output.addEventListener('click', e => {

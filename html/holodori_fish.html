@@ -150,8 +150,9 @@ input.own{width:18px;height:18px;margin:0;vertical-align:middle;accent-color:var
   const collator = new Intl.Collator(undefined, { numeric: true, sensitivity: 'base' });
   const cmp = collator.compare;
 
-  /* owned fish: localStorage holds just the number from park_fishing_fish-0001, e.g. "0001~0002" */
-  const OWNED_KEY = 'fishOwned', PFX = 'park_fishing_fish-';
+  /* owned fish: localStorage holds just the number from park_fishing_fish-0001, e.g. "0001~0002".
+     Ids that don't match that exact pattern are stored in full. */
+  const OWNED_KEY = 'fishOwned', PFX = 'park_fishing_fish-', RE_NUM = /^park_fishing_fish-(\d+)$/;
   const owned = new Set();
   function loadOwned() {
     owned.clear();
@@ -161,7 +162,7 @@ input.own{width:18px;height:18px;margin:0;vertical-align:middle;accent-color:var
   }
   function saveOwned() {
     try {
-      localStorage.setItem(OWNED_KEY, [...owned].map(c => c.startsWith(PFX) ? c.slice(PFX.length) : c).join('~'));
+      localStorage.setItem(OWNED_KEY, [...owned].map(c => { const m = RE_NUM.exec(c); return m ? m[1] : c; }).join('~'));
     } catch {}
   }
 

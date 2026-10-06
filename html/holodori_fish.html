@@ -32,6 +32,10 @@ header{background:var(--card);border-bottom:1px solid var(--border);padding:max(
 @media (min-height:700px){header{position:sticky;top:0;z-index:20}}
 .bar{max-width:1100px;margin:0 auto;display:grid;gap:10px}
 header h1{margin:0;font-size:1.15rem;font-weight:700;letter-spacing:-.01em}
+.title{display:flex;align-items:center;gap:12px}
+.map-link{display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border-radius:999px;border:1px solid var(--border);
+  background:var(--head);color:var(--accent);font-size:.85rem;font-weight:600;text-decoration:none;transition:background .12s,border-color .12s}
+.map-link:hover{background:var(--accent-soft);border-color:var(--accent)}
 
 .seg{display:flex;gap:4px;padding:3px;background:var(--head-2);border-radius:12px;overflow-x:auto;scrollbar-width:none}
 .seg::-webkit-scrollbar{display:none}
@@ -113,12 +117,30 @@ input.own{width:18px;height:18px;margin:0;vertical-align:middle;accent-color:var
   .pct{width:68px;min-width:68px;font-size:.8rem}
   tbody td{padding:6px}
 }
+
+/* map overlay */
+body:has(dialog[open]){overflow:hidden}
+.map-dialog{border:0;padding:0;background:var(--card);color:var(--text);border-radius:14px;width:min(96vw,1200px);
+  max-width:96vw;max-height:92vh;box-shadow:0 20px 60px rgba(0,0,0,.45);overflow:hidden}
+.map-dialog[open]{display:flex;flex-direction:column}
+.map-dialog::backdrop{background:rgba(2,6,23,.68)}
+.map-top{display:flex;align-items:center;gap:10px;padding:10px 12px 10px 16px;border-bottom:1px solid var(--border-2);font-weight:700}
+.map-top .hint{margin-left:auto;font-size:.8rem;font-weight:400;color:var(--muted)}
+.map-top button{font:inherit;font-size:.9rem;font-weight:600;padding:6px 12px;border-radius:8px;border:1px solid var(--border);
+  background:var(--head);color:var(--text);cursor:pointer}
+.map-top button:hover{background:var(--head-2)}
+.map-scroll{flex:1;min-height:0;overflow:auto;background:var(--bg)}
+.map-scroll img{display:block;max-width:100%;max-height:calc(92vh - 58px);margin:0 auto;cursor:zoom-in}
+.map-scroll.full img{max-width:none;max-height:none;cursor:zoom-out}
 </style>
 </head>
 <body>
 <header>
   <div class="bar">
-    <h1>Fishing</h1>
+    <div class="title">
+      <h1>Fishing</h1>
+      <a class="map-link" href="./spot.jpg" target="_blank" rel="noopener">Map</a>
+    </div>
     <div class="seg" id="spotTabs" role="tablist" aria-label="Spot"></div>
     <div class="filters">
       <select id="baitSelect" aria-label="Bait" disabled><option value="">All baits</option></select>
@@ -132,6 +154,11 @@ input.own{width:18px;height:18px;margin:0;vertical-align:middle;accent-color:var
     <div class="loading"><div class="spinner" role="status" aria-label="Loading"></div><div>Loading data…</div></div>
   </div>
 </main>
+
+<dialog class="map-dialog" id="mapDialog" aria-label="Map">
+  <div class="map-top"><span>Map</span><span class="hint">Tap the map to zoom</span><button type="button" data-close>Close</button></div>
+  <div class="map-scroll"><img alt="Map of fishing spots" decoding="async"></div>
+</dialog>
 
 <script>
 (() => {
@@ -413,6 +440,20 @@ input.own{width:18px;height:18px;margin:0;vertical-align:middle;accent-color:var
     const th = e.target.closest('th[data-col]');
     if (th) { e.preventDefault(); th.click(); }
   });
+
+  /* map overlay: image loads on first open; the link's href stays as a no-JS / ctrl-click fallback */
+  const mapLink = document.querySelector('.map-link'), mapDlg = $('mapDialog');
+  const mapBox = mapDlg.querySelector('.map-scroll'), mapImg = mapDlg.querySelector('img');
+  mapLink.addEventListener('click', e => {
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.button) return;
+    e.preventDefault();
+    if (!mapImg.getAttribute('src')) mapImg.src = mapLink.getAttribute('href');
+    mapBox.classList.remove('full');
+    mapDlg.showModal();
+  });
+  mapImg.addEventListener('click', () => mapBox.classList.toggle('full'));
+  mapImg.addEventListener('error', () => { mapBox.innerHTML = '<p class="empty">Could not load the map image.</p>'; });
+  mapDlg.addEventListener('click', e => { if (e.target === mapDlg || e.target.closest('[data-close]')) mapDlg.close(); });
 
   boot();
 })();

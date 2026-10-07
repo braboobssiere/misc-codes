@@ -12,14 +12,12 @@ on:
         type: string
         default: ""
       upload_to_gphoto:
-        required: true
         type: choice
         default: 'false'
         options:
           - 'false'
           - 'true'
       upload_to_streaming:
-        required: true
         type: choice
         default: 'false'
         options:

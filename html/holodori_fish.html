@@ -193,8 +193,7 @@ body:has(dialog[open]){overflow:hidden}
     } catch {}
   }
 
-  let allFish = new Map();          // every fish (core id -> name), not just the current spot's
-  let model = new Map();            // main spot -> { spots: [spotId], baits: [bait] }
+  let model = new Map();            // main spot -> { spots: [spotId], baits: [bait], fish: Map(core id -> name) }
   const sorts = new Map();          // "main|baitId" -> { col, dir }
   const st = { spot: '', bait: '', fish: '' };
 
@@ -280,7 +279,11 @@ body:has(dialog[open]){overflow:hidden}
         baits.push({ id, label: baitName(id), rows, top });
       }
       baits.sort((a, b) => cmp(coreId(a.id), coreId(b.id)));
-      out.set(main, { spots, baits });
+      // fish available on this spot (any bait); feeds that spot's fish dropdown
+      const fishMap = new Map();
+      for (const b of baits) for (const r of b.rows) if (!fishMap.has(r.cid)) fishMap.set(r.cid, r.name);
+      const fish = new Map([...fishMap].sort((a, b) => cmp(a[0], b[0])));
+      out.set(main, { spots, baits, fish });
     }
     return out;
   }
@@ -358,7 +361,11 @@ body:has(dialog[open]){overflow:hidden}
       baits.map(b => `<option value="${esc(b.id)}">${esc(b.label)}</option>`).join('');
     if (!baits.some(b => b.id === st.bait)) st.bait = '';
     baitSel.value = st.bait;
-    if (!allFish.has(st.fish)) st.fish = '';
+    // fish list is per spot; keep the selection only if this spot has that fish, else back to "All fish"
+    const fish = model.get(main)?.fish || new Map();
+    fishSel.innerHTML = '<option value="">All fish</option>' +
+      [...fish].map(([id, n]) => `<option value="${esc(id)}">${esc(n)}</option>`).join('');
+    if (!fish.has(st.fish)) st.fish = '';
     fishSel.value = st.fish;
     save();
     render();
@@ -383,14 +390,6 @@ body:has(dialog[open]){overflow:hidden}
       model = buildModel(lot, id => fn.get(coreId(id)) || String(id), id => bn.get(coreId(id)) || String(id));
       sorts.clear();
       loadOwned();
-      allFish = new Map(fn);
-      for (const m of model.values()) for (const b of m.baits) for (const r of b.rows) {
-        const c = coreId(r.id);
-        if (!allFish.has(c)) allFish.set(c, r.name);
-      }
-      fishSel.innerHTML = '<option value="">All fish</option>' +
-        [...allFish].sort((a, b) => cmp(a[0], b[0]))
-          .map(([id, n]) => `<option value="${esc(id)}">${esc(n)}</option>`).join('');
       const mains = [...model.keys()].sort();
       tabs.innerHTML = mains.map(m =>
         `<button role="tab" data-spot="${esc(m)}" aria-selected="false">${esc(spotName(m))}</button>`).join('');

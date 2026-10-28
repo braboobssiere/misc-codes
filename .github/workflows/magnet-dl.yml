@@ -92,6 +92,7 @@ jobs:
           fi
         
       - name: Download files
+        continue-on-error: true
         run: |
           mkdir -p magnet_output
           

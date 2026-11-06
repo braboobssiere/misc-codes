@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <title>FairShare – Split bills fairly</title>
+    <link rel="stylesheet" href="../css/fairshare-style.css">
+    <link rel="manifest" href="../js/fairshare-manifest.json">
+    <link rel="apple-touch-icon" href="../image/fairshare-icons/icon-192.png">
+    <meta name="theme-color" content="#6750A4">
+</head>
+<body>
+<div class="app-container">
+    <header class="header">
+        <div class="logo">🍽️ FairShare</div>
+        <div class="header-actions">
+            <button class="icon-btn" id="themeToggleBtn" aria-label="Toggle dark mode">🌙</button>
+            <button class="icon-btn" id="historyBtn">📅</button>
+            <button class="icon-btn" id="exportBtn">📤</button>
+            <button class="icon-btn" id="importBtn">📥</button>
+        </div>
+    </header>
+
+    <div class="top-controls">
+        <div class="invoice-tabs-container">
+            <div class="invoice-tabs" id="invoiceTabs"></div>
+            <button class="new-bill-tab" id="newBillTabBtn" title="New bill">➕</button>
+        </div>
+        <div class="controls-row">
+            <div class="controls-left">
+                <div class="currency-selector">
+                    <select id="globalCurrencySelect"></select>
+                    <button id="addCurrencyBtn" class="icon-btn tiny">+</button>
+                </div>
+                <div class="people-selector">
+                    <label for="peopleCount">👥</label>
+                    <input type="number" id="peopleCount" min="1" value="2">
+                    <button class="icon-btn tiny" id="editNamesBtn">✏️ Name</button>
+                </div>
+                    <button id="toggleSettingsBtn" class="icon-btn tiny" title="Bill settings">⚙️</button>
+            </div>
+            <div class="controls-right">
+                <button class="icon-btn tiny danger" id="resetInvoiceBtn">⟳ Reset</button>
+            </div>
+        </div>
+        <!-- Settings panel moved here, directly under controls-row -->
+            <div id="settingsCollapsible" class="settings-row-compact collapsed">
+                <label class="setting-compact"><input type="checkbox" id="enableSC">+SC<input type="text" id="scPercent" value="10">%</label>
+                <label class="setting-compact"><input type="checkbox" id="enableVAT">+VAT<input type="text" id="vatPercent" value="7">%</label>
+                <div class="setting-compact">
+                    <select id="discountType"><option value="amount">-$</option><option value="percent">-%</option></select>
+                    <input type="text" id="discountValue" value="" placeholder="0">
+                </div>
+                <div class="discount-timing-buttons">
+                    <button class="timing-btn" data-timing="beforeSC">Before SC</button>
+                    <button class="timing-btn" data-timing="beforeVAT">Before VAT</button>
+                    <button class="timing-btn active" data-timing="afterAll">After SC+VAT</button>
+                </div>
+            </div>
+    </div>
+
+    <div class="main-tabs" role="tablist">
+        <button class="tab-btn active" data-tab="invoice">Invoice</button>
+        <button class="tab-btn" data-tab="summary">Summary</button>
+    </div>
+
+    <div class="dynamic-area">
+        <div id="invoiceTab" class="tab-panel active-panel">
+            <div class="bill-total" id="invoiceTotalDisplay">TOTAL: 0.00 USD</div>
+            <div id="itemsContainer" class="items-list">
+                <div class="empty-message">✨ Click to add your first item</div>
+            </div>
+        </div>
+
+        <div id="summaryTab" class="tab-panel">
+            <div class="receipt-box" id="receiptView">Loading...</div>
+            <div class="shares-box" id="sharesView"></div>
+            <div class="summary-actions">
+                <button class="icon-btn" id="printSummaryBtn">🖨️ Print</button>
+                <button class="icon-btn" id="exportCsvBtn">📎 CSV</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="historyModal" class="modal hidden">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>📆 Invoice History</h3>
+            <button id="closeHistoryBtn" class="icon-btn">✖ Close</button>
+        </div>
+        <div class="calendar-header">
+            <button id="prevMonthBtn">◀</button>
+            <span id="monthYearDisplay"></span>
+            <button id="nextMonthBtn">▶</button>
+        </div>
+        <div id="calendarGrid" class="calendar-grid"></div>
+        <div id="selectedDayInvoices" class="selected-invoices"></div>
+        <button id="deleteSelectedInvoiceBtn" class="icon-btn danger">Delete Selected Date Invoices</button>
+    </div>
+</div>
+
+<script src="../js/fairshare-script.js"></script>
+
+<script>
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('../fairshare-sw.js')
+            .then(reg => console.log('Service Worker registered:', reg))
+            .catch(err => console.error('Service Worker registration failed:', err));
+    });
+}
+</script>
+</body>
+</html>

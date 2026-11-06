@@ -1,0 +1,69 @@
+name: PikPak CLI
+
+on:
+  workflow_dispatch:
+    inputs:
+      input:
+        description: 'Input for pikpakcli (excluding output folder)'
+        required: true
+        type: string
+        default: 'download -p "Pack From Shared"'
+
+jobs:
+  process:
+    runs-on: ubuntu-latest
+    
+    steps:
+
+      - name: Clone pikpakcli repository and Install Dependency 
+        run: |
+          git clone https://github.com/52funny/pikpakcli
+          sudo apt-get update
+          sudo apt-get install -y lftp
+        
+      - name: Run pikpakcli 
+        run: |
+          cd pikpakcli
+          go build -o pikpakcli
+          cat > config.yml << 'EOF'
+          ${{ secrets.pikpak_config }}
+          EOF
+          chmod +x pikpakcli
+          mkdir -p download
+          ./pikpakcli ${{ github.event.inputs.input }} -o download
+
+      - name: Prepare files for FTP upload
+        id: prepare-ftp
+        run: |
+          mkdir -p ftp_upload
+          find pikpakcli/download -type f \( -name "*.mp4" -o -name "*.mkv" -o -name "*.ts" -o -name "*.webm" \) \
+            -exec mv -- {} ftp_upload/ \;
+          
+          if [ "$(ls -A ftp_upload)" ]; then
+            echo "has_files=true" >> $GITHUB_OUTPUT
+            echo "Files found in ftp_upload directory"
+          else
+            echo "has_files=false" >> $GITHUB_OUTPUT
+            echo "No files found. Skipping FTP upload."
+          fi
+
+      - name: Upload to FTP (Server 1)
+        if: steps.prepare-ftp.outputs.has_files == 'true'
+        run: |
+          lftp -u ${{ secrets.FTP_LOGIN }} -e "
+            set ssl:verify-certificate false;
+            set cache:size 524288000;
+            mput -P 1 ftp_upload/*;
+            bye"
+          echo "ftp upload 1 done"
+
+      - name: Upload to FTP (Server 2)
+        if: steps.prepare-ftp.outputs.has_files == 'true'
+        run: |
+          lftp -u ${{ secrets.FTP_LOGIN_ARCHIVE }} -e "
+            set ssl:verify-certificate false;
+            set cache:size 524288000;
+            mput -P 1 ftp_upload/*;
+            bye"
+          echo "ftp upload 2 done"
+          # 'user,pass' ftp://host/

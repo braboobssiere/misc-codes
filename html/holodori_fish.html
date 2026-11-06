@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>Fishing</title>
+<style>
+:root{
+  --bg:#f3f6fa;--card:#fff;--border:#e3e8ef;--border-2:#eef1f6;--col-line:#e1e7ef;--group-line:#a3b1c4;
+  --text:#0f172a;--muted:#5b6b82;--head:#f8fafc;--head-2:#eef2f7;--accent:#0284c7;--accent-soft:#e0f2fe;
+  --noon-soft:#fef3c7;--noon-ink:#92400e;--noon-bar:rgba(245,158,11,.24);
+  --night-soft:#e0e7ff;--night-ink:#4338ca;--night-bar:rgba(99,102,241,.22);
+  --row-alt:#fafbfd;--row-hover:#eef3f9;--err-bg:#fef2f2;--err-bd:#fecaca;--err:#b91c1c;
+  --shadow:0 1px 2px rgba(15,23,42,.05),0 6px 16px rgba(15,23,42,.04);
+  --own:44px;
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#0b1220;--card:#111a2b;--border:#233047;--border-2:#1b2639;--col-line:#223049;--group-line:#51627c;
+  --text:#e6edf7;--muted:#93a4bc;--head:#152033;--head-2:#18253a;--accent:#38bdf8;--accent-soft:rgba(56,189,248,.16);
+  --noon-soft:rgba(245,158,11,.14);--noon-ink:#fcd34d;--noon-bar:rgba(245,158,11,.32);
+  --night-soft:rgba(129,140,248,.16);--night-ink:#a5b4fc;--night-bar:rgba(129,140,248,.34);
+  --row-alt:#0f1829;--row-hover:#1a283d;--err-bg:#2a1215;--err-bd:#5b2126;--err:#fca5a5;--shadow:none;
+}}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{font:16px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;padding-bottom:env(safe-area-inset-bottom)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+header{background:var(--card);border-bottom:1px solid var(--border);padding:max(12px,env(safe-area-inset-top)) 16px 12px}
+@media (min-height:700px){header{position:sticky;top:0;z-index:20}}
+.bar{max-width:1100px;margin:0 auto;display:grid;gap:10px}
+header h1{margin:0;font-size:1.15rem;font-weight:700;letter-spacing:-.01em}
+.title{display:flex;align-items:center;gap:12px}
+.map-link{display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border-radius:999px;border:1px solid var(--border);
+  background:var(--head);color:var(--accent);font-size:.85rem;font-weight:600;text-decoration:none;transition:background .12s,border-color .12s}
+.map-link:hover{background:var(--accent-soft);border-color:var(--accent)}
+
+.seg{display:flex;gap:4px;padding:3px;background:var(--head-2);border-radius:12px;overflow-x:auto;scrollbar-width:none}
+.seg::-webkit-scrollbar{display:none}
+.seg button{flex:1 0 auto;font:inherit;font-size:.92rem;font-weight:600;padding:8px 14px;border:0;border-radius:9px;
+  background:none;color:var(--muted);cursor:pointer;white-space:nowrap;transition:background .12s,color .12s}
+.seg button:hover{color:var(--text)}
+.seg button[aria-selected=true]{background:var(--card);color:var(--text);box-shadow:0 1px 3px rgba(15,23,42,.14)}
+
+.filters{display:grid;gap:8px}
+@media (min-width:560px){.filters{grid-template-columns:1fr 1fr}}
+select{font:inherit;font-size:1rem;width:100%;min-width:0;padding:10px 34px 10px 12px;border-radius:10px;
+  border:1px solid var(--border);background-color:var(--card);color:var(--text);transition:border-color .12s,box-shadow .12s;appearance:none;-webkit-appearance:none;cursor:pointer;background-repeat:no-repeat;background-position:right 12px center;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'><path d='M2 4l4 4 4-4' stroke='%2393a4bc' stroke-width='1.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>")}
+select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+select:disabled{opacity:.55;cursor:not-allowed}
+
+main{padding:16px;max-width:1100px;margin:0 auto}
+#status{margin-bottom:12px;padding:10px 14px;background:var(--err-bg);border:1px solid var(--err-bd);color:var(--err);border-radius:10px;font-size:.9rem}
+#status:empty{display:none}
+.empty{text-align:center;color:var(--muted);padding:40px 20px;font-size:.95rem}
+.retry{font:inherit;margin-left:8px;padding:6px 12px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--text);cursor:pointer}
+.loading{display:flex;flex-direction:column;align-items:center;gap:14px;padding:64px 20px;color:var(--muted);font-size:.95rem}
+.spinner{width:36px;height:36px;border-radius:50%;border:3px solid var(--accent-soft);border-top-color:var(--accent);animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.spinner{animation-duration:1.8s}}
+
+/* off-screen sections skip layout and paint until scrolled near */
+section.bait{background:var(--card);border:1px solid var(--border);border-radius:14px;margin-bottom:16px;box-shadow:var(--shadow);
+  overflow:hidden;content-visibility:auto;contain-intrinsic-size:auto 420px}
+.bait-head{display:flex;align-items:baseline;gap:10px;padding:12px 16px;border-bottom:1px solid var(--border-2)}
+.bait-head h2{margin:0;font-size:1rem;font-weight:700;letter-spacing:-.01em}
+.bait-head .hash{color:var(--accent);margin-right:2px}
+.count{margin-left:auto;font-size:.8rem;color:var(--muted)}
+.table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+
+table{border-collapse:separate;border-spacing:0;width:100%;font-size:.88rem}
+thead th{background:var(--head);font-weight:600;font-size:.78rem;color:var(--muted);padding:6px 8px;white-space:nowrap;
+  text-align:center;height:32px;border-right:1px solid var(--col-line);border-bottom:1px solid var(--col-line)}
+thead tr:first-child th{background:var(--head-2);border-bottom-color:var(--group-line)}
+thead th:last-child{border-right:0}
+th.spot-group{color:var(--text);font-weight:700;font-size:.82rem}
+th.noon-head{color:var(--noon-ink);background:var(--noon-soft)}
+th.night-head{color:var(--night-ink);background:var(--night-soft)}
+th.sortable{cursor:pointer;user-select:none}
+th.sortable:hover{filter:brightness(.97)}
+th.sortable.active{box-shadow:inset 0 -2px 0 currentColor}
+th .arrow{display:inline-block;margin-left:4px;font-size:.7em;opacity:.75}
+th.group-end,td.group-end{border-right:2px solid var(--group-line)}
+
+tbody td{padding:7px 8px;border-bottom:1px solid var(--border-2);border-right:1px solid var(--col-line);text-align:center;
+  background-color:var(--card);font-variant-numeric:tabular-nums}
+tbody td:last-child{border-right:0}
+tbody tr:nth-child(even) td{background-color:var(--row-alt)}
+tbody tr:hover td{background-color:var(--row-hover)}
+tbody tr:last-child td{border-bottom:0}
+
+.own-head,.own-cell{position:sticky;left:0;width:var(--own);min-width:var(--own);max-width:var(--own);padding:0;text-align:center}
+.own-head{z-index:3;background:var(--head-2)!important}
+.own-cell{z-index:2}
+input.own{width:18px;height:18px;margin:0;vertical-align:middle;accent-color:var(--accent);cursor:pointer}
+.fish-name,.fish-head{position:sticky;left:var(--own);text-align:left;border-right:2px solid var(--group-line)!important}
+.fish-name{z-index:2;font-weight:600;white-space:nowrap;min-width:130px}
+.fish-head{z-index:3;padding-left:12px;background:var(--head-2)!important}
+
+/* bar width comes from --v, set per cell */
+.pct{width:76px;min-width:76px;font-size:.84rem;
+  background-image:linear-gradient(to right,var(--bar) var(--v,0%),transparent var(--v,0%))}
+.pct.noon{--bar:var(--noon-bar);color:var(--noon-ink)}
+.pct.night{--bar:var(--night-bar);color:var(--night-ink)}
+.pct.top{font-weight:700}
+.pct.blank{color:var(--muted);opacity:.5;background-image:none}
+
+@media (max-width:560px){
+  :root{--own:38px}
+  main{padding:12px}
+  .bait-head{padding:10px 12px}
+  thead th{font-size:.72rem;padding:5px 6px;height:30px}
+  .fish-name{min-width:108px;font-size:.86rem}
+  .pct{width:68px;min-width:68px;font-size:.8rem}
+  tbody td{padding:6px}
+}
+
+/* map overlay */
+body:has(dialog[open]){overflow:hidden}
+.map-dialog{border:0;padding:0;background:var(--card);color:var(--text);border-radius:14px;width:min(96vw,1200px);
+  max-width:96vw;max-height:92vh;box-shadow:0 20px 60px rgba(0,0,0,.45);overflow:hidden}
+.map-dialog[open]{display:flex;flex-direction:column}
+.map-dialog::backdrop{background:rgba(2,6,23,.68)}
+.map-top{display:flex;align-items:center;gap:10px;padding:10px 12px 10px 16px;border-bottom:1px solid var(--border-2);font-weight:700}
+.map-top .hint{margin-left:auto;font-size:.8rem;font-weight:400;color:var(--muted)}
+.map-top button{font:inherit;font-size:.9rem;font-weight:600;padding:6px 12px;border-radius:8px;border:1px solid var(--border);
+  background:var(--head);color:var(--text);cursor:pointer}
+.map-top button:hover{background:var(--head-2)}
+.map-scroll{flex:1;min-height:0;overflow:auto;background:var(--bg)}
+.map-scroll img{display:block;max-width:100%;max-height:calc(92vh - 58px);margin:0 auto;cursor:zoom-in}
+.map-scroll.full img{max-width:none;max-height:none;cursor:zoom-out}
+</style>
+</head>
+<body>
+<header>
+  <div class="bar">
+    <div class="title">
+      <h1>Fishing</h1>
+      <a class="map-link" href="./spot.png" target="_blank" rel="noopener">Map</a>
+    </div>
+    <div class="seg" id="spotTabs" role="tablist" aria-label="Spot"></div>
+    <div class="filters">
+      <select id="baitSelect" aria-label="Bait" disabled><option value="">All baits</option></select>
+      <select id="fishSelect" aria-label="Fish" disabled><option value="">All fish</option></select>
+    </div>
+  </div>
+</header>
+<main>
+  <div id="status" role="alert"></div>
+  <div id="output">
+    <div class="loading"><div class="spinner" role="status" aria-label="Loading"></div><div>Loading data…</div></div>
+  </div>
+</main>
+
+<dialog class="map-dialog" id="mapDialog" aria-label="Map">
+  <div class="map-top"><span>Map</span><span class="hint">Tap the map to zoom</span><button type="button" data-close>Close</button></div>
+  <div class="map-scroll"><img alt="Map of fishing spots" decoding="async"></div>
+</dialog>
+
+<script>
+(() => {
+  'use strict';
+
+  const FILES = ['./ParkFishingFishLottery.json', './LangParkFishingFish_Eng.json', './LangParkFishingBait_Eng.json'];
+  const SPOT_NAMES = { '01': 'Fish Blue', '02': "Lamy's Snow Dome", '03': 'Bokoboko Beacon' };
+  const RE_SPOT = /^park_fishing_spot-(\d+)-(\d+)/;
+  const RE_TIME = /^park_fishing_time_period-(.+)$/;
+  const STORE = 'fishing-ui-v1';
+
+  const $ = id => document.getElementById(id);
+  const tabs = $('spotTabs'), baitSel = $('baitSelect'), fishSel = $('fishSelect');
+  const output = $('output'), status = $('status');
+
+  const collator = new Intl.Collator(undefined, { numeric: true, sensitivity: 'base' });
+  const cmp = collator.compare;
+
+  /* owned fish: localStorage holds just the number from park_fishing_fish-0001, e.g. "0001~0002".
+     Ids that don't match that exact pattern are stored in full. */
+  const OWNED_KEY = 'fishOwned', PFX = 'park_fishing_fish-', RE_NUM = /^park_fishing_fish-(\d+)$/;
+  const owned = new Set();
+  function loadOwned() {
+    owned.clear();
+    try {
+      for (const id of (localStorage.getItem(OWNED_KEY) || '').split('~')) if (id) owned.add(/^\d+$/.test(id) ? PFX + id : id);
+    } catch {}
+  }
+  function saveOwned() {
+    try {
+      localStorage.setItem(OWNED_KEY, [...owned].map(c => { const m = RE_NUM.exec(c); return m ? m[1] : c; }).join('~'));
+    } catch {}
+  }
+
+  let model = new Map();            // main spot -> { spots: [spotId], baits: [bait], fish: Map(core id -> name) }
+  const sorts = new Map();          // "main|baitId" -> { col, dir }
+  const st = { spot: '', bait: '', fish: '' };
+
+  const esc = s => String(s).replace(/[&<>"']/g, c =>
+    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+  const toArray = json => {
+    const list = Array.isArray(json) ? json : (json && typeof json === 'object' ? Object.values(json) : []);
+    return list.map(e => (e && e.data) ? e.data : e);
+  };
+  const coreId = id => { const s = String(id), i = s.indexOf('park_fishing_'); return i >= 0 ? s.slice(i) : s; };
+
+  function buildNameMap(json) {
+    const map = new Map();
+    for (const e of toArray(json)) {
+      if (!e || typeof e.id !== 'string' || typeof e.text !== 'string') continue;
+      const cid = coreId(e.id);
+      if (cid.endsWith('-name')) map.set(cid.slice(0, -5), e.text);
+    }
+    return map;
+  }
+
+  const spotParts = id => { const m = RE_SPOT.exec(String(id || '')); return m ? { main: m[1], sub: m[2] } : null; };
+  const spotName = main => SPOT_NAMES[main] || 'Spot ' + main;
+  const spotLabel = id => { const p = spotParts(id); return p ? spotName(p.main) + ' ' + parseInt(p.sub, 10) : String(id); };
+  const timeOf = id => { const m = RE_TIME.exec(String(id || '')); return m && (m[1] === 'noon' || m[1] === 'night') ? m[1] : null; };
+  const cmpSpot = (a, b) => {
+    const pa = spotParts(a), pb = spotParts(b);
+    return cmp(pa.main, pb.main) || (parseInt(pa.sub, 10) - parseInt(pb.sub, 10));
+  };
+
+  /* ---------- one-pass aggregation: all heavy work happens once, here ---------- */
+  function buildModel(lot, fishName, baitName) {
+    const mains = new Map();
+    for (const d of toArray(lot)) {
+      if (!d || !d.parkFishingFishId || !d.parkFishingBaitId) continue;
+      const p = spotParts(d.parkFishingSpotId), t = timeOf(d.parkFishingTimePeriodId);
+      if (!p || !t) continue;
+      let m = mains.get(p.main);
+      if (!m) mains.set(p.main, m = { spots: new Set(), baits: new Map() });
+      m.spots.add(d.parkFishingSpotId);
+      let b = m.baits.get(d.parkFishingBaitId);
+      if (!b) m.baits.set(d.parkFishingBaitId, b = new Map());
+      let s = b.get(d.parkFishingSpotId);
+      if (!s) b.set(d.parkFishingSpotId, s = new Map());
+      let f = s.get(d.parkFishingFishId);
+      if (!f) s.set(d.parkFishingFishId, f = [0, 0]);
+      f[t === 'noon' ? 0 : 1] += Number(d.hitRatio) || 0;
+    }
+
+    const out = new Map();
+    for (const [main, m] of mains) {
+      const spots = [...m.spots].sort(cmpSpot);
+      const baits = [];
+      for (const [id, sm] of m.baits) {
+        const totals = spots.map(s => {
+          let a = 0, n = 0;
+          const fm = sm.get(s);
+          if (fm) for (const v of fm.values()) { a += v[0]; n += v[1]; }
+          return [a, n];
+        });
+        const fish = new Set();
+        for (const fm of sm.values()) for (const [fid, v] of fm) if (v[0] > 0 || v[1] > 0) fish.add(fid);
+        if (!fish.size) continue;
+
+        const top = new Array(spots.length * 2).fill(0);
+        const rows = [...fish].map(fid => {
+          const name = fishName(fid), pct = [];
+          spots.forEach((s, i) => {
+            const v = sm.get(s)?.get(fid);
+            for (let k = 0; k < 2; k++) {
+              let x = null;
+              if (v) {
+                const T = totals[i][k];
+                x = T > 0 ? Math.min(100, Math.max(0, v[k] / T * 100)) : 0;
+                if (x > top[i * 2 + k]) top[i * 2 + k] = x;
+              }
+              pct.push(x);
+            }
+          });
+          return { id: fid, cid: coreId(fid), name, pct };
+        });
+        baits.push({ id, label: baitName(id), rows, top });
+      }
+      baits.sort((a, b) => cmp(coreId(a.id), coreId(b.id)));
+      // fish available on this spot (any bait); feeds that spot's fish dropdown
+      const fishMap = new Map();
+      for (const b of baits) for (const r of b.rows) if (!fishMap.has(r.cid)) fishMap.set(r.cid, r.name);
+      const fish = new Map([...fishMap].sort((a, b) => cmp(a[0], b[0])));
+      out.set(main, { spots, baits, fish });
+    }
+    return out;
+  }
+
+  /* ---------- rendering ---------- */
+  const getSort = (main, baitId) => sorts.get(main + '|' + baitId) || { col: -1, dir: 'asc' };
+
+  function sortedRows(bait, s) {
+    const rows = st.fish ? bait.rows.filter(r => r.cid === st.fish) : bait.rows.slice();
+    const sg = s.dir === 'asc' ? 1 : -1, c = s.col;
+    const byId = (a, b) => cmp(a.cid, b.cid);
+    rows.sort(c === -1 ? (a, b) => sg * byId(a, b)
+      : c === -2 ? (a, b) => sg * (owned.has(a.cid) - owned.has(b.cid)) || byId(a, b)
+      : (a, b) => sg * ((a.pct[c] ?? -Infinity) - (b.pct[c] ?? -Infinity)));
+    return rows;
+  }
+
+  function tableHtml(spots, bait, rows, s) {
+    const th = (col, label, cls, attrs = '') => {
+      const on = s.col === col;
+      return `<th class="sortable ${cls}${on ? ' active' : ''}" data-col="${col}" role="button" tabindex="0" ` +
+        `aria-sort="${on ? (s.dir === 'asc' ? 'ascending' : 'descending') : 'none'}"${attrs}>` +
+        `${label}<span class="arrow" aria-hidden="true">${on ? (s.dir === 'asc' ? '▲' : '▼') : '⇅'}</span></th>`;
+    };
+    let top = th(-2, '✓', 'own-head', ' rowspan="2" aria-label="Owned" title="Owned"') +
+      th(-1, 'Fish', 'fish-head', ' rowspan="2"'), bot = '';
+    spots.forEach((id, i) => {
+      top += `<th colspan="2" class="spot-group group-end">${esc(spotLabel(id))}</th>`;
+      bot += th(i * 2, 'Day', 'noon-head') + th(i * 2 + 1, 'Night', 'night-head group-end');
+    });
+    const n = spots.length * 2;
+    let body = '';
+    for (const r of rows) {
+      body += `<tr><td class="own-cell"><input type="checkbox" class="own" data-fish="${esc(r.cid)}" ` +
+        `aria-label="Owned: ${esc(r.name)}"${owned.has(r.cid) ? ' checked' : ''}></td>` +
+        `<td class="fish-name">${esc(r.name)}</td>`;
+      for (let i = 0; i < n; i++) {
+        const v = r.pct[i], night = i & 1;
+        const cls = 'pct ' + (night ? 'night group-end' : 'noon');
+        body += v === null
+          ? `<td class="${cls} blank">–</td>`
+          : `<td class="${cls}${v > 0 && v === bait.top[i] ? ' top' : ''}" style="--v:${v.toFixed(1)}%">${v.toFixed(2)}%</td>`;
+      }
+      body += '</tr>';
+    }
+    return `<table><thead><tr>${top}</tr><tr>${bot}</tr></thead><tbody>${body}</tbody></table>`;
+  }
+
+  function render() {
+    const m = model.get(st.spot);
+    if (!m) { output.innerHTML = '<p class="empty">No lottery data found.</p>'; return; }
+    let html = '';
+    for (const b of m.baits) {
+      if (st.bait && b.id !== st.bait) continue;
+      const s = getSort(st.spot, b.id), rows = sortedRows(b, s);
+      if (!rows.length) continue;
+      html += `<section class="bait" data-id="${esc(b.id)}"><div class="bait-head">` +
+        `<h2><span class="hash">#</span>${esc(b.label)}</h2><span class="count">${rows.length} fish</span></div>` +
+        `<div class="table-wrap">${tableHtml(m.spots, b, rows, s)}</div></section>`;
+    }
+    output.innerHTML = html || `<p class="empty">${st.fish ? 'That fish isn’t available with this spot and bait.' : 'No fish data for this selection.'}</p>`;
+  }
+
+  /* ---------- state ---------- */
+  const save = () => { try { localStorage.setItem(STORE, JSON.stringify({ spot: st.spot, bait: st.bait, fish: st.fish })); } catch {} };
+  const restore = () => {
+    try { Object.assign(st, JSON.parse(localStorage.getItem(STORE) || '{}')); } catch {}
+  };
+
+  function setSpot(main) {
+    st.spot = main;
+    for (const b of tabs.children) b.setAttribute('aria-selected', String(b.dataset.spot === main));
+    const baits = model.get(main)?.baits || [];
+    baitSel.innerHTML = '<option value="">All baits</option>' +
+      baits.map(b => `<option value="${esc(b.id)}">${esc(b.label)}</option>`).join('');
+    if (!baits.some(b => b.id === st.bait)) st.bait = '';
+    baitSel.value = st.bait;
+    // fish list is per spot; keep the selection only if this spot has that fish, else back to "All fish"
+    const fish = model.get(main)?.fish || new Map();
+    fishSel.innerHTML = '<option value="">All fish</option>' +
+      [...fish].map(([id, n]) => `<option value="${esc(id)}">${esc(n)}</option>`).join('');
+    if (!fish.has(st.fish)) st.fish = '';
+    fishSel.value = st.fish;
+    save();
+    render();
+  }
+
+  /* ---------- boot ---------- */
+  async function fetchJSON(url) {
+    const r = await fetch(url, { cache: 'no-cache' });
+    if (!r.ok) throw new Error(url + ' -> HTTP ' + r.status);
+    return r.json();
+  }
+
+  function setBusy(busy) { baitSel.disabled = fishSel.disabled = busy; }
+
+  async function boot() {
+    status.textContent = '';
+    output.innerHTML = '<div class="loading"><div class="spinner" role="status" aria-label="Loading"></div><div>Loading data…</div></div>';
+    setBusy(true);
+    try {
+      const [lot, fishLang, baitLang] = await Promise.all(FILES.map(fetchJSON));
+      const fn = buildNameMap(fishLang), bn = buildNameMap(baitLang);
+      model = buildModel(lot, id => fn.get(coreId(id)) || String(id), id => bn.get(coreId(id)) || String(id));
+      sorts.clear();
+      loadOwned();
+      const mains = [...model.keys()].sort();
+      tabs.innerHTML = mains.map(m =>
+        `<button role="tab" data-spot="${esc(m)}" aria-selected="false">${esc(spotName(m))}</button>`).join('');
+      restore();
+      setBusy(false);
+      setSpot(model.has(st.spot) ? st.spot : (mains[0] || ''));
+    } catch (err) {
+      status.textContent = 'Could not load the data files (' + err.message + '). Serve this page over http(s) with the JSON files in the same folder.';
+      output.innerHTML = '<p class="empty">Unable to load data. <button class="retry" type="button">Retry</button></p>';
+    }
+  }
+
+  tabs.addEventListener('click', e => {
+    const b = e.target.closest('button[data-spot]');
+    if (b && b.dataset.spot !== st.spot) setSpot(b.dataset.spot);
+  });
+  baitSel.addEventListener('change', () => { st.bait = baitSel.value; save(); render(); });
+
+  fishSel.addEventListener('change', () => { st.fish = fishSel.value; save(); render(); });
+
+  // Sorting re-renders only the clicked table, not the whole page.
+  output.addEventListener('click', e => {
+    if (e.target.closest('.retry')) return boot();
+    const th = e.target.closest('th[data-col]');
+    const sec = th && th.closest('section.bait');
+    if (!sec) return;
+    const m = model.get(st.spot), bait = m.baits.find(b => b.id === sec.dataset.id);
+    const col = +th.dataset.col, cur = getSort(st.spot, bait.id);
+    const s = { col, dir: cur.col === col && cur.dir === 'asc' ? 'desc' : 'asc' };
+    sorts.set(st.spot + '|' + bait.id, s);
+    sec.querySelector('.table-wrap').innerHTML = tableHtml(m.spots, bait, sortedRows(bait, s), s);
+    sec.querySelector(`th[data-col="${col}"]`)?.focus({ preventScroll: true });
+  });
+
+  // Ticking a fish updates every checkbox for that fish, across all bait tables.
+  output.addEventListener('change', e => {
+    const cb = e.target.closest('input.own');
+    if (!cb) return;
+    const id = cb.dataset.fish;
+    if (cb.checked) owned.add(id); else owned.delete(id);
+    saveOwned();
+    for (const o of output.querySelectorAll('input.own')) if (o.dataset.fish === id) o.checked = cb.checked;
+  });
+
+  output.addEventListener('keydown', e => {
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+    const th = e.target.closest('th[data-col]');
+    if (th) { e.preventDefault(); th.click(); }
+  });
+
+  /* map overlay: image loads on first open; the link's href stays as a no-JS / ctrl-click fallback */
+  const mapLink = document.querySelector('.map-link'), mapDlg = $('mapDialog');
+  const mapBox = mapDlg.querySelector('.map-scroll'), mapImg = mapDlg.querySelector('img');
+  mapLink.addEventListener('click', e => {
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.button) return;
+    e.preventDefault();
+    if (!mapImg.getAttribute('src')) mapImg.src = mapLink.getAttribute('href');
+    mapBox.classList.remove('full');
+    mapDlg.showModal();
+  });
+  mapImg.addEventListener('click', () => mapBox.classList.toggle('full'));
+  mapImg.addEventListener('error', () => { mapBox.innerHTML = '<p class="empty">Could not load the map image.</p>'; });
+  mapDlg.addEventListener('click', e => { if (e.target === mapDlg || e.target.closest('[data-close]')) mapDlg.close(); });
+
+  boot();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,59 @@
+# =============================================================================
+# Reusable GitHub Action: Upload to gpmc
+# =============================================================================
+# 
+# USAGE:
+# 
+#     uses: owner/repo/.github/actions/upload-gpmc@main
+#     env:
+#       GP_AUTH_DATA: ${{ secrets.GPMC_AUTH_DATA }}
+#     with:
+#       source_dir: "output"  # optional, defaults "output"
+# 
+# =============================================================================
+
+name: "Upload to gpmc"
+description: "Upload all files from a directory to gpmc."
+
+inputs:
+  source_dir:
+    description: "Directory containing the files to upload"
+    required: false
+    default: "output"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Install gpmc client
+      shell: bash
+      run: |
+        python3 -m pip install -U 'https://github.com/xob0t/google_photos_mobile_client/archive/refs/heads/main.zip'
+        echo "SOURCE_DIR=${{ inputs.source_dir }}" >> $GITHUB_ENV
+      
+    - name: convert TS to MKV
+      shell: bash
+      run: |
+        # Check if any .ts files exist in dir
+        mkdir -p "$SOURCE_DIR"
+        if find "$SOURCE_DIR" -name "*.ts" -type f | grep -q .; then
+          echo "Found .ts file(s). Installing ffmpeg..."
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+          
+          # Recursively process each .ts file
+          find "$SOURCE_DIR" -name "*.ts" -type f | while read -r ts_file; do
+            mkv_file="${ts_file%.ts}.mkv"
+            echo "Converting: $ts_file → $mkv_file"
+            if ffmpeg -i "$ts_file" -c copy -y "$mkv_file"; then
+              echo "Conversion successful. Removing: $ts_file"
+              rm "$ts_file"
+            else
+              echo "Conversion failed for: $ts_file"
+            fi
+          done
+        fi
+
+    - name: Upload files
+      shell: bash
+      run: |
+        gpmc --recursive "$SOURCE_DIR" | grep -v "User:"

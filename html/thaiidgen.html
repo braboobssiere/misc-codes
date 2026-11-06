@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thai ID Generator</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            text-align: center;
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 500px;
+        }
+        h1 {
+            color: #1a237e;
+            margin-bottom: 1.5rem;
+        }
+        .result {
+            font-size: 2rem;
+            letter-spacing: 3px;
+            font-weight: bold;
+            color: #303f9f;
+            margin: 1.5rem 0;
+            padding: 1rem;
+            background-color: #f0f4ff;
+            border-radius: 8px;
+        }
+        .btn {
+            background: #3f51b5;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 1.1rem;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 8px rgba(63, 81, 181, 0.3);
+        }
+        .btn:hover {
+            background: #303f9f;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(63, 81, 181, 0.4);
+        }
+        .btn:active {
+            transform: translateY(0);
+        }
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: #4caf50;
+            color: white;
+            padding: 15px 30px;
+            border-radius: 50px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+        .footer {
+            margin-top: 2rem;
+            font-size: 0.9rem;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Thai ID Generator</h1>
+        <p>Click the button to generate and copy a valid Thai ID number</p>
+        <div class="result" id="idDisplay">----------</div>
+        <button class="btn" onclick="generateAndCopy()">Generate & Copy</button>
+        <div class="toast" id="toast">Thai ID copied to clipboard!</div>
+    </div>
+
+    <script>
+        function ID() {
+            const d1 = '1';
+            const d2 = '1';
+            const d3 = '0';
+            const d4_5 = String(Math.floor(Math.random() * 50) + 1).padStart(2, '0');
+            const d6_10 = String(Math.floor(Math.random() * 99999) + 1).padStart(5, '0');
+            const d11_12 = String(Math.floor(Math.random() * 99) + 1).padStart(2, '0');
+
+            const d1_12 = d1 + d2 + d3 + d4_5 + d6_10 + d11_12;
+            
+            let sum = 0;
+            for (let i = 0; i < 12; i++) {
+                const digit = parseInt(d1_12.charAt(i), 10);
+                const weight = 13 - i; 
+                sum += digit * weight;
+            }
+            const x = sum % 11;
+            const d13 = (11 - x) % 10;
+
+            return d1_12 + d13;
+        }
+
+        function copyToClipboard(text) {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+        }
+
+        function showToast() {
+            const toast = document.getElementById('toast');
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2000);
+        }
+
+        function generateAndCopy() {
+            const thaiID = ID();
+            document.getElementById('idDisplay').textContent = 
+                thaiID.replace(/(\d{1})(\d{4})(\d{5})(\d{2})(\d{1})/, '$1-$2-$3-$4-$5');
+            copyToClipboard(thaiID);
+            showToast();
+        }
+    </script>
+</body>
+</html>

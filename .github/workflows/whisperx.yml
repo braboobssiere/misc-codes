@@ -64,7 +64,7 @@ jobs:
           exit 1
         fi
 
-        COMMAND="whisperx --compute_type int8 --model large-v2 \
+        COMMAND="whisperx --compute_type int8 --model large-v2 --interleaved_context \
         --output_dir output --hf_token ${{ secrets.hf_token }} "
         LANGUAGE="${{ inputs.language }}"
         [ -n "$LANGUAGE" ] && COMMAND+="--language $LANGUAGE "

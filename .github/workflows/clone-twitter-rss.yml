@@ -80,7 +80,7 @@ jobs:
 
       - name: Fetch RSS
         env:
-          TWITTER_FEED_URL: ${{ secrets.TWITTER_FEED_URL }}
+          TWITTER_FEED_URL: ${{ vars.TWITTER_FEED_URL }}
         run: |
           mkdir -p feeds
           cat > fetch_rss.py <<'PY'

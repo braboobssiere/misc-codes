@@ -89,7 +89,7 @@ jobs:
 
           SOLVERR_URL = "http://localhost:8191/v1"
           TARGET_URL = os.environ["TWITTER_FEED_URL"]
-          MAX_TIMEOUT_MS = 30000
+          MAX_TIMEOUT_MS = 60000
           OUTPUT_FILE = "feeds/twitter_feed.rss"
 
           def clean_rss(body):

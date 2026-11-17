@@ -82,13 +82,14 @@ jobs:
         env:
           TWITTER_FEED_URL: ${{ secrets.TWITTER_FEED_URL }}
         run: |
-          sed -e 's/^          //' > fetch_rss.py <<'PY'
-          import html, json, re, sys, time
+          mkdir -p feeds
+          cat > fetch_rss.py <<'PY'
+          import html, json, os, re, sys, time
           import requests
 
           SOLVERR_URL = "http://localhost:8191/v1"
           TARGET_URL = os.environ["TWITTER_FEED_URL"]
-          MAX_TIMEOUT_MS = 60000
+          MAX_TIMEOUT_MS = 30000
           OUTPUT_FILE = "feeds/twitter_feed.rss"
 
           def clean_rss(body):
@@ -117,18 +118,23 @@ jobs:
                   except (requests.RequestException, ValueError) as exc:
                       print(f"Request/parse failed: {exc}", file=sys.stderr)
                       if attempt < retries:
-                          time.sleep(5); continue
+                          time.sleep(5)
+                          continue
                       return None
                   body = (data.get("solution") or {}).get("response") or ""
                   if "cf-turnstile" in body or "challenge-platform" in body:
                       print("Got challenge page, retrying...", file=sys.stderr)
                       if attempt < retries:
-                          time.sleep(5); continue
+                          time.sleep(5)
+                          continue
                       return None
                   return clean_rss(body)
               return None
 
           if __name__ == "__main__":
+              if not TARGET_URL:
+                  print("TWITTER_FEED_URL is empty.", file=sys.stderr)
+                  sys.exit(1)
               output_file = sys.argv[1] if len(sys.argv) > 1 else OUTPUT_FILE
               rss = fetch_rss()
               if rss is None:

@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       media_url: 
-        description: 'URL to media file (optional, replaced local file)'
+        description: 'URL to media file (optional, replaces local file)'
         required: false
         default: ''
       language:
@@ -18,43 +18,144 @@ on:
 jobs:
   transcribe:
     runs-on: ubuntu-latest
-    
+
     steps:
     - uses: actions/checkout@v7
-    - run: |
+
+    # ── Detect whether the input is YouTube, a direct URL, or local ─────
+    - name: Determine input type
+      id: input_type
+      env:
+        MEDIA_URL: ${{ inputs.media_url }}
+      run: |
+        if [ -z "$MEDIA_URL" ]; then
+          echo "type=local"   >> $GITHUB_OUTPUT
+        elif echo "$MEDIA_URL" | grep -qiE '(youtube\.com|youtu\.be|youtube-nocookie\.com)'; then
+          echo "type=youtube" >> $GITHUB_OUTPUT
+        else
+          echo "type=remote"  >> $GITHUB_OUTPUT
+        fi
+
+    # ── Build requirements (adds yt-dlp only for YouTube) ─────────────
+    - name: Build requirements file
+      run: |
         echo "whisperx" >> requirements.txt
+        if [ "${{ steps.input_type.outputs.type }}" = "youtube" ]; then
+          echo "yt-dlp[default,curl-cffi]"      >> requirements.txt
+          echo "bgutil-ytdlp-pot-provider"      >> requirements.txt
+        fi
 
     - name: Cache APT packages
       uses: awalsh128/cache-apt-pkgs-action@latest
       with:
-        packages: ffmpeg
+        packages: ffmpeg wireguard-tools
         version: 1.0
 
     - name: Cache pip packages
       uses: actions/cache@v6
       with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
 
     - name: Install dependencies
       run: |
-        sudo apt update && sudo apt install ffmpeg
+        sudo apt update && sudo apt install -y ffmpeg wireguard-tools
         pip install -r requirements.txt
         mkdir -p output/ downloaded_input/
 
-    - name: Fetch remote media
-      if: ${{ inputs.media_url != '' }}
+    # ── Upgrade yt-dlp to pre-release (best YouTube support) ──────────
+    - name: Upgrade yt-dlp for YouTube
+      if: steps.input_type.outputs.type == 'youtube'
       run: |
-        wget -q -P downloaded_input/ "${{ inputs.media_url }}"
+        pip install --pre -U yt-dlp[default,curl-cffi]
+        pip install -U bgutil-ytdlp-pot-provider
+
+    # ── Build bgutil POT server (YouTube bot-detection bypass) ────────
+    - name: Build bgutil POT server
+      if: steps.input_type.outputs.type == 'youtube'
+      run: |
+        LATEST=$(curl -s https://api.github.com/repos/Brainicism/bgutil-ytdlp-pot-provider/releases/latest \
+                 | jq -r '.tag_name // "1.3.1"')
+        cd ~
+        git clone --single-branch --branch "$LATEST" \
+          https://github.com/Brainicism/bgutil-ytdlp-pot-provider.git
+        cd bgutil-ytdlp-pot-provider/server/
+        npm install
+        npx tsc
+
+    # ── WireGuard (only needed for YouTube) ───────────────────────────
+    - name: VPN Setup
+      if: steps.input_type.outputs.type == 'youtube'
+      env:
+        PRIMARY_CONFIG:   ${{ secrets.WIREGUARD_GRANDCENTRAL }}
+        SECONDARY_CONFIG: ${{ secrets.WIREGUARD_TRADEWAR }}
+      run: |
+        sudo mkdir -p /etc/wireguard/
+        WG_CONF="/etc/wireguard/wg0.conf"
+
+        handle_vpn_attempt() {
+          local config_content="$1"
+          local label="$2"
+          echo "$config_content" | sudo tee $WG_CONF > /dev/null
+          sudo chmod 600 $WG_CONF
+          for i in {1..3}; do
+            if timeout 60 sudo wg-quick up wg0; then
+              return 0
+            fi
+            echo "${label^} VPN attempt $i/3 failed"
+            sleep 3
+          done
+          return 1
+        }
+
+        if ! handle_vpn_attempt "$PRIMARY_CONFIG" "primary"; then
+          echo "::warning::Primary failed - Trying secondary"
+          if ! handle_vpn_attempt "$SECONDARY_CONFIG" "secondary"; then
+            echo "::error::All VPN configurations failed after 3 attempts each"
+            exit 11
+          fi
+        fi
+
+        if ! sudo wg show wg0 >/dev/null 2>&1; then
+          echo "::error::VPN connection verification failed"
+          exit 12
+        fi
+
+    # ── Direct-URL download (non-YouTube) ─────────────────────────────
+    - name: Fetch remote media
+      if: steps.input_type.outputs.type == 'remote'
+      env:
+        MEDIA_URL: ${{ inputs.media_url }}
+      run: |
+        wget -q -P downloaded_input/ "$MEDIA_URL"
         echo "Downloaded input file: $(ls downloaded_input/)"
 
+    # ── YouTube: best-quality audio, no live check, no cookies ───────
+    - name: Download YouTube audio (best quality)
+      if: steps.input_type.outputs.type == 'youtube'
+      env:
+        MEDIA_URL: ${{ inputs.media_url }}
+      run: |
+        yt-dlp \
+          -f "bestaudio/best" \
+          --no-playlist \
+          --live-from-start \
+          --js-runtimes node \
+          --no-progress --retry-sleep 3 \
+          --windows-filenames \
+          -o "downloaded_input/%(title).170B [%(id)s].%(ext)s" \
+          "$MEDIA_URL"
+        echo "Downloaded input file: $(ls downloaded_input/)"
+
+    # ── Run WhisperX ──────────────────────────────────────────────────
     - name: Run WhisperX
       run: |
-        # Priority: Use downloaded file if available, else local file
         if [ -n "$(ls -A downloaded_input/ 2>/dev/null)" ]; then
-          INPUT_FILE=$(find downloaded_input/ -type f | head -n 1)
+          INPUT_FILE=$(find downloaded_input/ -type f \
+            ! -name "*.json" ! -name "*.part" ! -name "*.ytdl" ! -name "*.temp" \
+            | head -n 1)
         else
           INPUT_FILE=$(find input/whisperx/ -type f ! -name '*.txt' | head -n 1)
         fi
@@ -71,7 +172,7 @@ jobs:
         ADDITIONAL_PARAM="${{ inputs.additional_param }}"
         [ -n "$ADDITIONAL_PARAM" ] && COMMAND+="$ADDITIONAL_PARAM "
         COMMAND+="\"$INPUT_FILE\" "
-        
+
         echo "Running: $COMMAND"
         eval $COMMAND
 
@@ -80,7 +181,7 @@ jobs:
       with:
         name: transcription-results
         path: output/
-        
+
     - name: Upload Files to Gofile
       uses: braboobssiere/misc-codes/.github/actions/upload-cloud@main
       with:

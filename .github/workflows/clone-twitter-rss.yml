@@ -20,7 +20,7 @@ jobs:
       - name: Setup Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y ffmpeg wireguard-tools
+          sudo apt-get install -y wireguard-tools
           
       - name: VPN Setup 
         env: 

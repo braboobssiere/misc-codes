@@ -163,6 +163,10 @@ jobs:
         echo "Running: $COMMAND"
         eval $COMMAND
 
+    - name: VPN Cleanup
+      if: ${{ always() }}
+      run: sudo wg-quick down wg0 || true
+
     - name: Upload results
       uses: actions/upload-artifact@v7
       with:

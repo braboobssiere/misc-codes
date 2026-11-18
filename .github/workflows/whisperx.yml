@@ -22,12 +22,8 @@ jobs:
     steps:
     - uses: actions/checkout@v7
     
-    - uses: actions/setup-python@v7
-      with:
-        python-version: '3.14'
-    
     - run: |
-        echo "whisperx" >> requirements.txt
+        echo "whisperx==3.8.6" >> requirements.txt
 
     - name: Cache APT packages
       uses: awalsh128/cache-apt-pkgs-action@latest

@@ -39,30 +39,17 @@ jobs:
     # ── Build requirements (adds yt-dlp only for YouTube) ─────────────
     - name: Build requirements file
       run: |
-        echo "whisperx" >> requirements.txt
+        echo "uv" >> requirements.txt
         if [ "${{ steps.input_type.outputs.type }}" = "youtube" ]; then
           echo "yt-dlp[default,curl-cffi]"      >> requirements.txt
           echo "bgutil-ytdlp-pot-provider"      >> requirements.txt
         fi
 
-    - name: Cache APT packages
-      uses: awalsh128/cache-apt-pkgs-action@latest
-      with:
-        packages: ffmpeg wireguard-tools
-        version: 1.0
-
-    - name: Cache pip packages
-      uses: actions/cache@v6
-      with:
-        path: ~/.cache/pip
-        key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
-        restore-keys: |
-          ${{ runner.os }}-pip-
-
     - name: Install dependencies
       run: |
         sudo apt update && sudo apt install -y ffmpeg wireguard-tools
         pip install -r requirements.txt
+        uvx whisperx
         mkdir -p output/ downloaded_input/
 
     # ── Upgrade yt-dlp to pre-release (best YouTube support) ──────────

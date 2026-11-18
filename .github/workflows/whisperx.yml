@@ -23,7 +23,7 @@ jobs:
     - uses: actions/checkout@v7
     
     - run: |
-        echo "whisperx==3.8.6" >> requirements.txt
+        echo "whisperx" >> requirements.txt
 
     - name: Cache APT packages
       uses: awalsh128/cache-apt-pkgs-action@latest

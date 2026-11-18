@@ -63,7 +63,7 @@ jobs:
       run: |
         sudo apt update && sudo apt install -y ffmpeg wireguard-tools
         pip install -r requirements.txt
-        uvx whisperx
+        uv tool install whisperx
         mkdir -p output/ downloaded_input/
 
     # ── Upgrade yt-dlp to pre-release (best YouTube support) ──────────

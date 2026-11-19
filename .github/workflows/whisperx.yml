@@ -176,7 +176,7 @@ jobs:
         eval $COMMAND
 
     - name: VPN Cleanup
-      if: ${{ always() }}
+      if: always() && steps.input_type.outputs.type == 'youtube'
       run: sudo wg-quick down wg0 || true
 
     - name: Upload results

@@ -143,13 +143,8 @@ jobs:
         MEDIA_URL: ${{ inputs.media_url }}
       run: |
         yt-dlp \
-          -f "bestaudio/best" \
-          --no-playlist \
-          --live-from-start \
-          --js-runtimes node \
-          --no-progress --retry-sleep 3 \
-          --windows-filenames \
-          -o "downloaded_input/%(title).170B [%(id)s].%(ext)s" \
+          -f "bestaudio/best" --live-from-start --js-runtimes node --no-progress --retry-sleep 3 \
+          --windows-filenames -o "downloaded_input/%(title).170B [%(id)s].%(ext)s" \
           "$MEDIA_URL"
         echo "Downloaded input file: $(ls downloaded_input/)"
 

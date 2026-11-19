@@ -22,6 +22,10 @@ jobs:
     steps:
     - uses: actions/checkout@v7
 
+    - uses: actions/setup-python@v7
+      with:
+        python-version: '3.13'
+
     # ── Detect whether the input is YouTube, a direct URL, or local ─────
     - name: Determine input type
       id: input_type
@@ -39,7 +43,7 @@ jobs:
     # ── Build requirements (adds yt-dlp only for YouTube) ─────────────
     - name: Build requirements file
       run: |
-        echo "uv" >> requirements.txt
+        echo "whisperx" >> requirements.txt
         if [ "${{ steps.input_type.outputs.type }}" = "youtube" ]; then
           echo "yt-dlp[default,curl-cffi]"      >> requirements.txt
           echo "bgutil-ytdlp-pot-provider"      >> requirements.txt
@@ -63,7 +67,6 @@ jobs:
       run: |
         sudo apt update && sudo apt install -y ffmpeg wireguard-tools
         pip install -r requirements.txt
-        uv tool install whisperx
         mkdir -p output/ downloaded_input/
 
     # ── Upgrade yt-dlp to pre-release (best YouTube support) ──────────

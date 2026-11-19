@@ -17,13 +17,84 @@ jobs:
           sparse-checkout: feeds/**
           sparse-checkout-cone-mode: false
 
+      # ---- 1. Try the cheap path first: direct fetch, no VPN / Solverr ----
+      - name: Try direct RSS fetch (no VPN / Solverr)
+        id: direct
+        env:
+          TWITTER_FEED_URL: ${{ secrets.TWITTER_FEED_URL }}
+        run: |
+          mkdir -p feeds
+          cat > direct_fetch.py <<'PY'
+          import os, sys
+
+          try:
+              import requests
+          except ImportError:
+              print("requests module not available", file=sys.stderr)
+              with open(os.environ["GITHUB_OUTPUT"], "a") as f:
+                  f.write("needs_fallback=true\n")
+              sys.exit(0)
+
+          TARGET_URL = os.environ.get("TWITTER_FEED_URL", "").strip()
+          OUTPUT_FILE = "feeds/twitter_feed.rss"
+          GITHUB_OUTPUT = os.environ.get("GITHUB_OUTPUT")
+
+          def set_output(value):
+              if GITHUB_OUTPUT:
+                  with open(GITHUB_OUTPUT, "a") as f:
+                      f.write(f"needs_fallback={value}\n")
+
+          def is_valid_rss(body):
+              if not body:
+                  return False
+              lower = body.lower()
+              for marker in ("cf-turnstile", "challenge-platform", "just a moment",
+                             "cf_chl_opt", "attention required", "enable javascript"):
+                  if marker in lower:
+                      return False
+              if "<rss" not in lower or "</rss>" not in lower:
+                  return False
+              if "<item" not in lower:
+                  return False
+              return True
+
+          if not TARGET_URL:
+              print("TWITTER_FEED_URL is empty; using fallback", file=sys.stderr)
+              set_output("true")
+              sys.exit(0)
+
+          try:
+              r = requests.get(TARGET_URL, timeout=30)
+              r.raise_for_status()
+              body = r.text
+          except Exception as e:
+              print(f"Direct fetch error: {e}", file=sys.stderr)
+              body = ""
+
+          if is_valid_rss(body):
+              os.makedirs(os.path.dirname(OUTPUT_FILE), exist_ok=True)
+              with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
+                  f.write(body)
+              print(f"Direct fetch succeeded ({len(body)} bytes) -> {OUTPUT_FILE}",
+                    file=sys.stderr)
+              set_output("false")
+          else:
+              print("Direct fetch did not return valid RSS; falling back to VPN + Solverr",
+                    file=sys.stderr)
+              set_output("true")
+          PY
+          python3 direct_fetch.py
+
+      # ---- 2. Fallback chain — only runs if direct fetch failed ----
       - name: Setup Dependencies
+        if: steps.direct.outputs.needs_fallback == 'true'
         run: |
           sudo apt-get update
-          sudo apt-get install -y ffmpeg wireguard-tools
-          
-      - name: VPN Setup 
-        env: 
+          sudo apt-get install -y wireguard-tools
+
+      - name: VPN Setup
+        if: steps.direct.outputs.needs_fallback == 'true'
+        env:
           PRIMARY_CONFIG: ${{ secrets.WIREGUARD_GRANDCENTRAL }}
           SECONDARY_CONFIG: ${{ secrets.WIREGUARD_TRADEWAR }}
         run: |
@@ -33,7 +104,7 @@ jobs:
           handle_vpn_attempt() {
             local config_content="$1"
             local label="$2"
-            
+
             echo "$config_content" | sudo tee $WG_CONF > /dev/null
             sudo chmod 600 $WG_CONF
 
@@ -61,6 +132,7 @@ jobs:
           fi
 
       - name: Start Solverr container
+        if: steps.direct.outputs.needs_fallback == 'true'
         run: |
           docker run -d \
             --name solverr \
@@ -69,6 +141,7 @@ jobs:
             ghcr.io/unseensnick/solverr:latest
 
       - name: Wait for Solverr to be ready
+        if: steps.direct.outputs.needs_fallback == 'true'
         run: |
           for i in {1..30}; do
             if curl -s http://localhost:8191/ | grep -q "FlareSolverr is ready"; then
@@ -78,7 +151,8 @@ jobs:
           done
           docker logs solverr; exit 1
 
-      - name: Fetch RSS
+      - name: Fetch RSS via Solverr (fallback)
+        if: steps.direct.outputs.needs_fallback == 'true'
         env:
           TWITTER_FEED_URL: ${{ secrets.TWITTER_FEED_URL }}
         run: |
@@ -147,7 +221,7 @@ jobs:
           python fetch_rss.py feeds/twitter_feed.rss
 
       - name: VPN Cleanup
-        if: ${{ always() }}
+        if: always() && steps.direct.outputs.needs_fallback == 'true'
         run: sudo wg-quick down wg0 || true
 
       - name: Commit and push if changed

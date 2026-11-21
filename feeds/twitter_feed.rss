@@ -1,52 +1,367 @@
-<html lang="en"><head>
-    <link rel="stylesheet" type="text/css" href="/css/style.css?v=106">
-    <link rel="stylesheet" type="text/css" href="/css/fontello.css?v=7">
-    <link rel="stylesheet" type="text/css" href="/css/themes/ted.css">
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-    <link rel="manifest" href="/site.webmanifest">
-    <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#ff6c60">
-    <link rel="search" type="application/opensearchdescription+xml" title="dog nitter" href="https://nitter.miningtcup.me/opensearch">
-    <link rel="alternate" href="https://x.com/search?f=live&amp;q=%28from%3Aksononair+OR+from%3Amgmgoi4+OR+from%3Adooby3D+OR+from%3Ayuki_sakuna+OR+from%3Akurageuroa+OR+from%3A95rn16+OR+from%3Ahanamiya_rica+OR+from%3Animinightmare+OR+from%3Asamekosaba+OR+from%3Ayubarirei+OR+from%3Aamagai_ruka+OR+from%3Ashachimu+OR+from%3Asakura__qoo%29+%28filter%3Alinks++-filter%3Aquote++-filter%3Areplies%29&amp;src=typed_query" title="View on X">
-    <script src="/js/proxyneededcheck.js"></script>
-    <script src="/js/hls.min.js" defer=""></script>
-    <script src="/js/hlsPlayback.js?v=1" defer=""></script>
-    <script src="/js/keybinds.js" defer=""></script>
-    <title>Error | dog nitter</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="referrer" content="same-origin">
-    <meta name="theme-color" content="#1F1F1F">
-    <meta property="og:type" content="article">
-    <meta property="og:title" content="Error">
-    <meta property="og:description" content="">
-    <meta property="og:site_name" content="Nitter">
-    <meta property="og:locale" content="en_US">
-    <link rel="preload" type="font/woff2" as="font" href="/fonts/fontello.woff2?59696369" crossorigin="anonymous">
-  </head>
-  <body class="fixed-nav">
-    <div id="content-notice"><p>All content displayed herein, including pictures and videos, is hosted by <a href="https://x.com/">x.com</a>. Please redirect any complaints regarding content to X.</p></div>
-    <nav><div class="inner-nav">
-        <div class="nav-item"><a class="site-name" href="/">dog nitter</a></div>
-        <div class="search-bar-nav"><form method="get" action="/search" autocomplete="off">
-            <input name="f" type="hidden" value="tweets">
-            <input type="search" name="q" placeholder="Search [/]" dir="auto">
-            <button type="submit"></button>
-          </form></div>
-        <div class="nav-item right">
-          <div class="icon-container"><a class="icon-search" title="Search" href="/search"></a></div>
-          <div class="icon-container"><a class="icon-bird" title="Open in X" href="https://x.com/search?f=live&amp;q=%28from%3Aksononair+OR+from%3Amgmgoi4+OR+from%3Adooby3D+OR+from%3Ayuki_sakuna+OR+from%3Akurageuroa+OR+from%3A95rn16+OR+from%3Ahanamiya_rica+OR+from%3Animinightmare+OR+from%3Asamekosaba+OR+from%3Ayubarirei+OR+from%3Aamagai_ruka+OR+from%3Ashachimu+OR+from%3Asakura__qoo%29+%28filter%3Alinks++-filter%3Aquote++-filter%3Areplies%29&amp;src=typed_query"></a></div>
-          <a href="https://liberapay.com/zedeus"><svg class="lp" viewBox="0 0 40.6 52.3">
-  <g transform="matrix(0.83,0,0,0.83,-158,-261)">
-    <path d="m202.5,366c-3.1 0-5.5-0.4-7.3-1.2-1.8-0.8-3-1.9-3.8-3.3-0.8-1.4-1.1-3-1.1-4.8 0-1.8 0.3-3.7 0.8-5.8l8.3-34.8 10.2-1.6-9.1 37.8c-0.2 0.8-0.3 1.5-0.3 2.2 0 0.7 0.1 1.2 0.4 1.7 0.3 0.5 0.7 0.9 1.3 1.2 0.6 0.3 1.5 0.5 2.7 0.6l-2 8.1"></path>
-    <path d="m239.2 344.3c0 3.2-0.5 6.1-1.6 8.8-1 2.6-2.5 4.9-4.4 6.9-1.9 1.9-4.1 3.4-6.7 4.5-2.6 1.1-5.4 1.6-8.5 1.6-1.5 0-3-0.1-4.5-0.4l-3 11.9h-9.7l10.9-45.4c1.7-0.5 3.7-1 6-1.4 2.3-0.4 4.7-0.6 7.3-0.6 2.4 0 4.6 0.4 6.3 1.1 1.8 0.7 3.2 1.8 4.4 3 1.1 1.3 2 2.8 2.5 4.5 0.5 1.7 0.8 3.6 0.8 5.5m-23.8 13.4c0.7 0.2 1.7 0.3 2.8 0.3 1.7 0 3.3-0.3 4.7-1 1.4-0.6 2.6-1.5 3.6-2.7 1-1.1 1.7-2.5 2.3-4.1 0.5-1.6 0.8-3.4 0.8-5.3 0-1.9-0.4-3.5-1.2-4.8-0.8-1.3-2.3-2-4.3-2-1.4 0-2.7 0.1-3.9 0.4l-4.6 19.1"></path>
-  </g>
-</svg>
+<?xml version="1.0" encoding="UTF-8"?>
+<rss xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/" version="2.0">
+  <channel>
+    <atom:link href="https://nitter.miningtcup.me/ksononair,mgmgoi4,dooby3D,yuki_sakuna,kurageuroa,95rn16,hanamiya_rica,niminightmare,samekosaba,yubarirei,amagai_ruka,shachimu,sakura__qoo/rss" rel="self" type="application/rss+xml" />
+    <title>ksononair | mgmgoi4 | dooby3D | yuki_sakuna | kurageuroa | 95rn16 | hanamiya_rica | niminightmare | samekosaba | yubarirei | amagai_ruka | shachimu | sakura__qoo</title>
+    <link>https://nitter.miningtcup.me/ksononair,mgmgoi4,dooby3D,yuki_sakuna,kurageuroa,95rn16,hanamiya_rica,niminightmare,samekosaba,yubarirei,amagai_ruka,shachimu,sakura__qoo</link>
+    <description>Twitter feed for: ksononair,mgmgoi4,dooby3D,yuki_sakuna,kurageuroa,95rn16,hanamiya_rica,niminightmare,samekosaba,yubarirei,amagai_ruka,shachimu,sakura__qoo. Generated by https://nitter.miningtcup.me
+</description>
+    <language>en-us</language>
+    <ttl>40</ttl>
+    <image>
+      <title>ksononair | mgmgoi4 | dooby3D | yuki_sakuna | kurageuroa | 95rn16 | hanamiya_rica | niminightmare | samekosaba | yubarirei | amagai_ruka | shachimu | sakura__qoo</title>
+      <link>https://nitter.miningtcup.me/ksononair,mgmgoi4,dooby3D,yuki_sakuna,kurageuroa,95rn16,hanamiya_rica,niminightmare,samekosaba,yubarirei,amagai_ruka,shachimu,sakura__qoo</link>
+      <url>https://abs.twimg.com/sticky/default_profile_images/default_profile_400x400.png</url>
+      <width>128</width>
+      <height>128</height>
+    </image>
+      <item>
+        <title>Back to Abiotic Factor with Laimu!! Excited to be back in the labs!! https://www.youtube.com/live/JKAZBrT-BLc</title>
+        <dc:creator>@niminightmare</dc:creator>
+        <description><![CDATA[<p>Back to Abiotic Factor with Laimu!! Excited to be back in the labs!!<br>
+<br>
+<a href="https://inv.miningtcup.me/live/JKAZBrT-BLc">inv.miningtcup.me/live/JKAZBrT-BLc</a></p>
+<hr/>
+<b>Link</b><br>
+<a href="https://inv.miningtcup.me/watch?v=JKAZBrT-BLc">
+<img src="https://pbs.twimg.com/card_img/2124221394187874304/EdRVMDD1?format=jpg&name=800x320_1" style="max-width:250px;" />
+<br>
+<b>【ABIOTIC FACTOR】 Greens are BACK with @Limealicious!!</b>
 </a>
-          <div class="icon-container"><a class="icon-info" title="About" href="/about"></a></div>
-          <div class="icon-container"><a class="icon-cog" title="Preferences" href="/settings?referer=%2Fksononair%2Cmgmgoi4%2Cdooby3D%2Cyuki_sakuna%2Ckurageuroa%2C95rn16%2Chanamiya_rica%2Cniminightmare%2Csamekosaba%2Cyubarirei%2Camagai_ruka%2Cshachimu%2Csakura__qoo%2Fsearch%2Frss%3Ftoken%3Drevival9775%2540disroot.org-158c5394-6434-4941-b048-661327d6df05%26f-links%3Don%26e-quote%3Don%26e-nativeretweets%3Don%26e-replies%3Don%26f%3Dtweets"></a></div>
-        </div>
-      </div></nav>
-    <div class="container"><div class="panel-container"><div class="error-panel"><span>User "ksononair,mgmgoi4,dooby3D,yuki_sakuna,kurageuroa,95rn16,hanamiya_rica,niminightmare,samekosaba,yubarirei,amagai_ruka,shachimu,sakura__qoo" not found</span></div></div></div>
-  
-</body></html>
+<p>Green Saturday!☁ Thumbnail Art ☁https://x.com/dimensionless88/...</p>
+<small><a href="https://inv.miningtcup.me/watch?v=JKAZBrT-BLc">youtube.com</a></small>]]></description>
+        <pubDate>Sat, 21 Nov 2026 19:20:20 GMT</pubDate>
+        <guid isPermaLink="false">2124221391042199986</guid>
+        <link>https://nitter.miningtcup.me/niminightmare/status/2124221391042199986#m</link>
+      </item>
+      <item>
+        <title>明日はお昼12時から配信します.ᐟ.ᐟ🤍 月曜は学校あって夜20時くらいになるかもだけど配信しますꧦ𐅁𐀸𐋠𛰙᭜𖫴𖫰𖫱𖫳𖫲𖫲𖫳𖫴𖫰𖫱꛰ﯩᩝ︪᭜𖫴𖫰𖫱𖫳𖫲𖫲𖫳𖫴𖫰𖫱꛰ީᩝ𛰚 会えるの楽しみにしてるね〜.ᐟ.ᐟ https://www.youtube.com/live/5-RtMJX_AUU?si=FO9pLJS6w5r8Hiaf</title>
+        <dc:creator>@sakura__qoo</dc:creator>
+        <description><![CDATA[<p>明日はお昼12時から配信します.ᐟ.ᐟ🤍<br>
+月曜は学校あって夜20時くらいになるかもだけど配信しますꧦ𐅁𐀸𐋠𛰙᭜𖫴𖫰𖫱𖫳𖫲𖫲𖫳𖫴𖫰𖫱꛰ﯩᩝ︪᭜𖫴𖫰𖫱𖫳𖫲𖫲𖫳𖫴𖫰𖫱꛰ީᩝ𛰚<br>
+<br>
+会えるの楽しみにしてるね〜.ᐟ.ᐟ<br>
+<br>
+<a href="https://inv.miningtcup.me/live/5-RtMJX_AUU?si=FO9pLJS6w5r8Hiaf">inv.miningtcup.me/live/5-RtMJX_AUU…</a></p>
+<hr/>
+<b>Link</b><br>
+<a href="https://inv.miningtcup.me/watch?v=5-RtMJX_AUU">
+<img src="https://pbs.twimg.com/card_img/2124132708360359936/STKg6EjU?format=jpg&name=800x320_1" style="max-width:250px;" />
+<br>
+<b>AAAAAAAAAAAAAAAAAAAAAAA</b>
+</a>
+<p>メンバーシップへようこそ！🤍 https://www.youtube.com/channel/UC77FLsC_6ZmjhZ7BA5u...</p>
+<small><a href="https://inv.miningtcup.me/watch?v=5-RtMJX_AUU">youtube.com</a></small>]]></description>
+        <pubDate>Sat, 21 Nov 2026 13:28:03 GMT</pubDate>
+        <guid isPermaLink="false">2124132736416006241</guid>
+        <link>https://nitter.miningtcup.me/sakura__qoo/status/2124132736416006241#m</link>
+      </item>
+      <item>
+        <title>pixivFANBOXで壁紙ぷれぜんと❕🤍を公開しました！ https://qooch.fanbox.cc/posts/12968606?utm_campaign=manage_post_page&amp;utm_medium=share&amp;utm_source=twitter</title>
+        <dc:creator>@sakura__qoo</dc:creator>
+        <description><![CDATA[<p>pixivFANBOXで壁紙ぷれぜんと❕🤍を公開しました！ <a href="https://qooch.fanbox.cc/posts/12968606?utm_campaign=manage_post_page&utm_medium=share&utm_source=twitter">qooch.fanbox.cc/posts/129686…</a></p>
+<hr/>
+<b>Link</b><br>
+<a href="https://qooch.fanbox.cc/posts/12968606?utm_campaign=manage_post_page&amp;utm_medium=share&amp;utm_source=twitter">
+<img src="https://pbs.twimg.com/card_img/2121926834480988160/vBm_-hQ0?format=jpg&name=800x419" style="max-width:250px;" />
+<br>
+<b>壁紙ぷれぜんと❕🤍｜沙倉くぅの沼｜pixivFANBOX</b>
+</a>
+<p>クリエイターの創作活動を支えるファンコミュニティ「pixivFANBOX」</p>
+<small><a href="https://qooch.fanbox.cc/posts/12968606?utm_campaign=manage_post_page&amp;utm_medium=share&amp;utm_source=twitter">qooch.fanbox.cc</a></small>]]></description>
+        <pubDate>Sat, 21 Nov 2026 11:17:13 GMT</pubDate>
+        <guid isPermaLink="false">2124099811297419694</guid>
+        <link>https://nitter.miningtcup.me/sakura__qoo/status/2124099811297419694#m</link>
+      </item>
+      <item>
+        <title>ブチ切れてはないww 切り抜きありがとう〜！ リア充報告にブチ切れた個人勢Vtuber、恋愛自慢禁止ルールを施行　#vtuber #沙倉くぅ #切り抜き #個人勢vtuber https://youtube.com/shorts/UzJL6YWdsnc?si=vY7EwTdyJa255MQS</title>
+        <dc:creator>@sakura__qoo</dc:creator>
+        <description><![CDATA[<p>ブチ切れてはないww<br>
+切り抜きありがとう〜！<br>
+<br>
+リア充報告にブチ切れた個人勢Vtuber、恋愛自慢禁止ルールを施行　<a href="https://nitter.miningtcup.me/search?f=tweets&q=%23vtuber">#vtuber</a> <a href="https://nitter.miningtcup.me/search?f=tweets&q=%23沙倉くぅ">#沙倉くぅ</a>  <a href="https://nitter.miningtcup.me/search?f=tweets&q=%23切り抜き">#切り抜き</a> <a href="https://nitter.miningtcup.me/search?f=tweets&q=%23個人勢vtuber">#個人勢vtuber</a> <a href="https://inv.miningtcup.me/shorts/UzJL6YWdsnc?si=vY7EwTdyJa255MQS">inv.miningtcup.me/shorts/UzJL6YWds…</a></p>
+<hr/>
+<b>Link</b><br>
+<a href="https://inv.miningtcup.me/shorts/UzJL6YWdsnc?si=vY7EwTdyJa255MQS">
+<img src="https://pbs.twimg.com/card_img/2124003934570508288/d9w4I5At?format=jpg&name=600x314" style="max-width:250px;" />
+<br>
+<b>リア充報告にブチ切れた個人勢Vtuber、恋愛自慢禁止ルールを施行　#vtuber #沙倉くぅ #切り抜き #個人勢vtuber</b>
+</a>
+<p>↓チャンネル @sakura__qoo ↓https://www.youtube.com/watch?v=_UAQ5pay-Is</p>
+<small><a href="https://inv.miningtcup.me/shorts/UzJL6YWdsnc?si=vY7EwTdyJa255MQS">youtube.com</a></small>]]></description>
+        <pubDate>Sat, 21 Nov 2026 10:51:47 GMT</pubDate>
+        <guid isPermaLink="false">2124093410256818278</guid>
+        <link>https://nitter.miningtcup.me/sakura__qoo/status/2124093410256818278#m</link>
+      </item>
+      <item>
+        <title>切り抜き載せてくれました❕高評価ご視聴お願いします！😭🤍 池袋にある激うまタイ鍋の話とかしてるよฅ ˆ. ̫.ˆ ฅ🤍 チャンネルの最新動画ほとんどさくらが侵略してていいのかなってなるけどうれしい https://youtu.be/W_wAfvSTYWI?si=md0u-bIuP4nWxSm8</title>
+        <dc:creator>@sakura__qoo</dc:creator>
+        <description><![CDATA[<p>切り抜き載せてくれました❕高評価ご視聴お願いします！😭🤍<br>
+<br>
+池袋にある激うまタイ鍋の話とかしてるよฅ ˆ.  ̫.ˆ ฅ🤍<br>
+<br>
+チャンネルの最新動画ほとんどさくらが侵略してていいのかなってなるけどうれしい<br>
+<br>
+<a href="https://inv.miningtcup.me/W_wAfvSTYWI?si=md0u-bIuP4nWxSm8">inv.miningtcup.me/W_wAfvSTYWI?si=md0u…</a></p>
+<hr/>
+<b>Link</b><br>
+<a href="https://inv.miningtcup.me/W_wAfvSTYWI?si=md0u-bIuP4nWxSm8">
+<img src="https://pbs.twimg.com/card_img/2124074804450091008/gFDbXCVN?format=jpg&name=800x419" style="max-width:250px;" />
+<br>
+<b>วีสาวชาวญี่ปุ่นชอบ &quot;หมูกระทะ&quot; สุดๆ!! [ VTuber ซับไทย ]</b>
+</a>
+<p>💡 อยากให้ตื่นมาแปลทำคลิปอะไรต่อ?เสนอคลิปหรือโมเมนต์ที่อยากดูได้ที่...</p>
+<small><a href="https://inv.miningtcup.me/W_wAfvSTYWI?si=md0u-bIuP4nWxSm8">youtube.com</a></small>]]></description>
+        <pubDate>Sat, 21 Nov 2026 10:47:18 GMT</pubDate>
+        <guid isPermaLink="false">2124092283163455974</guid>
+        <link>https://nitter.miningtcup.me/sakura__qoo/status/2124092283163455974#m</link>
+      </item>
+      <item>
+        <title>雑談 on Twitch! https://x.com/i/broadcasts/2qVOLPPBoYbOnK</title>
+        <dc:creator>@ksononair</dc:creator>
+        <description><![CDATA[<p>雑談 on Twitch! <a href="https://nitter.miningtcup.me/i/broadcasts/2qVOLPPBoYbOnK">nitter.miningtcup.me/i/broadcasts/2qVOLPPBo…</a></p>
+<hr/>
+<b>Link</b><br>
+<a href="https://nitter.miningtcup.me/i/broadcasts/2qVOLPPBoYbOnK">
+<img src="https://pbs.twimg.com/card_img/2124261802993135616/kDy9qcoO?format=jpg&name=800x419" style="max-width:250px;" />
+<br>
+<b>ksonSOUCHOU🍕</b>
+</a>
+<p>雑談 on Twitch!</p>
+<small><a href="https://nitter.miningtcup.me/i/broadcasts/2qVOLPPBoYbOnK">https://nitter.miningtcup.me/i/broadcasts/2qVOLPPBoYbOnK</a></small>]]></description>
+        <pubDate>Sat, 21 Nov 2026 09:03:53 GMT</pubDate>
+        <guid isPermaLink="false">2124066255736860809</guid>
+        <link>https://nitter.miningtcup.me/ksononair/status/2124066255736860809#m</link>
+      </item>
+      <item>
+        <title>サキュバスコスプレセクシー配信開始！！！！💓 https://www.youtube.com/live/KozRXwV-CqY?si=mRqSy7cC5UhWYbDj</title>
+        <dc:creator>@95rn16</dc:creator>
+        <description><![CDATA[<p>サキュバスコスプレセクシー配信開始！！！！💓 <a href="https://inv.miningtcup.me/live/KozRXwV-CqY?si=mRqSy7cC5UhWYbDj">inv.miningtcup.me/live/KozRXwV-CqY…</a></p>
+<hr/>
+<b>Link</b><br>
+<a href="https://inv.miningtcup.me/watch?v=KozRXwV-CqY">
+<img src="https://pbs.twimg.com/card_img/2123787850407985152/vzES9LMu?format=jpg&name=800x320_1" style="max-width:250px;" />
+<br>
+<b>【ドールズフロントライン2：エクシリウム】ガチャぶん回す！最強にかわいい強いドールフィギュアRPG！？初見プレイ💓【#サキュバスコスプレ】</b>
+</a>
+<p>たのしむよ～💓公式リンク：https://gf2.haoplay.com/media/?fuid=mikenekokoDisco...</p>
+<small><a href="https://inv.miningtcup.me/watch?v=KozRXwV-CqY">youtube.com</a></small>]]></description>
+        <pubDate>Sat, 21 Nov 2026 09:02:45 GMT</pubDate>
+        <guid isPermaLink="false">2124065971438780537</guid>
+        <link>https://nitter.miningtcup.me/95rn16/status/2124065971438780537#m</link>
+      </item>
+      <item>
+        <title>《☕ 配信告知 🪡》🗓 明日11月22日㈰ 昼11:30から 【ここだけ深夜】悠針れいの誕生日&amp;3Dお披露目カウントダウン！ https://youtu.be/XwwWGFNtnDM ついに11/23、私の誕生日&amp;3Dお披露目日がくる…！！🎉 ということで体に優しい前日お昼カウントダウン、行きましょう！！🎂 【タグ #ゆうばりタイム】</title>
+        <dc:creator>@yubarirei</dc:creator>
+        <description><![CDATA[<p>《☕ 配信告知 🪡》🗓 明日11月22日㈰ 昼11:30から<br>
+【ここだけ深夜】悠針れいの誕生日&amp;3Dお披露目カウントダウン！<br>
+<a href="https://inv.miningtcup.me/XwwWGFNtnDM">inv.miningtcup.me/XwwWGFNtnDM</a><br>
+ついに11/23、私の誕生日&amp;3Dお披露目日がくる…！！🎉<br>
+ということで体に優しい前日お昼カウントダウン、行きましょう！！🎂<br>
+【タグ <a href="https://nitter.miningtcup.me/search?f=tweets&q=%23ゆうばりタイム">#ゆうばりタイム</a>】</p>
+<img src="https://pbs.twimg.com/media/HXouGeGbMAAPHdr.jpg" style="max-width:250px;" />]]></description>
+        <pubDate>Sat, 21 Nov 2026 08:45:45 GMT</pubDate>
+        <guid isPermaLink="false">2124061692736971225</guid>
+        <link>https://nitter.miningtcup.me/yubarirei/status/2124061692736971225#m</link>
+      </item>
+      <item>
+        <title>NEXT STREAM➡18:00 久々になってしもうた！！！ kson姉さんは語りたい【久々雑談】 https://www.youtube.com/live/45IdNz_4oOg?si=56Sgqbu_FPMS8ViQ via @YouTube</title>
+        <dc:creator>@ksononair</dc:creator>
+        <description><![CDATA[<p>NEXT STREAM➡18:00<br>
+久々になってしもうた！！！<br>
+<br>
+kson姉さんは語りたい【久々雑談】 <a href="https://inv.miningtcup.me/live/45IdNz_4oOg?si=56Sgqbu_FPMS8ViQ">inv.miningtcup.me/live/45IdNz_4oOg…</a> via <a href="https://nitter.miningtcup.me/YouTube" title="YouTube">@YouTube</a></p>
+<hr/>
+<b>Link</b><br>
+<a href="https://inv.miningtcup.me/watch?v=45IdNz_4oOg">
+<img src="https://pbs.twimg.com/card_img/2124033179942350848/CAfBXwfX?format=jpg&name=800x320_1" style="max-width:250px;" />
+<br>
+<b>kson姉さんは語りたい【久々雑談】</b>
+</a>
+<p>配信の感想などは #ksonONAIR のタグでつぶやいてくれますと嬉しいです！ハズレ枠だったりぐるぐるする場合は以下のtwitc...</p>
+<small><a href="https://inv.miningtcup.me/watch?v=45IdNz_4oOg">youtube.com</a></small>]]></description>
+        <pubDate>Sat, 21 Nov 2026 06:52:59 GMT</pubDate>
+        <guid isPermaLink="false">2124033313061089421</guid>
+        <link>https://nitter.miningtcup.me/ksononair/status/2124033313061089421#m</link>
+      </item>
+      <item>
+        <title>何から何までおかしいは失礼www https://note.com/nekonekoouentai/n/nc6f1d64724a0?sub_rt=share_b</title>
+        <dc:creator>@sakura__qoo</dc:creator>
+        <description><![CDATA[<p>何から何までおかしいは失礼www<br>
+<br>
+<a href="https://note.com/nekonekoouentai/n/nc6f1d64724a0?sub_rt=share_b">note.com/nekonekoouentai/n/n…</a></p>
+<img src="https://pbs.twimg.com/media/HXn83CmbQAA4WIz.jpg" style="max-width:250px;" />]]></description>
+        <pubDate>Sat, 21 Nov 2026 05:07:21 GMT</pubDate>
+        <guid isPermaLink="false">2124006729436565752</guid>
+        <link>https://nitter.miningtcup.me/sakura__qoo/status/2124006729436565752#m</link>
+      </item>
+      <item>
+        <title>°.✩┈┈┈∘*┈୨୧┈*∘┈┈┈✩.° 11月21日(土)より発売START🎀🐾 °.✩┈┈┈∘*┈୨୧┈*∘┈┈┈✩.° タイトーくじ 結城さくな さくなのちぇんじざこすちゅ~む! https://www.taito.co.jp/taitokuji/item/0000011889 #PR #タイトーくじ</title>
+        <dc:creator>@yuki_sakuna</dc:creator>
+        <description><![CDATA[<p>°.✩┈┈┈∘*┈୨୧┈*∘┈┈┈✩.°<br>
+11月21日(土)より発売START🎀🐾<br>
+°.✩┈┈┈∘*┈୨୧┈*∘┈┈┈✩.°<br>
+<br>
+タイトーくじ 結城さくな<br>
+さくなのちぇんじざこすちゅ~む!<br>
+<br>
+<a href="https://www.taito.co.jp/taitokuji/item/0000011889">taito.co.jp/taitokuji/item/0…</a><br>
+<br>
+<a href="https://nitter.miningtcup.me/search?f=tweets&q=%23PR">#PR</a> <a href="https://nitter.miningtcup.me/search?f=tweets&q=%23タイトーくじ">#タイトーくじ</a></p>
+<img src="https://pbs.twimg.com/media/HXlbX9lawAA06xq.jpg" style="max-width:250px;" />
+
+<img src="https://pbs.twimg.com/media/HXlbZLbaQAAQiSE.jpg" style="max-width:250px;" />]]></description>
+        <pubDate>Sat, 21 Nov 2026 03:00:05 GMT</pubDate>
+        <guid isPermaLink="false">2123974705040265312</guid>
+        <link>https://nitter.miningtcup.me/yuki_sakuna/status/2123974705040265312#m</link>
+      </item>
+      <item>
+        <title>💘本日18時～YouTube サキュバスメイドコスします🫶 ՞⸝⸝&gt; ̫ &lt;⸝⸝՞ぴゃー そして！ドールたちと戦うRPG『ドールズフロントライン2』初見プレイします💕会いに来てね！！🫶 https://www.youtube.com/live/KozRXwV-CqY?si=OmneX-kgh9j5Ad-U #PR #ドルフロ2 #ドールズフロントライン2</title>
+        <dc:creator>@95rn16</dc:creator>
+        <description><![CDATA[<p>💘本日18時～YouTube<br>
+サキュバスメイドコスします🫶<br>
+՞⸝⸝&gt;  ̫ &lt;⸝⸝՞ぴゃー<br>
+そして！ドールたちと戦うRPG『ドールズフロントライン2』初見プレイします💕会いに来てね！！🫶<br>
+<a href="https://inv.miningtcup.me/live/KozRXwV-CqY?si=OmneX-kgh9j5Ad-U">inv.miningtcup.me/live/KozRXwV-CqY…</a><br>
+<a href="https://nitter.miningtcup.me/search?f=tweets&q=%23PR">#PR</a> <a href="https://nitter.miningtcup.me/search?f=tweets&q=%23ドルフロ2">#ドルフロ2</a> <a href="https://nitter.miningtcup.me/search?f=tweets&q=%23ドールズフロントライン2">#ドールズフロントライン2</a></p>
+<img src="https://pbs.twimg.com/media/HXnEgWqbAAAd0vl.jpg" style="max-width:250px;" />]]></description>
+        <pubDate>Sat, 21 Nov 2026 01:30:42 GMT</pubDate>
+        <guid isPermaLink="false">2123952208408637480</guid>
+        <link>https://nitter.miningtcup.me/95rn16/status/2123952208408637480#m</link>
+      </item>
+      <item>
+        <title>˗ˏˋ 　おひるの１３時から🎀🐾　 ˎˊ˗ 『BLEACH Rebirth of Souls』 ￣￣￣￣￣￣￣￣￣￣￣￣￣ 完全初見🎮✨BLEACH！ 憧れは理解から最も遠い感情だよ― 🔗https://youtube.com/live/ocqe91KyeVk?feature=share</title>
+        <dc:creator>@yuki_sakuna</dc:creator>
+        <description><![CDATA[<p>˗ˏˋ 　おひるの１３時から🎀🐾　 ˎˊ˗<br>
+『BLEACH Rebirth of Souls』<br>
+￣￣￣￣￣￣￣￣￣￣￣￣￣ <br>
+完全初見🎮✨BLEACH！<br>
+憧れは理解から最も遠い感情だよ―<br>
+🔗<a href="https://inv.miningtcup.me/live/ocqe91KyeVk?feature=share">inv.miningtcup.me/live/ocqe91KyeVk…</a></p>
+<img src="https://pbs.twimg.com/media/HXlb4FVa0AAJNUJ.jpg" style="max-width:250px;" />]]></description>
+        <pubDate>Sat, 21 Nov 2026 00:53:00 GMT</pubDate>
+        <guid isPermaLink="false">2123942720494580045</guid>
+        <link>https://nitter.miningtcup.me/yuki_sakuna/status/2123942720494580045#m</link>
+      </item>
+      <item>
+        <title>【Red Dead Redemption 2】 Today I&apos;m playing that other Rockstar game that released 8 years ago ! 🤠 https://www.youtube.com/live/WuQoySvIadw</title>
+        <dc:creator>@shachimu</dc:creator>
+        <description><![CDATA[<p>【Red Dead Redemption 2】<br>
+<br>
+Today I'm playing that other Rockstar game that released 8 years ago ! 🤠<br>
+<br>
+<a href="https://inv.miningtcup.me/live/WuQoySvIadw">inv.miningtcup.me/live/WuQoySvIadw</a></p>
+<img src="https://pbs.twimg.com/media/HXmuBewbMAAXXI_.jpg" style="max-width:250px;" />]]></description>
+        <pubDate>Fri, 20 Nov 2026 23:25:17 GMT</pubDate>
+        <guid isPermaLink="false">2123920649127411716</guid>
+        <link>https://nitter.miningtcup.me/shachimu/status/2123920649127411716#m</link>
+      </item>
+      <item>
+        <title>GTA 6 day 2! Going to turn their lives around and secure a happily ever after for them https://www.youtube.com/live/OfRnk2rZzJc</title>
+        <dc:creator>@niminightmare</dc:creator>
+        <description><![CDATA[<p>GTA 6 day 2! Going to turn their lives around and secure a happily ever after for them<br>
+<br>
+<a href="https://inv.miningtcup.me/live/OfRnk2rZzJc">inv.miningtcup.me/live/OfRnk2rZzJc</a></p>
+<hr/>
+<b>Link</b><br>
+<a href="https://inv.miningtcup.me/watch?v=OfRnk2rZzJc">
+<img src="https://pbs.twimg.com/card_img/2123893305100697600/b1SkSi14?format=jpg&name=800x320_1" style="max-width:250px;" />
+<br>
+<b>【Grand Theft Auto VI】 Day 2 of turning my life around in GTA 6 | #2</b>
+</a>
+<p>I can fix themMerch: https://ohmonah.shop/collections/nimi-nightm...</p>
+<small><a href="https://inv.miningtcup.me/watch?v=OfRnk2rZzJc">youtube.com</a></small>]]></description>
+        <pubDate>Fri, 20 Nov 2026 21:36:37 GMT</pubDate>
+        <guid isPermaLink="false">2123893299954192576</guid>
+        <link>https://nitter.miningtcup.me/niminightmare/status/2123893299954192576#m</link>
+      </item>
+      <item>
+        <title>今日も１日おつかれさまでした🫶 あったかくして寝てねっ！ ASMRアーカイブ➡https://live.nicovideo.jp/watch/lv351844005</title>
+        <dc:creator>@hanamiya_rica</dc:creator>
+        <description><![CDATA[<p>今日も１日おつかれさまでした🫶<br>
+あったかくして寝てねっ！<br>
+<br>
+ASMRアーカイブ➡<a href="https://live.nicovideo.jp/watch/lv351844005">live.nicovideo.jp/watch/lv35…</a></p>
+<a href="https://nitter.miningtcup.me/hanamiya_rica/status/2123802697895993440#m">
+<br>Video<br>
+  <img src="https://pbs.twimg.com/amplify_video_thumb/2123801609276907520/img/Ivr02q1r9x2Bk5Ev.jpg" style="max-width:250px;" />
+</a>]]></description>
+        <pubDate>Fri, 20 Nov 2026 15:36:36 GMT</pubDate>
+        <guid isPermaLink="false">2123802697895993440</guid>
+        <link>https://nitter.miningtcup.me/hanamiya_rica/status/2123802697895993440#m</link>
+      </item>
+      <item>
+        <title>【ASMR/実写】寒い夜もあったまる癒しのひととき♡ゼロ距離囁き,耳ふぅ,耳かき,マッサージEar cleaning【癒やし/KU100】 / ニコ生番組(2026/11/20 22:00開始) https://live.nicovideo.jp/watch/lv351844005?ref=sharetw この後２２時から！ぽかぽかしにきてね！</title>
+        <dc:creator>@hanamiya_rica</dc:creator>
+        <description><![CDATA[<p>【ASMR/実写】寒い夜もあったまる癒しのひととき♡ゼロ距離囁き,耳ふぅ,耳かき,マッサージEar cleaning【癒やし/KU100】 / ニコ生番組(2026/11/20 22:00開始) <a href="https://live.nicovideo.jp/watch/lv351844005?ref=sharetw">live.nicovideo.jp/watch/lv35…</a> <br>
+<br>
+この後２２時から！ぽかぽかしにきてね！</p>
+<hr/>
+<b>Link</b><br>
+<a href="https://live.nicovideo.jp/watch/lv351844005?ref=sharetw">
+<img src="https://pbs.twimg.com/card_img/2123341273017053184/mgGeqsNl?format=jpg&name=800x419" style="max-width:250px;" />
+<br>
+<b>【ASMR/実写】寒い夜もあったまる癒しのひととき♡ゼロ距離囁き,耳ふぅ,耳かき,マッサージEar cleaning【癒やし/KU100】</b>
+</a>
+<p>限定配信を視聴する際にプレミアム登録は不要です。 限定配信のアーカイブは現在90日間まで何度でも視聴できます。 予告なくアーカイブ及び動画を非公開にする場合があ</p>
+<small><a href="https://live.nicovideo.jp/watch/lv351844005?ref=sharetw">live.nicovideo.jp</a></small>]]></description>
+        <pubDate>Fri, 20 Nov 2026 12:08:52 GMT</pubDate>
+        <guid isPermaLink="false">2123750419994378319</guid>
+        <link>https://nitter.miningtcup.me/hanamiya_rica/status/2123750419994378319#m</link>
+      </item>
+      <item>
+        <title>Xニュースになった、ありがとうございます‼🎉 剣を振るうアクションとは言ってなくて草！！ 傘だよ！！！！！！！ カジュアルなコーヒー姿は…あ、アルカモナー！！！ 真相は11/23㈪ 19:30にお確かめ下さい！☕🪡 https://x.com/i/trending/2123639284708073616</title>
+        <dc:creator>@yubarirei</dc:creator>
+        <description><![CDATA[<p>Xニュースになった、ありがとうございます‼🎉<br>
+剣を振るうアクションとは言ってなくて草！！<br>
+傘だよ！！！！！！！<br>
+カジュアルなコーヒー姿は…あ、アルカモナー！！！<br>
+真相は11/23㈪ 19:30にお確かめ下さい！☕🪡<br>
+<a href="https://nitter.miningtcup.me/i/trending/2123639284708073616">nitter.miningtcup.me/i/trending/21236392847…</a></p>
+<hr/>
+<b>Link</b><br>
+<a href="https://nitter.miningtcup.me/i/trending/2123639284708073616">
+<img src="https://pbs.twimg.com/media/F1x5VdQX0AA9Sgt.jpg" style="max-width:250px;" />
+</a>
+<p>悠針れいさん、11月23日誕生日3Dお披露目配信を直前特番で盛り上げ</p>
+<small><a href="https://nitter.miningtcup.me/i/trending/2123639284708073616">Topic</a></small>]]></description>
+        <pubDate>Fri, 20 Nov 2026 11:19:00 GMT</pubDate>
+        <guid isPermaLink="false">2123737870930153926</guid>
+        <link>https://nitter.miningtcup.me/yubarirei/status/2123737870930153926#m</link>
+      </item>
+      <item>
+        <title>《☕ 3Dお披露目&amp;オリ曲 KV公開 🪡》 担当: KUIKUI💀様 @Kuikui00Skul ──────────── 　 2026.11.23㈪ 19:30 　 　#悠針れい3D 　初オリ曲お披露目も ──────────── 🔻3Dお披露目ティザーPV はこちら https://youtu.be/5L6ywlMLgnM</title>
+        <dc:creator>@yubarirei</dc:creator>
+        <description><![CDATA[<p>《☕ 3Dお披露目&amp;オリ曲 KV公開 🪡》<br>
+担当: KUIKUI💀様 <a href="https://nitter.miningtcup.me/Kuikui00Skul" title="KUIKUI💀">@Kuikui00Skul</a><br>
+<br>
+────────────<br>
+　 2026.11.23㈪ 19:30<br>
+　 　<a href="https://nitter.miningtcup.me/search?f=tweets&q=%23悠針れい3D">#悠針れい3D</a><br>
+ 　初オリ曲お披露目も<br>
+────────────<br>
+<br>
+🔻3Dお披露目ティザーPV はこちら<br>
+<a href="https://inv.miningtcup.me/5L6ywlMLgnM">inv.miningtcup.me/5L6ywlMLgnM</a></p>
+<img src="https://pbs.twimg.com/media/HXikhbpbgAAFXfS.jpg" style="max-width:250px;" />]]></description>
+        <pubDate>Fri, 20 Nov 2026 04:05:46 GMT</pubDate>
+        <guid isPermaLink="false">2123628845966508216</guid>
+        <link>https://nitter.miningtcup.me/yubarirei/status/2123628845966508216#m</link>
+      </item>
+      <item>
+        <title>今日は21時からおバカ人狼🐺🍭 Twitchでやる！⸝⸝&gt; ̫ &lt;⸝⸝わくわく 🎀メンバー うきょち/かなた/蛇足/軍師ミノル/むらまこ/アスカタン/サトウキビ/みけねこ 🎙https://www.twitch.tv/nekoko88</title>
+        <dc:creator>@95rn16</dc:creator>
+        <description><![CDATA[<p>今日は21時からおバカ人狼🐺🍭<br>
+Twitchでやる！⸝⸝&gt;  ̫ &lt;⸝⸝わくわく<br>
+<br>
+🎀メンバー<br>
+うきょち/かなた/蛇足/軍師ミノル/むらまこ/アスカタン/サトウキビ/みけねこ<br>
+🎙<a href="https://www.twitch.tv/nekoko88">twitch.tv/nekoko88</a></p>
+<img src="https://pbs.twimg.com/media/HXih0NvbUAAs2WJ.jpg" style="max-width:250px;" />]]></description>
+        <pubDate>Fri, 20 Nov 2026 03:51:05 GMT</pubDate>
+        <guid isPermaLink="false">2123625148272296324</guid>
+        <link>https://nitter.miningtcup.me/95rn16/status/2123625148272296324#m</link>
+      </item>
+
+  </channel>
+</rss>

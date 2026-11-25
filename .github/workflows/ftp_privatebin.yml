@@ -172,5 +172,5 @@ jobs:
           fi
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git commit -m "Update PrivateBin version state to $latest_tag"
+          git commit -m "Add files via upload"
           git push

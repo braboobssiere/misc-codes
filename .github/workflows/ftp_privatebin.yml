@@ -25,16 +25,16 @@ jobs:
           sparse-checkout-cone-mode: false
 
       # 2. Get latest release and check each instance's version
-        env:
-          FORCE_UPDATE: ${{ inputs.force_update == true }}
       - name: 🏷️ Get Latest PrivateBin Release
+        env:
+          FORCE_UPDATE: ${{ inputs.force_update || 'false' }}
         run: |
           RELEASE_DATA=$(curl -s https://api.github.com/repos/PrivateBin/PrivateBin/releases/latest)
           LATEST_TAG=$(echo "$RELEASE_DATA" | jq -r '.tag_name')
           ZIP_URL=$(echo "$RELEASE_DATA" | jq -r '.zipball_url')
 
           if [ -z "$LATEST_TAG" ] || [ "$LATEST_TAG" = "null" ]; then
-            echo "ERROR: Could not read latest release tag (API rate limit or network issue?)."
+            echo "ERROR: Could not read latest release tag."
             exit 1
           fi
 
@@ -43,35 +43,37 @@ jobs:
           echo "zip_url=$ZIP_URL" >> "$GITHUB_ENV"
           echo "latest_tag=$LATEST_TAG" >> "$GITHUB_ENV"
 
-          for N in 1 2; do
-            if [ "$N" = "1" ]; then
-              FILE="input/privatebin/PrivateBin_version.txt"
-            else
-              FILE="input/privatebin/PrivateBin_version_2.txt"
+          check_instance() {
+            local n="$1"
+            local file="$2"
+            local old newest deploy
+
+            if [ ! -f "$file" ]; then
+              echo "0" > "$file"
             fi
 
-            if [ ! -f "$FILE" ]; then
-              echo "0" > "$FILE"
-            fi
-
-            OLD_VERSION=$(cat "$FILE")
-            echo "Instance $N old version: $OLD_VERSION"
-
-            NEWEST=$(printf '%s\n' "$OLD_VERSION" "$LATEST_TAG" | sort -V | tail -n1)
+            old=$(cat "$file")
+            newest=$(printf '%s\n' "$old" "$LATEST_TAG" | sort -V | tail -n1)
+            deploy=false
 
             if [ "$FORCE_UPDATE" = "true" ]; then
-              if [ "$NEWEST" = "$LATEST_TAG" ]; then
-                DEPLOY=true
-              else
-                DEPLOY=false
+              # Force: deploy when latest is the same as or newer than the current version
+              if [ "$newest" = "$LATEST_TAG" ]; then
+                deploy=true
               fi
             else
-              if [ "$OLD_VERSION" != "$LATEST_TAG" ] && [ "$NEWEST" = "$LATEST_TAG" ]; then
-                DEPLOY=true
-              else
-                DEPLOY=false
+              # Normal: deploy only when latest is newer than the current version
+              if [ "$old" != "$LATEST_TAG" ] && [ "$newest" = "$LATEST_TAG" ]; then
+                deploy=true
               fi
             fi
+
+            echo "Instance $n current version: $old (deploy: $deploy)"
+            echo "deploy_$n=$deploy" >> "$GITHUB_ENV"
+          }
+
+          check_instance 1 "input/privatebin/PrivateBin_version.txt"
+          check_instance 2 "input/privatebin/PrivateBin_version_2.txt"
 
       # 3. Download and extract the release ZIP once, if either instance needs it
       - name: 📥 Download and Extract Release ZIP

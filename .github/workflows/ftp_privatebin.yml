@@ -4,6 +4,10 @@ on:
   schedule:
     - cron: '37 18 * * *'
   workflow_dispatch:
+    inputs:
+      force_update:
+        type: boolean
+        default: false
 
 jobs:
   build-and-deploy:
@@ -21,6 +25,8 @@ jobs:
           sparse-checkout-cone-mode: false
 
       # 2. Get latest release and check each instance's version
+        env:
+          FORCE_UPDATE: ${{ inputs.force_update == true }}
       - name: 🏷️ Get Latest PrivateBin Release
         run: |
           RELEASE_DATA=$(curl -s https://api.github.com/repos/PrivateBin/PrivateBin/releases/latest)
@@ -33,6 +39,7 @@ jobs:
           fi
 
           echo "Latest tag: $LATEST_TAG"
+          echo "Force update: $FORCE_UPDATE"
           echo "zip_url=$ZIP_URL" >> "$GITHUB_ENV"
           echo "latest_tag=$LATEST_TAG" >> "$GITHUB_ENV"
 
@@ -50,13 +57,21 @@ jobs:
             OLD_VERSION=$(cat "$FILE")
             echo "Instance $N old version: $OLD_VERSION"
 
-            if [ "$OLD_VERSION" != "$LATEST_TAG" ] && \
-               [ "$(printf '%s\n' "$OLD_VERSION" "$LATEST_TAG" | sort -V | tail -n1)" = "$LATEST_TAG" ]; then
-              echo "deploy_$N=true" >> "$GITHUB_ENV"
+            NEWEST=$(printf '%s\n' "$OLD_VERSION" "$LATEST_TAG" | sort -V | tail -n1)
+
+            if [ "$FORCE_UPDATE" = "true" ]; then
+              if [ "$NEWEST" = "$LATEST_TAG" ]; then
+                DEPLOY=true
+              else
+                DEPLOY=false
+              fi
             else
-              echo "deploy_$N=false" >> "$GITHUB_ENV"
+              if [ "$OLD_VERSION" != "$LATEST_TAG" ] && [ "$NEWEST" = "$LATEST_TAG" ]; then
+                DEPLOY=true
+              else
+                DEPLOY=false
+              fi
             fi
-          done
 
       # 3. Download and extract the release ZIP once, if either instance needs it
       - name: 📥 Download and Extract Release ZIP
@@ -75,6 +90,7 @@ jobs:
         env:
           FTP_CONFIG_1: ${{ secrets.FTP_PRIVATEBIN }}
           FTP_CONFIG_2: ${{ secrets.FTP_PRIVATEBIN_2 }}
+          FORCE_UPDATE: ${{ inputs.force_update == true }}
         run: |
           SOURCE_DIR=$(find privatebin_download -maxdepth 1 -type d -iname "PrivateBin-*" | head -1)
           if [ -z "$SOURCE_DIR" ]; then
@@ -82,6 +98,13 @@ jobs:
             exit 1
           fi
           echo "Source directory: $SOURCE_DIR"
+
+          if [ "$FORCE_UPDATE" = "true" ]; then
+            TRANSFER_FLAG="--transfer-all"
+            echo "Force mode: transferring all files."
+          else
+            TRANSFER_FLAG=""
+          fi
 
           sudo apt-get update && sudo apt-get install -y lftp
 
@@ -111,14 +134,14 @@ jobs:
               set ftp:ssl-force true;
               set ftp:ssl-protect-data true;
               open -u '$FTP_USER','$FTP_PASS' -p $FTP_PORT ftp://$FTP_HOST;
-              mirror -R --verbose --no-perms \
+              mirror -R --verbose $TRANSFER_FLAG --no-perms \
                 --exclude 'cfg/conf.php' \
                 --exclude 'ShlinkProxy.php' \
                 '$SOURCE_DIR/' '$FTP_PATH'
             " || { echo "ERROR: Deploy failed for instance $n"; return 1; }
 
-            echo "$LATEST_TAG" > "$version_file"
-            echo "Instance $n updated to $LATEST_TAG"
+            echo "$latest_tag" > "$version_file"
+            echo "Instance $n updated to $latest_tag"
           }
 
           status=0
@@ -147,5 +170,5 @@ jobs:
           fi
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git commit -m "Update PrivateBin version state to $LATEST_TAG"
+          git commit -m "Update PrivateBin version state to $latest_tag"
           git push

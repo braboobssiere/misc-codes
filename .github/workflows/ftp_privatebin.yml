@@ -85,6 +85,11 @@ jobs:
 
           sudo apt-get update && sudo apt-get install -y lftp
 
+            # FTP deploy directly from $SOURCE_DIR
+            # {
+            #   "host": "ftp.example.com", "port": 21, "username": "your_username", "password": "your_password", "remote_folder": "/path/to/remote/folder"
+            # }
+
           deploy_instance() {
             local n="$1"
             local config="$2"
